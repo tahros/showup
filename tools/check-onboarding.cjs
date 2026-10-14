@@ -36,10 +36,20 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['dark','light']
  await p.fill('#onbBw','176');
  if(SHOT&&go==='train')await p.screenshot({path:`${SHOT}/ob-3-${theme}-${w}.png`});
  f=await fits();ok(`${tag} step 3 fits`,f.sw<=f.vw&&!f.over,f);
- await p.click('[data-onbact="toStep4"]');await p.waitForTimeout(2200);
+ await p.click('[data-onbact="toStep4"]');await p.waitForTimeout(2600);
+ /* v4.6.311: step 3 of 4 is the companion -- nine to choose from, named, then it comes along */
+ d=await p.evaluate(()=>{const o=document.getElementById('onb');return {step:o.dataset.step,t:o.querySelector('.ad-t')?.textContent,n:o.querySelectorAll('.ad-c').length,dim:o.querySelectorAll('.ad-dim').length};});
+ ok(`${tag} then a companion comes along: "Jason, someone wants to come along.", nine to choose, none locked`,d.step==='4'&&d.t==='Jason, someone wants to come along.'&&d.n===9&&d.dim===0,d);
+ f=await fits();ok(`${tag} the companion step fits`,f.sw<=f.vw&&!f.over,f);
+ await p.click('#onb [data-ad="plate"]');await p.waitForTimeout(900);
+ d=await p.evaluate(()=>({name:document.getElementById('adName').value,go:document.querySelector('#onb .ad-go').textContent}));
+ ok(`${tag} the pick offers its name, editable: Plato`,d.name==='Plato'&&d.go==='Welcome, Plato',d);
+ await p.fill('#adName','Plates');await p.click('#onb .ad-go');await p.waitForTimeout(2800);
+ d=await p.evaluate(()=>({a:DB.settings.clubAvatar,free:DB.settings.companionFree,n:DB.settings.companionName,jump:document.querySelector('#onb .ob-jump .su-companion')?.dataset.companion}));
+ ok(`${tag} Plates is kept (yours for good as the free one) and does the jump on the next screen`,d.a==='plate'&&d.free==='plate'&&d.n==='Plates'&&d.jump==='plate',d);
  d=await p.evaluate(()=>{const o=document.getElementById('onb');return {step:o.dataset.step,in:o.querySelector('.ob-in')?.textContent,cards:[...o.querySelectorAll('.ob-card b')].map(x=>x.textContent)};});
- ok(`${tag} You're in, Jason -- four ways to start (v4.6.274: Bring my past workouts)`,d.step==='4'&&d.in==="You're in, Jason."&&d.cards.join('|')==="I'm training now|Plan my next workout|Bring my past workouts|Just looking around",d);
- f=await fits();ok(`${tag} step 4 fits`,f.sw<=f.vw&&!f.over,f);
+ ok(`${tag} You're in, Jason -- four ways to start (v4.6.274: Bring my past workouts)`,d.step==='5'&&d.in==="You're in, Jason."&&d.cards.join('|')==="I'm training now|Plan my next workout|Bring my past workouts|Just looking around",d);
+ f=await fits();ok(`${tag} You're in fits`,f.sw<=f.vw&&!f.over,f);
  if(SHOT&&go==='train')await p.screenshot({path:`${SHOT}/ob-4-${theme}-${w}.png`});
  await p.click(`[data-onbact="go"][data-onbgo="${go}"]`);await p.waitForTimeout(900);
  d=await p.evaluate(()=>({hidden:document.getElementById('onb').hidden,view,onb:!!DB.settings.onboarded,name:DB.settings.name,unit:DB.settings.unit,kg:DB.settings.bodyKg,parts:(DB.settings.myParts||[]).join(),bar:DB.settings.barKg,plan:!!document.querySelector('.pf-workspace,.pw-workspace')}));
@@ -58,8 +68,11 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['dark','light']
   await p.route('**/*',r=>r.request().url().startsWith(BASE)?r.continue():r.abort());await p.goto(BASE);await p.waitForTimeout(4000);
   await p.click('[data-onbact="local"]');await p.waitForTimeout(600);await p.click('[data-onbp="Legs"]');await p.click('[data-onbact="skip"]');await p.waitForTimeout(600);
   let d=await p.evaluate(()=>({step:document.getElementById('onb').dataset.step,in:document.querySelector('#onb .ob-in')?.textContent}));
-  ok('Skip lands on You\'re in (no name yet)',d.step==='4'&&d.in==="You're in.",d);
+  ok('Skip lands on You\'re in (no name yet), past the companion; no prompt for one later',d.step==='5'&&d.in==="You're in."&&!!(await p.evaluate(()=>DB.settings.companionAsked)),d);
+  await p.click('[data-onbact="back"]');await p.waitForTimeout(400);
+  d=await p.evaluate(()=>document.getElementById('onb').dataset.step);ok('Back from You\'re in returns to the companion',d==='4',d);
   await p.click('[data-onbact="back"]');await p.waitForTimeout(400);await p.fill('#onbBw','80');await p.click('[data-onbact="notnow"]');await p.waitForTimeout(400);
+  await p.click('[data-onbact="skip"]');await p.waitForTimeout(400);
   await p.click('[data-onbact="go"][data-onbgo="look"]');await p.waitForTimeout(500);
   d=await p.evaluate(()=>({kg:DB.settings.bodyKg,legs:(DB.settings.myParts||[]).includes('Legs'),onb:!!DB.settings.onboarded}));
   ok('Back, then Not now: no bodyweight saved; the skipped part choice is kept',d.onb&&d.kg!==80&&!d.legs,d);

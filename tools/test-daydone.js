@@ -216,7 +216,7 @@ ok("pressing it places the day", run(`!!document.getElementById('dayDone')`));
   // v4.1.10 replaced the streak square with the compact blue mascot.
   // Keep testing that approved hierarchy, not geometry of a removed element.
   ok('completed card has no obsolete streak square',run(`!document.querySelector('.dayclosed .dcsq')`));
-  ok('completed card has the blue mascot',run(`!!document.querySelector('.dayclosed [data-mascot="cool"]')`));
+  ok('completed card has the companion at rest (v4.6.311: in Pip\'s place)',run(`!!document.querySelector('.dayclosed .su-companion.su-comp-rest')`));
   const mascotCSS=fs.readFileSync(path.join(dir,'css/mascot.css'),'utf8');
   ok('completed mascot retains compact 94px desktop scale',/\.card\.dayclosed \.su-mascot\{[^}]*width:94px/.test(mascotCSS));
   ok('completed mascot retains compact 71px phone scale',/@media\(max-width:360px\)[^}]*\.card\.dayclosed \.su-mascot\{width:71px/.test(mascotCSS));

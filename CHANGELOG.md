@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.311 — Your companion, in Pip's place
+- One character per screen. The companion you chose stands where Pip stood in your own moments: Today's hello row (resting on rest days, active while you train), the live workout, the done-for-the-day card and the tip bubble. On the day-done screen the logo shows the wordmark alone and the companion hops in beside your day count. Pip stays the app's face on the first-run screens, the first-day welcome, the club welcome and shared images.
+- Setup gains a step (now four): after Pip says hello, "Sungjee, someone wants to come along." Pick one of the nine, name it (a suggestion per character: Snap, Plato, Kettle, Rolly, Sip, Duffy, Bounce, Matty, Beats), and it comes along; it does the jump on "You're in". Skip goes past it.
+- Everyone chooses their first companion freely; it is theirs for good. Once the paywall is live, membership unlocks switching to the other eight (v4.6.310's lock now keeps the one you chose, not the one dealt).
+- People who set up before this meet their companion once, on Today, with Not now to decline.
+- Follows the Mascot setting: off shows no companion.
+- Tests: new tools/check-companion.cjs; check-onboarding.cjs covers the new step; test-daydone, test-mascot and test-mascottone expect the companion where Pip was.
+
 ## v4.6.310 — One companion free; the rest are a member's
 - Once the paywall is live, a non-member keeps the profile icon the app dealt them; the other eight are dimmed with a lock, and tapping one opens Join the club. The note under the grid names their icon: "The medicine ball is yours. Members pick any of the nine. Join the club".
 - A pick made as a member is kept, not erased: a lapsed member sees their dealt icon, and their pick returns when they rejoin. Members see all nine, as before. Nothing changes before launch.

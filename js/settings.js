@@ -295,7 +295,7 @@ function clubIdentity(){return session?.user?.id||DB.settings.clubGuest?.id||(DB
 /* v4.6.310: ONE ICON IS YOURS; THE REST COME WITH MEMBERSHIP. A non-member (once the paywall is
    live) keeps the companion the app dealt them and sees the others locked; tapping one opens Join
    the club. A choice made as a member is kept, not erased, and comes back when they rejoin. */
-function clubFreeIcon(){return CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}
+function clubFreeIcon(){return CLUB_ICONS.find(x=>x[0]===DB.settings.companionFree)||CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}  /* v4.6.311: the one you chose at setup, else the one dealt */
 function clubIconsLocked(){return typeof paywallLive==='function'&&paywallLive()&&typeof isMember==='function'&&!isMember();}
 /* v4.6.311: YOUR COMPANION IN PIP'S PLACE. In your own moments -- Today's hello, tips, the day-done
    count -- the companion you picked stands where Pip stood; one character per screen. Pip stays the
@@ -836,39 +836,49 @@ const COMPANION_NAMES={band:'Snap',plate:'Plato',bell:'Kettle',roller:'Rolly',bo
 function companionName(){return DB.settings.companionName||COMPANION_NAMES[clubAvatar()[0]]||'Buddy';}
 /* the ceremony's body, shared by first-run (step 4 of setup) and the one-time overlay for people
    who set up before companions existed */
-function adoptMarkup(intro){
-  const locked=clubIconsLocked(),free=clubFreeIcon()[0];
+function adoptMarkup(intro,later){
+  /* everyone chooses here (Sungjee, 2026-10-14): the first pick is free; membership unlocks switching */
+  const locked=false,free=null;
   const pip=`<img class="ad-pip" src="assets/mascot-${document.documentElement.dataset.theme==='dark'?'white':'chrome'}.png" alt="" aria-hidden="true">`;
-  return `<div class="ad-in">${pip}<h2 id="adTitle" class="ad-t">${intro||'Someone’s been watching you show up.'}</h2>
+  return `<div class="ad-in">${later?'<button type="button" class="ad-later" data-ad-later>Not now</button>':''}${pip}<h2 id="adTitle" class="ad-t">${intro||'Someone’s been watching you show up.'}</h2>
     <p class="ad-s">${locked?'One of them has picked you.':'Pick the one that comes along.'}</p>
     <div class="ad-grid">${CLUB_ICONS.map((i,n)=>`<button type="button" class="ad-c${locked&&i[0]!==free?' ad-dim':''}" data-ad="${i[0]}" style="--n:${n}" ${locked&&i[0]!==free?'tabindex="-1" aria-hidden="true"':''}>${clubIconHTML(i,true).replace('club-avatar ','club-avatar club-visible ')}<span>${i[1]}</span></button>`).join('')}</div>
     <div class="ad-name" hidden><div class="ad-hero"></div><p class="ad-s ad-pickline"></p><label class="ad-lab" for="adName">Name</label><input id="adName" maxlength="16" autocomplete="off" spellcheck="false"><button type="button" class="btn ad-go"></button></div></div>`;
 }
 function adoptBind(el,done){
-  const locked=clubIconsLocked();let pick=locked?clubFreeIcon()[0]:null;
+  const locked=false;let pick=null;
   if(locked)setTimeout(()=>el.classList.add('ad-picked'),2300);
   const choose=k=>{pick=k;const i=CLUB_ICONS.find(x=>x[0]===k);el.classList.add('ad-naming');
     el.querySelector('.ad-hero').innerHTML=clubIconHTML(i,true).replace('club-avatar ','club-avatar club-visible ');
     el.querySelector('.ad-pickline').textContent=locked?'This one picked you.':'Good choice.';
     const inp=el.querySelector('#adName');inp.value=COMPANION_NAMES[k]||'';el.querySelector('.ad-name').hidden=false;
     const go=el.querySelector('.ad-go');const lab=()=>go.textContent='Welcome, '+(inp.value.trim()||COMPANION_NAMES[k]);lab();inp.oninput=lab;};
-  el.addEventListener('click',e=>{const c=e.target.closest('[data-ad]');
+  el.addEventListener('click',e=>{if(e.target.closest('[data-ad-later]')){DB.settings.companionAsked=todayISO;DB.settingsAt=Date.now();save(true);done(true);return;}const c=e.target.closest('[data-ad]');
     if(c&&!c.classList.contains('ad-dim')){if(locked&&!el.classList.contains('ad-picked'))el.classList.add('ad-picked');choose(c.dataset.ad);return;}
     if(e.target.closest('.ad-go')){const name=el.querySelector('#adName').value.trim()||COMPANION_NAMES[pick];
-      if(!locked)DB.settings.clubAvatar=pick;DB.settings.companionName=name;DB.settings.companionSince=todayISO;DB.settingsAt=Date.now();save(true);
+      DB.settings.clubAvatar=pick;if(!DB.settings.companionFree)DB.settings.companionFree=pick;DB.settings.companionName=name;DB.settings.companionAsked=todayISO;DB.settings.companionSince=todayISO;DB.settingsAt=Date.now();save(true);
       el.querySelector('.ad-pickline').textContent=`${name}’s with you now.`;el.classList.add('ad-arrive');
       setTimeout(done,2200);}});
 }
 function adoptOpen(){
   if(document.getElementById('adopt'))return;
   const el=document.createElement('div');el.id='adopt';el.className='ad-root';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','adTitle');
-  el.innerHTML=adoptMarkup();document.body.appendChild(el);
+  el.innerHTML=adoptMarkup('Someone wants to come along.',true);document.body.appendChild(el);
   adoptBind(el,()=>{el.classList.add('ad-out');setTimeout(()=>{el.remove();render();},500);});
 }
+/* People who set up before companions existed meet theirs once, on Today. Not under automation
+   (Playwright, jsdom): a dialog that opens on a timer would sit over every other check. */
+function adoptDue(){
+  return !!DB.settings.onboarded&&!DB.settings.companionName&&!DB.settings.companionAsked&&!DB.settings.demo&&
+    (typeof mascotMode!=='function'||mascotMode()!=='off')&&typeof view!=='undefined'&&view==='today'&&
+    !document.querySelector('#onb:not([hidden]),#dayDone,#paywall,#mbManage,#memberWelcome,#adopt')&&!(typeof modalOpen==='function'&&modalOpen());
+}
+function adoptAuto(){return !navigator.webdriver&&!/jsdom/i.test(navigator.userAgent||'');}
 (function(){const s=document.createElement('style');s.textContent=`
 #adopt{position:fixed;inset:0;z-index:8700;overflow:auto;overscroll-behavior:contain;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;padding:calc(env(safe-area-inset-top) + 40px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:adFade .5s ease-out both}
 #adopt.ad-out{animation:adFade .5s ease-in reverse both}
 .ad-root .ad-in{width:100%;max-width:400px;text-align:center;position:relative}
+.ad-root .ad-later{all:unset;cursor:pointer;position:absolute;top:-24px;right:0;font:500 14px var(--body);color:var(--muted);padding:8px 4px}
 .ad-root .ad-pip{display:block;width:120px;margin:0 auto 14px;animation:adPip 1.1s .2s cubic-bezier(.3,1.6,.5,1) both}
 .ad-root.ad-naming .ad-pip{animation:adPipWave .9s ease-in-out both}
 .ad-root.ad-arrive .ad-pip{animation:adPipOff .7s .2s ease-in both}

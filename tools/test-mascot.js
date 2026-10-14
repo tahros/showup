@@ -62,7 +62,7 @@ const snapshot=run('JSON.stringify(DB)');
 run("document.querySelector('[data-dd=\"done\"]').click();celebrateDayDone(true)");
 ok('milestone replay cannot change ledger or timestamps',snapshot===run('JSON.stringify(DB)'));
 run("document.querySelector('[data-dd=\"done\"]').click();plLog({part:'Chest',ex:'Bench Press',w:60,reps:[5],at:Date.now()});reopen('Bench Press','Chest');render();");   // v4.6.71: a reopen comes with its set
-ok('new set reopens live red mascot',run('!dayMeta().doneAll&&!!document.querySelector("[data-mascot=active]")'));
+ok('new set reopens the live day with the companion active (v4.6.311: in Pip\'s place)',run('!dayMeta().doneAll&&!!document.querySelector(".su-companion.su-comp-active")'));
 /* v4.6.69/71: a set after Complete is a NEW session, and the recompletion
    describes that session -- from its own first set, not the morning's. The
    old assertion here ("keeps original start") was the 7-hour bar. The fixture

@@ -360,7 +360,7 @@ document.addEventListener('click',e=>{
   else if(act==='toStep4'){ onbStep=4; onbRender(); }
   else if(act==='notnow'){ onbBw=''; onbStep=4; onbRender(); }
   else if(act==='back'){ if(onbStep>2){ onbStep--; onbRender(); } }
-  else if(act==='skip'){ onbStep=onbStep<4?4:5; onbRender(); }          // v4.6.262: skip keeps what you picked and lands on "You're in"
+  else if(act==='skip'){ DB.settings.companionAsked=todayISO; onbStep=5; onbRender(); }          // v4.6.311: skip goes past the companion too; the dealt one comes along, no prompt later          // v4.6.262: skip keeps what you picked and lands on "You're in"
   else if(act==='go') onbFinish(false,a.dataset.onbgo);
   else if(act==='finish') onbFinish(false);
   else if(act==='demo') demoLoad();
@@ -471,6 +471,8 @@ function focusedTodayHTML(){
   return template.innerHTML;
 }
 function renderToday(){
+  /* v4.6.311: someone who set up before companions existed meets theirs here, once */
+  if(typeof adoptDue==='function'&&adoptAuto()&&!window._adoptT)window._adoptT=setTimeout(()=>{window._adoptT=0;if(adoptDue())adoptOpen();},1400);
   if(lift.plan==='workspace'){pwRender();return;}
   /* v3.3.319: the paste/preview screen is a full-tab takeover that renderLift
      has owned since v3.3.278. Now that Paste lives on Today, this tab has to

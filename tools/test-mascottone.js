@@ -49,8 +49,9 @@ ok('...and "cool" still means blue, as it always did',
 
 // ---- the ceremony itself
 const src=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
+/* v4.6.311: with a companion the ceremony shows the wordmark alone (showupppLogoHTML('c',true,!!comp)); Pip's jump stays blue where it plays */
 ok('the completion moment asks for blue on its jump',
-   /showupppLogoHTML\('c',true\)/.test(src) &&
+   /showupppLogoHTML\('c',true,!!comp\)/.test(src) && run(`!/data-mascot=/.test(showupppLogoHTML('c',true,true))`) &&
    run(`/data-mascot="jump"/.test(showupppLogoHTML('c',true)) && /data-mascot-tone="blue"/.test(showupppLogoHTML('c',true))`));
 ok('...and on its dance', /mascotHTML\('dance','','blue'\)/.test(src));
 ok('...and no longer leaves either to the theme',
