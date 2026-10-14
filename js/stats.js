@@ -1708,24 +1708,29 @@ let psUid=0;
 function psFigure(part,col){const id='psc'+(psUid++);
   return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="160"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part,col)}</g></svg>`;}
 function psBody(){
-  const st=psState(),{parts}=psData(st.p),w=st.m==='w',ss=st.m==='s';
-  const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):ss?x.sets:x.days;
-  const show=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'k':fmt(Math.round(n));
-  const unit=x=>w?(x.p==='Run'?DU():x.p==='Sixpack'&&!x.kg?'body weight':U()):ss?(x.p==='Run'?(x.sets===1?'run':'runs'):(x.sets===1?'set':'sets')):(x.days===1?'day':'days');
-  const rank=x=>{const v=val(x);return (w||ss)&&x.p==='Run'?-1:v==null?-2:v;};   /* miles, runs and body weight cannot outrank pounds or sets */
-  /* v4.6.319: the lit part says how much, too -- its colour runs from faint (least) to full (most), on the same scale as the numbers; nothing logged stays grey (Sungjee, 2026-10-14) */
-  const peer=x=>!((w||ss)&&x.p==='Run'),top=Math.max(0,...parts.filter(peer).map(x=>val(x)||0));
-  const tone=x=>{const v=val(x),c=PART_COLORS[x.p]||'var(--muted)';if(!v)return 'var(--ps-off)';if(!peer(x)||!top)return c;return `color-mix(in srgb,${c} ${Math.round(28+72*Math.min(1,v/top))}%,var(--ps-off))`;};
+  const st=psState(),{parts,from}=psData(st.p),w=st.m==='w',ss=st.m==='s';
+  /* v4.6.319: days read as a rate -- times a week over the weeks so far -- so a month and a year
+     speak the same small number instead of a total that only grows (Sungjee, 2026-10-14) */
+  const weeks=Math.max(1,(new Date(todayISO+'T00:00')-new Date(from+'T00:00'))/864e5+1)/7;
+  const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):ss?x.sets:Math.round(x.days/weeks*10)/10;
+  const show=n=>n==null?'—':st.m==='d'?n.toFixed(1):n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e4?Math.round(n/1e3)+'k':fmt(Math.round(n));
+  /* the unit is said once, above the shelf; only a tile in a different unit carries its own */
+  const odd=x=>(w||ss)&&x.p==='Run'?(w?DU():(x.sets===1?'run':'runs')):x.p==='Sixpack'&&w&&!x.kg?'body weight':'';
+  const cap=w?'Weight moved, '+U():ss?'Sets':'Days a week';
+  const peer=x=>!((w||ss)&&x.p==='Run');
+  const rank=x=>{const v=val(x);return peer(x)?(v==null?-2:v):-1;};   /* miles, runs and body weight cannot outrank pounds or sets */
   const list=st.o==='most'?[...parts].sort((a,b)=>rank(b)-rank(a)):parts;
-  const pool=parts.filter(x=>val(x)!=null&&peer(x)),hi=[...pool].sort((a,b)=>val(b)-val(a))[0],lo=[...pool].sort((a,b)=>val(a)-val(b))[0];
+  /* only the extremes take colour: the most and the least worked parts (ties share it); the rest stay quiet */
+  const pool=parts.filter(x=>peer(x)&&val(x)!=null),vals=pool.map(val),hiV=Math.max(...vals),loV=Math.min(...vals);
+  const tag=x=>{if(!peer(x)||!pool.length||hiV===loV)return '';const v=val(x);return v===hiV?'most':v===loV?'least':'';};
   const when=st.p==='m'?new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}):todayISO.slice(0,4)+' so far';
   const nm=p=>p==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(p):p);
   const btn=(k,v,on,label)=>`<button type="button" data-ps="${k}" value="${v}" aria-pressed="${on}">${label}</button>`;
   return `<div class="ps-seg" role="group" aria-label="Measure">${btn('m','d',st.m==='d','Days')}${btn('m','s',ss,'Sets')}${btn('m','w',w,'Weight')}</div>
     <div class="ps-row"><span class="ps-pill" role="group" aria-label="Period">${btn('p','m',st.p==='m','This month')}${btn('p','y',st.p==='y','This year')}</span>
       <span class="ps-pill" role="group" aria-label="Order">${btn('o','body',st.o==='body','Body')}${btn('o','most',st.o==='most','Most')}</span></div>
-    <div class="ps-shelf">${list.map(x=>{const v=val(x);return `<button type="button" class="ps-t${!v?' ps-zero':''}${psToday().has(x.p)?' ps-today':''}" data-part="${x.p}" data-v="${v??''}" aria-label="${nm(x.p)}: ${show(v)} ${unit(x)}. Open muscles">${psFigure(x.p,tone(x))}<b>${show(v)}</b><small>${unit(x)}</small><span>${nm(x.p)}</span></button>`;}).join('')}</div>
-    <div class="ps-foot"><span>${when}</span>${hi&&val(hi)?`<span>Most <i>${nm(hi.p)}</i> ${show(val(hi))} · Least <i>${nm(lo.p)}</i> ${show(val(lo))}</span>`:''}</div>`;
+    <div class="ps-cap"><b>${cap}</b> · ${when}</div>
+    <div class="ps-shelf">${list.map(x=>{const v=val(x),t=tag(x),o=odd(x);return `<button type="button" class="ps-t${!v?' ps-zero':''}${t?' ps-'+t:''}${psToday().has(x.p)?' ps-today':''}" data-part="${x.p}" aria-label="${nm(x.p)}: ${show(v)} ${o||cap.toLowerCase()}${t?', the '+t:''}. Open muscles">${psFigure(x.p,t?null:'var(--ps-off)')}<b><i class="ps-n">${show(v)}</i>${o?`<small> ${o}</small>`:''}</b><span>${nm(x.p)}</span>${t?`<em>${t}</em>`:''}</button>`;}).join('')}</div>`;
 }
 function partShelfSection(){
   setTimeout(psArm,0);
@@ -1749,7 +1754,7 @@ function psToday(){const set=new Set();
    tile after tile, while its number counts up; parts trained today glow once. Switching the
    measure or the period counts the numbers again. Still for reduced motion. */
 function psCount(card){
-  card.querySelectorAll('.ps-t b').forEach((b,i)=>{const t=b.textContent,m=t.match(/^([\d,.]+)(\D*)$/);if(!m)return;
+  card.querySelectorAll('.ps-t .ps-n').forEach((b,i)=>{const t=b.textContent,m=t.match(/^([\d,.]+)(\D*)$/);if(!m)return;
     const end=+m[1].replace(/,/g,''),dec=(m[1].split('.')[1]||'').length,suf=m[2],t0=performance.now()+i*70;
     const step=now=>{const k=Math.min(1,Math.max(0,(now-t0)/750)),e=1-Math.pow(1-k,3),v=end*e;
       b.textContent=(dec?v.toFixed(dec):Math.round(v).toLocaleString('en-US'))+suf;if(k<1)requestAnimationFrame(step);else b.textContent=t;};
