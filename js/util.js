@@ -2750,7 +2750,7 @@ function modalOpen(){
      <body> are pop-ups too. Without them here the pull-to-refresh and the
      bottom band ran under Join the club: the page behind sat at the top, so a
      drag down to scroll the paywall back up was taken as a pull and froze. */
-  return !!(document.querySelector('.pw-add-sheet,#paywall,#mbManage,#memberWelcome,#ownerDash')||(ov&&ov.style.display!=='none'&&ov.getClientRects().length)||document.querySelector('body > dialog[open]'));
+  return !!(document.querySelector('.pw-add-sheet,#paywall,#mbManage,#memberWelcome,#ownerDash,#adopt')||(ov&&ov.style.display!=='none'&&ov.getClientRects().length)||document.querySelector('body > dialog[open]'));
 }
 /* v4.6.308: where the page should be when the pop-up lets go. Joining from Settings scrolled
    down: the welcome flies the coin to the club card at the TOP, but the lock still held the page

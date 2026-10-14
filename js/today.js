@@ -689,7 +689,7 @@ function renderToday(){
        still carries the state and the invitation for anyone who cannot see
        the card do it visually. */
     return `<button class="card dayclosed" data-replayday="1" aria-label="Day ${fmt(_n)}, ${pretty(todayISO)}. Today is complete; logging another set reopens it. Tap to see it again.">
-          ${mascotHTML('cool')}
+          ${typeof companionHTML==='function'?companionHTML('su-hello-comp su-comp-rest'):mascotHTML('cool')}
           <b class="dcn">${fmt(_n)}</b>
           <span class="dcm">${_n===1?'day':'days'} of showing up</span>
         </button>`;
@@ -723,7 +723,7 @@ function renderToday(){
   h+=`<h2>${_closed&&planningWorkspace()?'Trained today':'Training today'}</h2>`;
   if(!_closed&&isLive()&&mascotMode()!=='off'){
     const activeSets=workoutCompletionMetrics({...t,completedAt:Date.now()}).sets;   // v4.6.69: the session you are in, not the day
-    h+=`<div class="su-active-row"><div><strong>You're in.</strong><span class="mono muted">${activeSets} set${activeSets===1?'':'s'} logged</span></div>${mascotHTML('active')}</div>`;
+    h+=`<div class="su-active-row"><div><strong>You're in.</strong><span class="mono muted">${activeSets} set${activeSets===1?'':'s'} logged</span></div>${typeof companionHTML==='function'?companionHTML('su-hello-comp su-comp-active'):mascotHTML('active')}</div>`;
   }
   if(doneLift.length) h+=`<div class="todaypartsline mono">${doneLift.map(partLabel).join(' · ')}</div>`;
   const byPart={};
