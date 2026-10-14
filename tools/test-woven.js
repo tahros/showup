@@ -41,6 +41,6 @@ check('custom names remain text',`!document.querySelector('#wovenExercises img')
 run(`WOVEN.end='2026-01-02';WOVEN.selected=null;wovenPaint();`);
 check('cross-year caption names both years',`document.getElementById('wovenPeriod').textContent.includes('2025')&&document.getElementById('wovenPeriod').textContent.includes('2026')`);
 const stats=fs.readFileSync(path.join(dir,'js/stats.js'),'utf8');
-assert.ok(stats.includes('_S.pmix + wovenSection() + _S.mc + _S.rz + _S.kpis + _S.mpace + _S.consrace'),'existing sections preserved in original order');
+assert.ok(stats.includes('_S.pmix + wovenSection() + _S.mc + _S.ps + _S.rz + _S.kpis + _S.mpace + _S.consrace'),'existing sections preserved in original order (v4.6.318: the part shelf follows This week)');
 console.log('PASS existing Stats sections preserved');
 }catch(e){console.error(e);process.exitCode=1;}finally{w.close();process.exit(process.exitCode||0)}

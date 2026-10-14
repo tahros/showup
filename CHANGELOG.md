@@ -1,5 +1,15 @@
 # ShowUppp — changelog
 
+## v4.6.318 — Every part, showing up
+
+- New Stats card under "This week": eight flat figures, one per body part. Each lights its own part in its colour; Cardio lights the heart.
+- Each tile shows days trained or weight moved, for this month or this year. Parts are counted by each set's primary muscle, the same way "This week" counts them.
+- Two orders: Body (each figure keeps a fixed place) or Most (the tiles slide into rank). Under weight moved, Cardio (miles) and body-weight Core never outrank pounds. All three choices are remembered.
+- The entrance: the first time the card comes into view, each part fills from the floor up while its number counts up, and parts trained today glow once. Switching the measure or period counts the numbers up again. Reduced motion keeps everything still.
+- Tap a part to open its muscles: front and back figures with each muscle lit by how often you trained it, then one row per muscle with days, the exercises that got it there, and when it was last trained. Cardio shows run days, distance and your last run.
+- "This week" and the part-mix legend say Core, not Sixpack.
+- New tools/check-part-shelf.cjs.
+
 ## v4.6.317 — One frame for everything you share
 
 - Every shared image now uses one 1080×1350 (4:5) frame. The 72px margins and the centred header are the same on all of them: a small label, a 48px title and a subtitle with the facts. Dates are written one way everywhere: "Wed, Oct 14, 2026" for a day, "Oct 5 – Oct 14, 2026" for a span.

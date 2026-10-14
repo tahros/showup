@@ -1706,7 +1706,7 @@ function psDelts(){let d='';for(const s of [-1,1])d+=`M${50+s*18.1} 41.5C${50+s*
 /* a tile: the quiet figure, and over it the lit one behind a clip that the entrance raises from the floor */
 let psUid=0;
 function psFigure(part){const id='psc'+(psUid++);
-  return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="170"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part)}</g></svg>`;}
+  return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="160"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part)}</g></svg>`;}
 function psBody(){
   const st=psState(),{parts}=psData(st.p),w=st.m==='w';
   const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):x.days;
@@ -1755,7 +1755,7 @@ function psPlay(card){
   if(card.classList.contains('ps-played'))return;card.classList.add('ps-played');
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   card.querySelectorAll('.ps-t').forEach((t,i)=>{
-    t.querySelector('.ps-clip')?.animate?.([{transform:'translateY(170px)'},{transform:'translateY(0)'}],{duration:760,delay:120+i*90,easing:'cubic-bezier(.3,.7,.2,1)',fill:'backwards'});
+    t.querySelector('.ps-clip')?.animate?.([{transform:"translateY(160px)"},{transform:"translateY(0)"}],{duration:760,delay:120+i*90,easing:'cubic-bezier(.3,.7,.2,1)',fill:'backwards'});
     if(t.classList.contains('ps-today'))t.querySelector('.ps-lit')?.animate?.([{filter:'none'},{filter:'drop-shadow(0 0 6px var(--ps-glow))'},{filter:'none'}],{duration:1100,delay:120+i*90+700,easing:'ease-in-out'});});
   psCount(card);}
 function psArm(){

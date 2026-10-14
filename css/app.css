@@ -4737,7 +4737,7 @@ body:has(#imp) #toast.on{transform:translateX(-50%)}
 .ps-foot span:last-child{text-align:right}
 .ps-foot i{font-style:normal;color:var(--chalk);font-weight:500}
 .ps-card{--ps-glow:color-mix(in srgb,var(--chalk) 35%,transparent)}
-.ps-card:not(.ps-played) .ps-clip{transform:translateY(170px)}
+.ps-card:not(.ps-played) .ps-clip{transform:translateY(160px)}
 @media (prefers-reduced-motion:reduce){.ps-card .ps-clip{transform:none!important}}
 .ps-shelf .ps-t{padding:4px 0 6px;border-radius:16px;font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;transition:transform .15s,background-color .15s}
 .ps-shelf .ps-t:active{transform:scale(.96);background:var(--surface2)}
