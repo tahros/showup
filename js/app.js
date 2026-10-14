@@ -2002,7 +2002,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
        and takes about a second to watch. countUpEl reads data-from/data-to
        and has existed since the Today card -- the ceremony never gave it
        either, so nothing here is new machinery. */
-    `<b class="ddn${count>=1000?' ddlarge':''}" data-from="0" data-to="${count}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
+    `<span class="dd-numrow"><b class="ddn${count>=1000?' ddlarge':''}" data-from="0" data-to="${count}">${fmt(count)}</b>${withMascot&&typeof companionHTML==='function'?companionHTML('dd-companion'):''}</span><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
     `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+
     `<div class="ddsummary">${withMascot&&forceCount==null?completionMetricsHTML(DB.days[todayISO]):summary}</div></div>`+
     /* v3.3.506: the photo option is gone from the ceremony -- the maker judged

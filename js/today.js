@@ -438,7 +438,7 @@ function focusedTodayHTML(){
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const parts=items.length?pwParts(pwRead(planText(now))).map(partLabel).join(' + '):'';
-  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
+  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${typeof companionDuo==='function'?companionDuo(mascotHTML('hello')):mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details><div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
   }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;
@@ -523,7 +523,7 @@ function renderToday(){
   }
   if(!logged){
     // ---- before the gym: what should I train
-    h+=`<div class="su-hello-row">${helloCard()}${mascotHTML(restingToday()?'rest':'hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}`;
+    h+=`<div class="su-hello-row">${helloCard()}${typeof companionDuo==='function'?companionDuo(mascotHTML(restingToday()?'rest':'hello')):mascotHTML(restingToday()?'rest':'hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}`;
     /* v3.3.319: before the gym, the plan is what you came to read — the same
        section the mid-session branch leads with, so Today shows one thing in
        both states. Rhythm left with it; it restated the streak and the day
