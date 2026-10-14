@@ -63,10 +63,10 @@ function mascotHTML(mode='hello',className='',tone=''){
 /* Approved A / C artwork, traced from the maker's board (see trace-showuppp.cjs).
    Presentation only: no timers, settings writes or completion bookkeeping.
    Keep the existing renderer lifecycle, static PNG and OS motion fallback. */
-function showupppLogoHTML(variant='a',completion=false){
+function showupppLogoHTML(variant='a',completion=false,noMascot=false){
   const v=variant==='c'?'c':'a';
   const tone=completion?'blue':document.documentElement.dataset.theme==='dark'?'white':'charcoal';
-  const mascot=mascotHTML(completion?'jump':'hello','',tone).replace('.png',v==='c'&&!isRetro()?'-body.png':'.png');
+  const mascot=noMascot?'':mascotHTML(completion?'jump':'hello','',tone).replace('.png',v==='c'&&!isRetro()?'-body.png':'.png');
   return '<div class="showuppp-lockup showuppp-'+v+(mascot?'':' showuppp-word-only')+'" role="img" aria-label="ShowUppp">'+
     (mascot?'<span class="showuppp-character">'+(v==='c'?'<i class="showuppp-ground" aria-hidden="true"></i>':'')+mascot+'</span>':'')+
     (v==='c'?showupppCompletionLettersHTML():'<img class="showuppp-lettering" src="assets/showuppp-a.svg" alt="" aria-hidden="true" width="345" height="230">')+'</div>';

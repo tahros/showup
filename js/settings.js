@@ -297,6 +297,15 @@ function clubIdentity(){return session?.user?.id||DB.settings.clubGuest?.id||(DB
    the club. A choice made as a member is kept, not erased, and comes back when they rejoin. */
 function clubFreeIcon(){return CLUB_ICONS[clubHash(clubIdentity())%CLUB_ICONS.length];}
 function clubIconsLocked(){return typeof paywallLive==='function'&&paywallLive()&&typeof isMember==='function'&&!isMember();}
+/* v4.6.311: YOUR COMPANION IN PIP'S PLACE. In your own moments -- Today's hello, tips, the day-done
+   count -- the companion you picked stands where Pip stood; one character per screen. Pip stays the
+   app's face where it speaks for itself: first run, the icon, the club welcome, shared images.
+   Follows the Mascot setting: animated plays the idle, still holds, off shows nothing. */
+function companionHTML(cls=''){
+  if(typeof mascotMode==='function'&&mascotMode()==='off')return '';
+  const c=clubAvatar(),anim=typeof mascotMode!=='function'||mascotMode()==='animated';
+  return `<span class="su-companion ${cls}" data-companion="${c[0]}" aria-hidden="true">${clubIconHTML(c,anim).replace('club-avatar ','club-avatar club-visible ')}</span>`;
+}
 function clubAvatar(){if(clubIconsLocked())return clubFreeIcon();const k=DB.settings.clubAvatar;return CLUB_ICONS.find(x=>x[0]===k)||clubFreeIcon();}
 function clubIconHTML(item,animated=false){return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
 function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}

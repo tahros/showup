@@ -1973,6 +1973,8 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
   o.id='dayDone';
   if(mile) o.classList.add('century');
   const withMascot=mascotMode()!=='off';
+  /* v4.6.311: your companion takes Pip's jump; the lockup shows the wordmark alone */
+  const comp=withMascot&&!mile&&typeof companionHTML==='function'?companionHTML('dd-companion'):'';
   const is25=withMascot&&forceCount==null&&DB.settings.mascot25Date===todayISO;
   if(withMascot)o.classList.add('su-celebration');
   if(withMascot&&!mile&&mascotMode()==='animated'&&!connected)o.dataset.entrance=ddNextEntrance();
@@ -1992,7 +1994,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
   o.setAttribute('role','dialog');
   o.setAttribute('aria-modal','true');
   o.setAttribute('aria-labelledby','ddHeading');
-  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?'<div class="ddhero ddbrand">'+showupppLogoHTML('c',true)+'</div>':''}`+(mile
+  o.innerHTML=`<div class="ddinner"><div class="dddate">${dateLabel}</div><div class="ddbody">${withMascot?'<div class="ddhero ddbrand'+(comp?' dd-wordonly':'')+'">'+showupppLogoHTML('c',true,!!comp)+'</div>':''}`+(mile
     ? `<span class="ddstage"><i class="ddsq" aria-hidden="true"></i><span class="ddmk" aria-hidden="true">${icon('brandmark',44)}</span></span>`
     : withMascot?'':`<i class="ddsq" aria-hidden="true"></i>`)+
     /* v4.3.5: THE NUMBER COUNTS UP. It was written finished, so the one
@@ -2002,7 +2004,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
        and takes about a second to watch. countUpEl reads data-from/data-to
        and has existed since the Today card -- the ceremony never gave it
        either, so nothing here is new machinery. */
-    `<b class="ddn${count>=1000?' ddlarge':''}" data-from="0" data-to="${count}">${fmt(count)}</b><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
+    `<span class="dd-numrow"><b class="ddn${count>=1000?' ddlarge':''}" data-from="0" data-to="${count}">${fmt(count)}</b>${comp}</span><span class="ddu">${count===1?'day':'days'} of showing up</span>`+
     `<h2 class="ddyou" id="ddHeading">You showed up.</h2>`+
     `<div class="ddsummary">${withMascot&&forceCount==null?completionMetricsHTML(DB.days[todayISO]):summary}</div></div>`+
     /* v3.3.506: the photo option is gone from the ceremony -- the maker judged

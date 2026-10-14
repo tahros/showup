@@ -167,3 +167,17 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 .showuppp-ground{position:absolute;left:0;right:0;bottom:0;height:5px;border-radius:50%;background:radial-gradient(ellipse,#0003 0%,#00000014 48%,#0000 74%);filter:blur(.5px);z-index:-1}
 :root[data-theme="dark"] .showuppp-ground{background:radial-gradient(ellipse,#0008 0%,#0003 48%,#0000 74%)}
 #dayDone.dd-ink .showuppp-ground{visibility:hidden}
+/* v4.6.311: the companion in Pip's place */
+.su-companion{display:block;flex:none;pointer-events:none}
+.su-companion .club-avatar{width:100%;height:100%}
+.su-hello-row .su-hello-comp{width:68px;height:68px;margin-right:6px;animation:compIn .7s .25s cubic-bezier(.3,1.6,.5,1) both}
+.rest-home .su-hello-row .su-hello-comp{width:118px;height:118px}
+.su-comp-rest .club-sprite{animation-duration:11s!important;filter:saturate(.75)}
+.tipn .tip-comp{width:46px;height:46px;margin:-6px 0 -6px -4px;animation:tipWave 1.1s ease-in-out .35s both}
+#dayDone .dd-numrow{display:inline-flex;align-items:flex-end;justify-content:center}
+#dayDone .dd-numrow>.dd-companion{width:92px;height:92px;margin:0 -100px 0 8px;animation:compHop 1.15s .55s cubic-bezier(.3,1.6,.5,1) both}
+#dayDone .dd-wordonly .showuppp-lockup{margin:0 auto}
+@keyframes compIn{from{opacity:0;transform:translateY(12px) scale(.6)}to{opacity:1;transform:none}}
+@keyframes compHop{0%{opacity:0;transform:translate(30px,40px) scale(.4) rotate(12deg)}40%{opacity:1;transform:translate(0,-44px) scale(1.06) rotate(-6deg)}62%{transform:translate(0,4px) scale(1.12,.88)}78%{transform:translate(0,-8px) scale(.97,1.03)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.su-hello-row .su-hello-comp,.tipn .tip-comp,#dayDone .dd-numrow>.dd-companion{animation:none}}
+:root[data-mascot-motion="still"] .su-companion{animation:none}
