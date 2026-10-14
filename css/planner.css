@@ -582,3 +582,8 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .crew-confirm-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.crew-confirm-btns .btn{margin:0;min-height:44px;font:600 14px var(--body);padding:8px 6px}
 .crew-rename-in{width:100%;box-sizing:border-box;margin:0 0 12px;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--chalk);font:700 20px var(--body);text-align:center}
 @keyframes crewPin{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:none}}
+/* v4.6.314: Pip's tile -- the mascot still, centred in the square */
+.club-pip{display:grid!important;place-items:center}.club-pip-img{width:112%;height:auto;max-width:none;position:relative;margin-top:4%}
+.club-pip.club-animate.club-visible .club-pip-img{animation:club-hop 5.8s ease-in-out infinite}
+.club-icon-grid [data-club-icon="pip"],.ad-grid [data-ad="pip"]{grid-column:1/-1}
+.club-icon-grid [data-club-icon="pip"] .club-avatar{width:132px;height:80px}
