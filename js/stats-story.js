@@ -603,7 +603,7 @@ function comparisonCard(card,kind){
    drawShareFooter(x,data,sans);
    return cv;
   };
-  await showCard(()=>{const cv=render();return typeof shareFrame==='function'?shareFrame(cv,{t:175,b:1125},{label:kind==='distance'?'Distance over time':'Cumulative progress',title:shareDay(new Date(current,mm,dd).toLocaleDateString('en-CA')),sub:kind==='distance'?'Distance run since Jan 1, year by year':'Days showing up since Jan 1, year by year'}):cv;},'showup-'+(kind==='distance'?'distance':'days')+'-compare-'+current+'-'+String(mm+1).padStart(2,'0')+String(dd).padStart(2,'0'),false);
+  await showCard(()=>{const cv=render();return typeof shareFrame==='function'?shareFrame(cv,{t:175,b:1125},{label:kind==='distance'?'Distance, year by year':'Days, year by year',title:shareDay(new Date(current,mm,dd).toLocaleDateString('en-CA')),sub:kind==='distance'?'Distance run since Jan 1, year by year':'Days showing up since Jan 1, year by year'}):cv;},'showup-'+(kind==='distance'?'distance':'days')+'-compare-'+current+'-'+String(mm+1).padStart(2,'0')+String(dd).padStart(2,'0'),false);
   if(gifModule&&videoModule)bindPlateExport(data,null,gifModule,videoModule,{render,label:'Year comparison video preview'});
  }
  const shareBtn=card.querySelector('.comparison-share');if(shareBtn)shareBtn.onclick=async()=>{shareBtn.disabled=true;try{await share();}catch(_e){toast('Could not prepare the export. Please try again.');}finally{shareBtn.disabled=false;}};

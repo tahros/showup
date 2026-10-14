@@ -393,7 +393,7 @@ async function shareDayReview(button){
     for(let y=0;y<pip.height;y++)for(let x=0;x<pip.width;x++)if(pixels[(y*pip.width+x)*4+3]>16){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
     data.pipBounds={x:x0,y:y0,w:Math.max(1,x1-x0+1),h:Math.max(1,y1-y0+1)};
     if(!button.isConnected)return; // Do not reopen a share after leaving this day/account.
-    await showCard(()=>{const cv=drawDayReview(data);return typeof shareFrame==='function'?shareFrame(cv,window.__shareBand,{label:'Day log',valign:'top',title:shareDay(data.date),sub:[data.parts.map(p=>typeof partLabel==='function'?partLabel(p):p).join(' \u00b7 '),data.dayCount?'Day '+fmt(data.dayCount):''].filter(Boolean).join(' \u00b7 ')}):cv;},'showuppp-your-day-'+data.date,false);
+    await showCard(()=>{const cv=drawDayReview(data);return typeof shareFrame==='function'?shareFrame(cv,window.__shareBand,{label:'Last vs today',valign:'top',title:shareDay(data.date),sub:[data.parts.map(p=>typeof partLabel==='function'?partLabel(p):p).join(' \u00b7 '),data.dayCount?'Day '+fmt(data.dayCount):''].filter(Boolean).join(' \u00b7 ')}):cv;},'showuppp-your-day-'+data.date,false);
     bindPlateExport(data,null,module,video,{gif:false,render:(t,c)=>drawDayReview(data,matchMedia('(prefers-reduced-motion: reduce)').matches?undefined:t,c),duration:Math.max(3500,1800+data.rows.reduce((n,r)=>n+r.lanes.length,0)*260),label:'Your day, set by set'});
   }catch(e){toast('Could not prepare your day. Please try again.');}
   finally{if(button.isConnected)button.disabled=false;}
