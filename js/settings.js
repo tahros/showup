@@ -370,7 +370,7 @@ function clubCardHTML(){
 }
 /* Move existing nodes, not copies: every established control, ID and handler
    survives. Unknown/new Settings sections stay visible rather than disappearing. */
-let clubKeepPicker=false;
+let clubKeepPicker=false,clubPickerOpen=false;   /* v4.6.325: an open picker survives a background re-render of Settings */
 function clubArrangeSettings(){
   const host=document.getElementById('view');if(!host||!host.querySelector('.club-card')||host.querySelector('.club-settings-groups'))return;
   const groups=[['profile','Profile','Name & body details',['You']],['appearance','Appearance','Theme, units & colors',['Display','Body-part colors','Week starts on','Mascot']],['training','Training','Feedback & planning',['Workout feedback','Planning','Holding weight','Avoided exercises','What you train','Bars','Same exercise, two names']],['connections','Connections','Health & reminders',['Reminders','Apple Health']],['account','Account & data','Membership, sign-in & backups',['Membership','Account & cloud sync','Your data']]];
@@ -378,7 +378,7 @@ function clubArrangeSettings(){
   for(const [key,title,sub,headings] of groups){const nodes=[];for(const h of Array.from(host.children).filter(n=>n.tagName==='H2'&&headings.includes(n.textContent.trim()))){nodes.push(h);let n=h.nextElementSibling;while(n&&n.tagName!=='H2'&&!n.classList.contains('assetcredits')){const next=n.nextElementSibling;nodes.push(n);n=next;}}
     if(!nodes.length)continue;const d=document.createElement('details');d.className='club-settings-group';d.dataset.clubGroup=key;d.open=clubOpenGroups.has(key);const s=document.createElement('summary');s.innerHTML=`<span><b>${title}</b><small>${sub}</small></span><span aria-hidden="true">+</span>`;d.append(s);const content=document.createElement('div');content.className='club-group-content';nodes.forEach(n=>content.append(n));d.append(content);d.addEventListener('toggle',()=>{if(d.open)clubOpenGroups.add(key);else clubOpenGroups.delete(key)});wrap.append(d);
   }
-  if(clubKeepPicker){clubKeepPicker=false;const pk=host.querySelector('.club-picker');if(pk){pk.hidden=false;host.querySelector('.club-avatar-button')?.setAttribute('aria-expanded','true');}}
+  if(clubKeepPicker||clubPickerOpen){clubKeepPicker=false;clubPickerOpen=true;const pk=host.querySelector('.club-picker');if(pk){pk.hidden=false;host.querySelector('.club-avatar-button')?.setAttribute('aria-expanded','true');}}
   clubObserveMotion();
   clubBindCoin();
 }
@@ -401,14 +401,16 @@ document.addEventListener('click',e=>{
   const b=e.target.closest?.('[data-club-picker],[data-club-close],[data-club-icon],[data-club-edit],[data-club-history],[data-club-copy]');if(!b)return;
   if(b.hasAttribute('data-club-copy')){void clubCopyMembership();return;}
   const card=b.closest('.club-card'),picker=card?.querySelector('.club-picker');
-  if(b.hasAttribute('data-club-picker')||b.hasAttribute('data-club-close')){picker.hidden=b.hasAttribute('data-club-close')||!picker.hidden;card.querySelector('.club-avatar-button').setAttribute('aria-expanded',String(!picker.hidden));if(!picker.hidden)picker.querySelector('[aria-pressed=true]').focus();else card.querySelector('.club-avatar-button').focus();return;}
+  if(b.hasAttribute('data-club-picker')||b.hasAttribute('data-club-close')){picker.hidden=b.hasAttribute('data-club-close')||!picker.hidden;clubPickerOpen=!picker.hidden;card.querySelector('.club-avatar-button').setAttribute('aria-expanded',String(!picker.hidden));if(!picker.hidden)picker.querySelector('[aria-pressed=true]').focus();else card.querySelector('.club-avatar-button').focus();return;}
   if(b.dataset.clubIcon&&b.classList.contains('club-locked')){if(typeof paywallOpen==='function')paywallOpen('icon');return;}
+  /* v4.6.325: tapping the one already chosen again is the choice -- the picker closes as Done would (Sungjee, 2026-10-15) */
+  if(b.dataset.clubIcon&&b.dataset.clubIcon===clubAvatar()[0]&&b.getAttribute('aria-pressed')==='true'){picker.hidden=true;clubPickerOpen=false;const ab=card.querySelector('.club-avatar-button');ab.setAttribute('aria-expanded','false');ab.focus();return;}
   if(b.dataset.clubIcon&&crewState()&&b.dataset.clubIcon!==clubAvatar()[0]&&!b.classList.contains('club-locked')){crewSwitch(b.dataset.clubIcon);clubKeepPicker=true;renderSync();return;}
   if(b.dataset.clubIcon){const item=clubChoices().find(x=>x[0]===b.dataset.clubIcon);if(!item)return;DB.settings.clubAvatar=item[0];save(true);card.querySelector('.club-avatar-button').innerHTML=clubAvatarEditHTML(item);picker.querySelectorAll('[data-club-icon]').forEach(x=>{const on=x.dataset.clubIcon===item[0];x.setAttribute('aria-pressed',String(on));x.querySelector('.club-avatar').classList.toggle('club-animate',on)});clubObserveMotion();return;}
   if(b.hasAttribute('data-club-edit')){const g=document.querySelector('[data-club-group="profile"]');if(g){g.open=true;clubOpenGroups.add('profile');document.getElementById('youName')?.focus()}return;}
   if(b.hasAttribute('data-club-history')){view='history';lastView=null;render();}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){const card=document.querySelector('.club-card'),p=card?.querySelector('.club-picker');if(p&&!p.hidden){p.hidden=true;card.querySelector('.club-avatar-button').setAttribute('aria-expanded','false');card.querySelector('.club-avatar-button').focus()}}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const card=document.querySelector('.club-card'),p=card?.querySelector('.club-picker');if(p&&!p.hidden){p.hidden=true;clubPickerOpen=false;card.querySelector('.club-avatar-button').setAttribute('aria-expanded','false');card.querySelector('.club-avatar-button').focus()}}});
 
 /* ---------- v3.3: data out ---------- */
 const EXP_HEAD=['date','part','exercise','weight_kg','reps','set_no','mins','secs','distance_km'];
