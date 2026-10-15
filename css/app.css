@@ -1061,6 +1061,8 @@
     html.bigtimer body > #hTimer.on .rt-buddy{
       display:block;position:absolute;z-index:2;right:2.6%;bottom:2.5%;width:14vw;height:14vw;max-height:24vh;max-width:24vh;object-fit:contain;
       animation:none;pointer-events:none}
+    html.bigtimer body > #hTimer.on .rt-buddy.rt-roaming{
+      right:0;bottom:2.5%;width:100%;height:min(11.111vw,24vh);max-width:none;max-height:none;object-fit:contain;object-position:center bottom}
     @keyframes rtBuddyHop{
       0%,2.5%,16%,100%{transform:translateY(0) rotate(0) scale(1)}
       4%{transform:translateY(0) scale(1.08,.9)}

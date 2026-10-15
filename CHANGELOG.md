@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.334 — Your Crew roams beside the timer
+
+- All ten white Crews now roam along the bottom of the landscape timer using the approved 3D animations. The clock and exercise text stay centered and still.
+- Pip rolls at the approved 45-degree angle; Kettle and Duffy have smooth attached handles; Snap keeps facing you. Rolly and Matty pause, look toward you, then turn back.
+- Reduced motion and Still use the selected Crew's still image. Off hides it; unavailable animations fall back to the still without interrupting your timer.
+
 ## v4.6.333 — 2026-10-15
 - Home "days of showing up" card: the crew is bigger and every crew carries the same visual weight (scaled by how much of its art the body fills); the water bottle sits 15% smaller. Pip and every crew stand on the same floor above the number, and the card is the same height whoever is on it.
 

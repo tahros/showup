@@ -22,16 +22,24 @@ assert(await p.locator('.rt-colon').evaluate(e=>parseFloat(getComputedStyle(e).o
 assert.equal(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e,'::before').display),'none');
 assert(await p.locator('#hTimer .rt-buddy').isVisible());
 await p.locator('#hTimer .rt-buddy').evaluate(e=>e.decode());
-assert(await p.locator('#hTimer .rt-buddy').evaluate(e=>e.complete&&e.naturalWidth>0&&getComputedStyle(e).animationName==='none'&&e.src.endsWith('/white/pip.webp')));
+assert(await p.locator('#hTimer .rt-buddy').evaluate(e=>e.complete&&e.naturalWidth===1080&&getComputedStyle(e).animationName==='none'&&e.src.endsWith('/roaming/pip.webp')));
 for(const id of await p.evaluate(()=>clubChoices().map(x=>x[0]))){
  await p.evaluate(id=>{DB.settings.clubAvatar=id;DB.settings.companionName=id;DB.settings.companionFree=id;tickRest();},id);
  await p.locator('.rt-buddy').evaluate(e=>e.decode());
- assert(await p.locator('.rt-buddy').evaluate((e,id)=>e.dataset.crewId===id&&e.src.endsWith('/white/'+id+'.webp')&&e.naturalWidth===512,id));
+ assert(await p.locator('.rt-buddy').evaluate((e,id)=>e.dataset.crewId===id&&e.src.endsWith('/roaming/'+id+'.webp')&&e.naturalWidth===1080&&e.naturalHeight===120,id));
  assert(await p.evaluate(()=>lastSetAt===window.testAnchor));
 }
 await p.evaluate(()=>{DB.settings.clubAvatar='mat';tickRest();});await p.locator('.rt-buddy').evaluate(e=>e.decode());
 await p.screenshot({path:'../Crew-Final-Review/White-Crew-Timer.png'});
 console.log('PASS ten white selected crews; switching does not reset timer');
+await p.evaluate(()=>{window.buddyNode=document.querySelector('.rt-buddy');window.srcChanges=0;window.buddyObserver=new MutationObserver(ms=>window.srcChanges+=ms.filter(m=>m.attributeName==='src').length);buddyObserver.observe(buddyNode,{attributes:true});tickRest();tickRest();});
+await p.waitForTimeout(50);assert.equal(await p.evaluate(()=>window.srcChanges),0);
+const stageBox=await p.locator('#hTimer').boundingBox(),laneBox=await p.locator('.rt-buddy').boundingBox(),clockBox=await p.locator('.rt-time').boundingBox();
+assert(Math.abs(laneBox.width-stageBox.width)<2);assert(Math.abs(clockBox.x+clockBox.width/2-426)<2);
+assert(laneBox.y>clockBox.y+clockBox.height);
+await p.evaluate(()=>{DB.settings.mascotMotion='still';document.documentElement.dataset.mascotMotion='still';tickRest();});await p.locator('.rt-buddy').evaluate(e=>e.decode());assert(await p.locator('.rt-buddy').evaluate(e=>e.src.includes('/white/')&&!e.classList.contains('rt-roaming')));
+await p.evaluate(()=>{DB.settings.mascotMotion='off';document.documentElement.dataset.mascotMotion='off';tickRest();});assert(!await p.locator('.rt-buddy').isVisible());
+await p.evaluate(()=>{DB.settings.mascotMotion='animated';document.documentElement.dataset.mascotMotion='animated';tickRest();});
 assert.equal(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e,'::after').animationName),'rtSunPulse');
 assert.equal(await p.locator('#hTimer .rt-ctx').evaluate(e=>getComputedStyle(e).fontSize),await p.locator('#hTimer .rt-detail').evaluate(e=>getComputedStyle(e).fontSize));
 assert(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e).gap.endsWith('px')));
@@ -47,7 +55,8 @@ if(skin==='minimal')await p.screenshot({path:'../red-stage-actual-'+theme+'.png'
 }
 await p.evaluate(()=>{plLog({part:'Chest',ex:lift.ex,w:toKg(60),reps:[8],at:Date.now()});reopen(lift.ex,lift.part);tickRest();});
 assert((await p.locator('.rt-time').textContent()).startsWith('0:0'));assert((await p.locator('.rt-detail').innerText()).includes('Last · 60 lb × 8'),await p.locator('.rt-detail').innerText());
-await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>tickBigDigits());
+await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>{tickBigDigits();tickRest();});
+assert(await p.locator('.rt-buddy').evaluate(e=>e.src.includes('/white/')&&!e.classList.contains('rt-roaming')));
 assert.equal(await p.locator('.rt-colon').evaluate(e=>getComputedStyle(e).opacity),'1');
 assert.equal(await p.locator('.rt-buddy').evaluate(e=>getComputedStyle(e).animationName),'none');
 assert.equal(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e,'::after').animationName),'none');

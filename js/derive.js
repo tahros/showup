@@ -504,9 +504,22 @@ function tickRest(){
   // The selected crew, in the timer's white material. Read the resolved choice
   // so membership locks and the user's free companion follow the existing rules.
   const crew=typeof clubAvatar==='function'&&(DB.settings.clubAvatar||DB.settings.companionName)?clubAvatar()[0]:'pip';
-  if(buddy.dataset.crewId!==crew){buddy.dataset.crewId=crew;buddy.src=`assets/crew/white/${crew}.webp`;}
+  const motion=document.documentElement.dataset.mascotMotion;
+  const roaming=document.documentElement.classList.contains('bigtimer')&&!document.hidden&&
+    motion!=='still'&&motion!=='off'&&
+    !(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)&&buddy.dataset.failedCrew!==crew;
+  const source=`assets/crew/${roaming?'roaming':'white'}/${crew}.webp`;
+  buddy.classList.toggle('rt-roaming',roaming);
+  // Only change src on a real state change: the one-second clock tick must not
+  // restart the 16-second loop. Fail safely to the existing selected still.
+  if(buddy.dataset.source!==source){
+    buddy.dataset.crewId=crew;buddy.dataset.source=source;
+    buddy.onerror=()=>{buddy.dataset.failedCrew=crew;buddy.onerror=null;buddy.classList.remove('rt-roaming');buddy.dataset.source=`assets/crew/white/${crew}.webp`;buddy.src=buddy.dataset.source;};
+    buddy.src=source;
+  }
 }
 setInterval(tickRest,1000);
+document.addEventListener('visibilitychange',tickRest);
 /* The landscape clock and colon use the same last-set timestamp on every
    paint. A free-running CSS blink drifts against the displayed seconds. */
 function tickBigDigits(){
