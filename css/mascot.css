@@ -173,6 +173,9 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 .crew-avatar{pointer-events:auto;cursor:pointer}
 .crew-avatar .crew-art,.crew-pip .crew-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;margin:0;transform:none!important;animation:none!important;filter:none!important}
 .crew-pip>.crew-avatar{width:100%;height:100%}
+/* On a floor (the plates, beside the day count) the crew stands with its body's base on the
+   box's bottom edge and its body centred, wherever the art sits inside its square. */
+.plate-comp .crew-art,.dd-companion .crew-art{top:calc(var(--foot,0)*100%);left:calc((.5 - var(--mid,.5))*100%);bottom:auto;right:auto}
 .crew-pip{pointer-events:auto}
 .club-avatar.crew-avatar .club-pip-img{width:100%;height:100%;margin:0;animation:none!important}
 .su-companion .club-avatar{width:100%;height:100%}
@@ -181,7 +184,7 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 .su-comp-rest .club-sprite{animation-duration:11s!important;filter:saturate(.75)}
 .tipn .tip-comp{width:46px;height:46px;margin:-6px 0 -6px -4px;animation:tipWave 1.1s ease-in-out .35s both}
 #dayDone .dd-numrow{display:inline-flex;align-items:flex-end;justify-content:center}
-#dayDone .dd-numrow>.dd-companion{width:92px;height:92px;margin:0 -100px 0 8px;animation:compHop 1.15s .55s cubic-bezier(.3,1.6,.5,1) both}
+#dayDone .dd-numrow>.dd-companion{width:112px;height:112px;margin:0 -124px 14px 12px;animation:compHop 1.15s .55s cubic-bezier(.3,1.6,.5,1) both}
 #dayDone .dd-wordonly .showuppp-lockup{margin:0 auto}
 @keyframes compIn{from{opacity:0;transform:translateY(12px) scale(.6)}to{opacity:1;transform:none}}
 @keyframes compHop{0%{opacity:0;transform:translate(30px,40px) scale(.4) rotate(12deg)}40%{opacity:1;transform:translate(0,-44px) scale(1.06) rotate(-6deg)}62%{transform:translate(0,4px) scale(1.12,.88)}78%{transform:translate(0,-8px) scale(.97,1.03)}100%{opacity:1;transform:none}}
