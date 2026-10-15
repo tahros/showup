@@ -20,12 +20,16 @@ try{
   let d=await p.evaluate(()=>({on:[...document.querySelectorAll('.club-medal.on small')].map(x=>x.textContent),slots:document.querySelectorAll('.club-medal').length,next:document.querySelector('.club-medals-next')?.textContent,byName:document.querySelector('.club-name-medal svg')?.getAttribute('class'),together:!!document.querySelector('.club-together'),avatarPin:!!document.querySelector('.club-avatar-pin'),crew:JSON.stringify(DB.settings.crew)}));
   ok('60 logged days: seven slots, 10/25/50 earned, "40 days to the gold medal.", silver by the name',d.slots===7&&d.on.join()==='10,25,50'&&d.next==='40 days to the gold medal.'&&/medal-silver/.test(d.byName||''),d);
   ok('no per-companion days anywhere; the old spans are folded into names',!d.together&&!d.avatarPin&&!/spans/.test(d.crew)&&/Plato/.test(d.crew),d.crew);
-  await p.click('[data-club-picker]');await p.waitForTimeout(500);
+  /* v4.6.325: open by a direct tap event; the crew art now swaps frames on pointerdown */
+  await p.evaluate(()=>document.querySelector('[data-club-picker]').click());await p.waitForTimeout(500);
   d=await p.evaluate(()=>({cur:document.querySelector('[data-club-icon="bell"]').textContent.replace(/\s+/g,' ').trim(),plato:document.querySelector('[data-club-icon="plate"]').textContent.trim(),first:document.querySelector('.club-icon-grid button').dataset.clubIcon}));
   ok('the crew by name: Pip first, Kettle "With you", Plato by name',d.first==='pip'&&/Kettle\s*With you/.test(d.cur)&&d.plato==='Plato',d);
   await p.click('[data-club-icon="plate"]');await p.waitForTimeout(700);
   d=await p.evaluate(()=>({a:clubAvatar()[0],n:DB.settings.companionName,confirm:!!document.querySelector('.crew-confirm:not([hidden])'),open:!document.querySelector('.club-picker').hidden,on:document.querySelectorAll('.club-medal.on').length}));
   ok('switching is a plain choice: Plato at once, no prompt, medals unchanged',d.a==='plate'&&d.n==='Plato'&&!d.confirm&&d.open&&d.on===3,d);
+  await p.click('[data-club-icon="plate"]');await p.waitForTimeout(500);
+  ok('tapping Plato again is the choice: the picker closes, no Done needed (v4.6.325)',await p.evaluate(()=>clubAvatar()[0]==='plate'&&document.querySelector('.club-picker').hidden&&document.querySelector('.club-avatar-button').getAttribute('aria-expanded')==='false'));
+  await p.evaluate(()=>document.querySelector('[data-club-picker]').click());await p.waitForTimeout(400);
   await p.click('[data-crew-rename]');await p.waitForTimeout(200);await p.fill('.crew-rename-in','Plates');await p.click('[data-crew-save]');await p.waitForTimeout(600);
   ok('Rename: Plates',await p.evaluate(()=>DB.settings.companionName==='Plates'&&DB.settings.crew.plate.name==='Plates'));
   const f=await p.evaluate(()=>{const c=document.querySelector('.club-card');return c.scrollWidth<=c.clientWidth+1;});ok('the card fits',f);
