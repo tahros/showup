@@ -189,14 +189,18 @@ function dayReviewGroups(sets,ex){
 function dayReviewLanes(row,planned){
   if(!planned)return dayReviewMatchedLanes(row);
   const used=new Set(),lanes=[];
+  /* v4.6.323: a set added beyond the plan at a load already shown joins that load's line (still marked
+     as extra) instead of opening a lane of its own -- 175 x 6 4 4 then 3 reads as one load (Sungjee, 2026-10-14) */
+  const absorb=g=>{if(g.sets[0]?.cardio)return false;const l=lanes.find(l=>l.actual&&l.actual.load===g.load&&(l.actual.sets[0]?.su||'')===(g.sets[0]?.su||'')&&!l.actual.sets[0]?.cardio);
+    if(!l)return false;l.actual.chips.push(...g.chips);l.actual.sets.push(...g.sets);return true;};
   for(const ref of dayReviewGroups(row.ref,row.ex)){
     const actual=row.actual.filter((s,i)=>planned?ref.sets.some(t=>s.source.planRef?.setId===t.id):ref.sets.includes(row.ref[i]));
     actual.forEach(s=>used.add(s));
     const groups=dayReviewGroups(actual,row.ex);
     lanes.push({ref,actual:groups.shift()||null});
-    groups.forEach(actual=>lanes.push({ref:null,actual}));
+    groups.forEach(g=>absorb(g)||lanes.push({ref:null,actual:g}));
   }
-  dayReviewGroups(row.actual.filter(s=>!used.has(s)),row.ex).forEach(actual=>lanes.push({ref:null,actual}));
+  dayReviewGroups(row.actual.filter(s=>!used.has(s)),row.ex).forEach(g=>absorb(g)||lanes.push({ref:null,actual:g}));
   return lanes.length?lanes:[{ref:null,actual:null}];
 }
 // No plan means no set-to-set correspondence. Compare identical load/kind
@@ -314,8 +318,9 @@ function drawDayReview(data,time,canvas){
   const loadRows=l=>Math.max(l.ref?loadLines(l.ref).length:0,l.actual?loadLines(l.actual).length:0);
   // Share-only spacing: image and video use the same measured geometry.
   // Keep type, chip hit/paint sizes and column positions unchanged.
-  const S={load:24,rowPad:8,laneGap:5,contextY:90,headingGap:17,summary:78,footerPad:14,bottomPad:22};
-  const groupHeight=(g,n)=>!g?25:n*S.load+(g.chips.length?1+chips(g).length*25:0)+(g.qualifier?4+wrap(g.qualifier,126,T.qualifier,400).length*17:0);
+  /* v4.6.323: more air between loads, lanes and exercises (Sungjee, 2026-10-14) */
+  const S={load:27,rowPad:16,laneGap:12,chipRow:29,chipGap:4,contextY:90,headingGap:17,summary:86,footerPad:14,bottomPad:22};
+  const groupHeight=(g,n)=>!g?25:n*S.load+(g.chips.length?S.chipGap+chips(g).length*S.chipRow:0)+(g.qualifier?4+wrap(g.qualifier,126,T.qualifier,400).length*17:0);
   const laneHeight=l=>Math.max(groupHeight(l.ref,loadRows(l)),groupHeight(l.actual,loadRows(l)));
   const labelHeight=r=>wrap(r.ex,196).length*26+(r.note?wrap(r.note,196,T.small,400).length*18+4:0);
   const rowHeight=r=>2*S.rowPad+Math.max(labelHeight(r),r.lanes.reduce((s,l)=>s+laneHeight(l),0)+S.laneGap*Math.max(0,r.lanes.length-1));
@@ -359,10 +364,10 @@ function drawDayReview(data,time,canvas){
       ink(line,cx,cy,19,actual?(g.gain?'#fff':C.ink):C.quiet,'center',mono,600);
     };actual?reveal(delay+Math.min(j++*35,180),paint):paint();gy+=S.load;});
     gy=start+nLoads*S.load;
-    if(g.chips.length){gy+=1;chips(g).forEach(line=>{let x=cx-(line.reduce((s,c)=>s+c.w,0)+3*(line.length-1))/2;const cy=gy+12.5;
+    if(g.chips.length){gy+=S.chipGap;chips(g).forEach(line=>{let x=cx-(line.reduce((s,c)=>s+c.w,0)+3*(line.length-1))/2;const cy=gy+12.5;
       line.forEach(c=>{const left=x,isTime=!!g.sets?.[0]?.cardio,highlight=actual&&c.gain&&!isTime,paint=()=>{if(highlight){ctx.fillStyle=C.blue;ctx.beginPath();ctx.roundRect(left,cy-12.5,c.w,25,4);ctx.fill();}
         ink(c.label,left+c.w/2,cy,17,actual?(highlight?'#fff':C.ink):C.quiet,'center',isTime?mono:sans,400);
-      };actual?reveal(delay+Math.min(j++*35,180),paint):paint();x+=c.w+3;});gy+=25;});}
+      };actual?reveal(delay+Math.min(j++*35,180),paint):paint();x+=c.w+3;});gy+=S.chipRow;});}
     if(g.qualifier){gy+=4;wrap(g.qualifier,126,12,400).forEach(line=>{const cy=gy+8.5,paint=()=>ink(line,cx,cy,12,actual?C.muted:C.quiet,'center');actual?reveal(delay+Math.min(j++*35,180),paint):paint();gy+=17;});}
   };
   let y=top,rowIndex=0;
