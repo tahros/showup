@@ -496,11 +496,11 @@ function tickRest(){
   // Preserve session-scoped metadata for consumers, not the focused landscape UI.
   node('rt-sub').textContent=rows.length?restSessionLine(t):'';
   let buddy=el.querySelector('.rt-buddy');
-  if(!buddy){
-    buddy=document.createElement('img');buddy.className='rt-buddy';
-    buddy.src='assets/mascot-white.png';buddy.alt='';buddy.setAttribute('aria-hidden','true');
-    el.appendChild(buddy);
-  }
+  if(!buddy){buddy=document.createElement('img');buddy.className='rt-buddy';buddy.alt='';buddy.setAttribute('aria-hidden','true');el.appendChild(buddy);}
+  /* v4.6.331: your companion keeps the clock company, drawn in white like Pip (Sungjee, 2026-10-15) */
+  const crew=typeof companionIsPip==='function'&&!companionIsPip()&&typeof clubAvatar==='function'?clubAvatar()[0]:'';
+  const want=crew?'assets/crew/'+crew+'.webp':'assets/mascot-white.png';
+  if(buddy.getAttribute('src')!==want){buddy.src=want;buddy.classList.toggle('rt-buddy-crew',!!crew);}
 }
 setInterval(tickRest,1000);
 /* The landscape clock and colon use the same last-set timestamp on every
