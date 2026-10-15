@@ -80,7 +80,7 @@ function atlas(M){
  function monthly(y,x,y0,w,h,cols,number=false,weekdays=false){const gap=20,cw=(w-(cols-1)*gap)/cols,ch=h/(12/cols);for(let m=0;m<12;m++)month(y,m,x+m%cols*(cw+gap),y0+Math.floor(m/cols)*ch,cw,ch-14,number,weekdays);}
  function ribbon(y,x,y0,w,initials=false,showLabels=true){const start=stamp(y+'-01-01'),offset=(weekday(start)-M.dow+7)%7,len=stamp((y+1)+'-01-01')-start,step=w/Math.ceil((len+offset)/7);if(showLabels)for(let m=0;m<12;m++){const first=stamp(y+'-'+String(m+1).padStart(2,'0')+'-01'),col=Math.floor((first-start+offset)/7);if(initials||m%2===0)label(initials?MONTHS[m][0]:MONTHS[m],x+col*step,y0-26,16);}for(const d of byYear.get(y)||[]){const col=Math.floor((d.n-start+offset)/7);put(d,x+col*step,y0+d.col*step,step*.79,y);}}
  function matrix(y,x,y0,w,h,small=false){const left=small?25:28,step=(w-left)/31,sy=h/12,s=Math.min(step,sy)*.8;for(let m=0;m<12;m++)label(MONTHS[m][0],x,y0+m*sy,small?14:17);for(const d of byYear.get(y)||[])put(d,x+left+(new Date(d.n*DAY).getUTCDate()-1)*step,y0+monthOf(d)*sy,s,y);}
- if(n===1)monthly(M.years[0],0,0,948,790,4,!window.__atNoNumbers,true);
+ if(n===1)monthly(M.years[0],0,0,948,790,4,false,true);   /* v4.6.322: no day numbers -- the pattern is the point (Sungjee, 2026-10-14) */
  if(n===2)M.years.forEach((y,i)=>{const x=i*502;head(y,x,0);monthly(y,x,60,446,730,3,false,true);});
  if(n===3)M.years.forEach((y,i)=>{const x=i*326;head(y,x,0);for(let q=0;q<4;q++){const yy=60+q*181;label('Q'+(q+1),x,yy,15);for(let m=0;m<3;m++)month(y,q*3+m,x+m*101,yy+28,90,136);}});
  if(n===4)M.years.forEach((y,i)=>{const x=i%2*502,yy=Math.floor(i/2)*405;head(y,x,yy);matrix(y,x,yy+58,446,310);});
