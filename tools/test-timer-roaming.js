@@ -13,4 +13,25 @@ reduce=true;w.tickRest();assert(el.src.includes('/white/'));reduce=false;
 w.document.documentElement.dataset.mascotMotion='still';w.tickRest();assert(el.src.includes('/white/'));
 w.document.documentElement.dataset.mascotMotion='animated';w.tickRest();el.onerror();assert(el.src.includes('/white/'));w.tickRest();assert(!el.classList.contains('rt-roaming'));
 delete el.dataset.failedCrew;w.document.documentElement.classList.remove('bigtimer');w.tickRest();assert(el.src.includes('/white/'));
-console.log('PASS timer roaming: ten animated assets, identity, stable clock, reduced motion, still, failure and portrait fallback');dom.window.close();
+console.log('PASS timer roaming: ten animated assets, identity, stable clock, reduced motion, still, failure and portrait fallback');
+const record={doneAll:true,completedAt:Date.now()-3665000,w:[]};let landscape=true;
+w.day=()=>record;w.isLive=()=>!record.doneAll;
+w.matchMedia=q=>({matches:q.includes('landscape')?landscape:false});
+w.lastSetAt=null;w.tickRest();
+assert(w.document.querySelector('#hTimer').classList.contains('recovery'));
+assert.equal(w.document.querySelector('.rt-min').textContent,'61');
+assert.equal(w.document.querySelector('.rt-sec').textContent,'05');
+assert(w.document.querySelector('.rt-wordmark').src.endsWith('showuppp-wordmark-dark.svg'));
+const completed=record.completedAt;landscape=false;w.tickRest();
+assert(!w.document.querySelector('#hTimer').classList.contains('recovery'));
+landscape=true;w.tickRest();assert.equal(record.completedAt,completed);
+// Rehydrating the saved record must retain its clock, even without lastSetAt.
+w.day=()=>JSON.parse(JSON.stringify(record));w.tickRest();
+assert.equal(w.document.querySelector('.rt-min').textContent,'61');
+w.day=()=>record;
+for(const invalid of [undefined,0,'invalid',Date.now()+60000]){
+ record.completedAt=invalid;w.tickRest();assert(!w.document.querySelector('#hTimer').classList.contains('recovery'));
+}
+record.completedAt=completed;record.doneAll=false;w.tickRest();
+assert(!w.document.querySelector('#hTimer').classList.contains('recovery'));
+console.log('PASS recovery: recorded completion, over 30 minutes, rotation, rehydration, invalid legacy stamps and resume');dom.window.close();

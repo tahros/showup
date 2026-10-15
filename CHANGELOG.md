@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.335 — A quiet recovery timer
+
+- Rotate to landscape after completing a workout to see time elapsed since completion on a midnight-blue screen: just the clock, your selected white Crew, and the ShowUppp wordmark.
+- Rotation and reload preserve the recorded completion time. Resuming training restores the red workout timer. Existing motion preferences remain respected.
+
 ## v4.6.334 — Your Crew roams beside the timer
 
 - All ten white Crews now roam along the bottom of the landscape timer using the approved 3D animations. The clock and exercise text stay centered and still.

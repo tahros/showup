@@ -236,8 +236,12 @@ console.log(fail ? "\n" + fail + " FAILED" : "\nALL PASS");
   /* the wake lock is held only while all three are true, or the phone stays
      awake in a pocket */
   const drv=fs.readFileSync(path.join(dir,"js/derive.js"),"utf8");
-  ok("the screen is kept awake only while live, landscape and running",
-     /classList\.contains\('on'\)\s*&&\s*isLive\(\)\s*&&\s*landscape/.test(drv));
+  run(`window.matchMedia=()=>({matches:true});tickRest();tickWake();`);
+  ok("the landscape live timer keeps the screen awake",run('_wakeWant'));
+  run(`day(todayISO).doneAll=true;day(todayISO).completedAt=Date.now()-60000;tickRest();tickWake();`);
+  ok("the completed-workout recovery timer also keeps the screen awake",run('_wakeWant'));
+  run(`window.matchMedia=()=>({matches:false});tickRest();tickWake();`);
+  ok("portrait releases the recovery wake lock",!run('_wakeWant'));
   ok("...and released when the page is hidden",
      /visibilitychange/.test(drv) && /!document\.hidden/.test(drv));
 }

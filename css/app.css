@@ -1074,7 +1074,19 @@
     html.bigtimer body > #hTimer.on::after{animation:none;opacity:.88}
     html.bigtimer body > #hTimer.on .rt-buddy{animation:none}
   }
-  .resttimer .rt-buddy{display:none}
+  .resttimer .rt-buddy,.resttimer .rt-wordmark{display:none}
+  @media (orientation:landscape){
+    html.bigtimer body > #hTimer.on.recovery{
+      background:radial-gradient(ellipse at 50% 110%,#444f9e 0%,#252d65 35%,#141b40 68%,#0c122a 100%);
+      font-size:clamp(52px,17vw,184px)}
+    html.bigtimer body > #hTimer.on.recovery::after{display:none}
+    html.bigtimer body > #hTimer.on.recovery :is(.rt-ctx,.rt-detail,.rt-sub){display:none}
+    html.bigtimer body > #hTimer.on.recovery .rt-time{position:absolute;top:29%;left:0;width:100%}
+    html.bigtimer body > #hTimer.on.recovery .rt-buddy{bottom:13%}
+    html.bigtimer body > #hTimer.on.recovery .rt-wordmark{
+      display:block;position:absolute;bottom:4%;left:50%;transform:translateX(-50%);
+      width:6vw;max-width:64px;min-width:36px;height:auto;opacity:.8}
+  }
   html[data-mascot-motion="still"].bigtimer body > #hTimer.on .rt-buddy{animation:none}
   html[data-mascot-motion="off"].bigtimer body > #hTimer.on .rt-buddy{display:none}
   .lastset.now{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}

@@ -49,7 +49,12 @@ async function boot({shell=true,plugin=true,how='plugins'}={}){
    b.run(`lastSetAt=Date.now()-60e3`);await b.step();
    b.run(`DB.days[todayISO].doneAll=true`);await b.step();
    ok('workout finished: released', b.calls.at(-1)===false && b.calls.length===6, JSON.stringify(b.calls));
-   b.run(`DB.days[todayISO].doneAll=false`);await b.step();
+   b.run(`DB.days[todayISO].completedAt=Date.now()-3600e3;lastSetAt=null`);await b.step();
+   ok('explicit completion: recovery screen stays awake without a last-set clock', b.calls.at(-1)===true);
+   b.turn(false);await b.step();
+   ok('recovery turned upright: released', b.calls.at(-1)===false);
+   b.turn(true);await b.step();
+   b.run(`DB.days[todayISO].doneAll=false;lastSetAt=Date.now()-60e3`);await b.step();
    Object.defineProperty(b.w.document,'hidden',{configurable:true,get:()=>true});
    b.run(`syncWakeLock()`);await b.step();
    ok('app hidden: released', b.calls.at(-1)===false, JSON.stringify(b.calls));

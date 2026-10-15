@@ -458,12 +458,18 @@ function tickRest(){
      as (tickBigDigits keeps it on the last set). */
   const stamps=rows.map(z=>+z.at).filter(x=>x>0),start=stamps.length?Math.min(...stamps):null;
   const whole=!ex&&!!start&&isLive()&&!document.documentElement.classList.contains('bigtimer');
-  const show = whole || (!!lastSetAt && Math.floor((Date.now()-lastSetAt)/1000)<=1800);
+  // Only an explicitly completed workout supplies a recovery anchor. Never
+  // invent a timestamp for legacy records or change it on rotation/reload.
+  const completed=Number(t.completedAt);
+  const recovery=!!(t.doneAll&&Number.isFinite(completed)&&completed>0&&completed<=Date.now()&&
+    window.matchMedia&&window.matchMedia('(orientation:landscape)').matches);
+  const show = recovery || whole || (!!lastSetAt && Math.floor((Date.now()-lastSetAt)/1000)<=1800);
+  el.classList.toggle('recovery',recovery);
   el.classList.toggle('on',show);          // visibility is the timer's own, not the header's
   el.classList.toggle('done',show&&!isLive());
   el.classList.toggle('whole',show&&whole);
   if(!show){ el.textContent=''; return; }
-  const s=Math.max(0,Math.floor((Date.now()-(whole?start:lastSetAt))/1000));
+  const s=Math.max(0,Math.floor((Date.now()-(recovery?completed:whole?start:lastSetAt))/1000));
   let detail='';
   if(ex){
     const own=rows.filter(z=>z.ex===ex), previous=own[own.length-1];
@@ -495,6 +501,10 @@ function tickRest(){
   node('rt-detail').textContent=detail;
   // Preserve session-scoped metadata for consumers, not the focused landscape UI.
   node('rt-sub').textContent=rows.length?restSessionLine(t):'';
+  if(recovery&&!el.querySelector('.rt-wordmark')){
+    const mark=document.createElement('img');mark.className='rt-wordmark';
+    mark.src='assets/showuppp-wordmark-dark.svg';mark.alt='ShowUppp';el.appendChild(mark);
+  }
   let buddy=el.querySelector('.rt-buddy');
   if(!buddy){
     buddy=document.createElement('img');buddy.className='rt-buddy';
@@ -523,10 +533,13 @@ document.addEventListener('visibilitychange',tickRest);
 /* The landscape clock and colon use the same last-set timestamp on every
    paint. A free-running CSS blink drifts against the displayed seconds. */
 function tickBigDigits(){
-  if(!document.documentElement.classList.contains('bigtimer')||!lastSetAt)return;
+  if(!document.documentElement.classList.contains('bigtimer'))return;
   const el=document.getElementById('hTimer'),clock=el&&el.querySelector('.rt-time');
   if(!clock)return;
-  const elapsed=Math.max(0,Date.now()-lastSetAt);
+  const t=day(todayISO),completed=Number(t.completedAt);
+  const anchor=t.doneAll&&Number.isFinite(completed)&&completed>0&&completed<=Date.now()?completed:lastSetAt;
+  if(!anchor)return;
+  const elapsed=Math.max(0,Date.now()-anchor);
   clock.querySelector('.rt-min').textContent=Math.floor(elapsed/60000);
   clock.querySelector('.rt-sec').textContent=String(Math.floor(elapsed/1000)%60).padStart(2,'0');
   const colon=clock.querySelector('.rt-colon');
@@ -585,7 +598,7 @@ let _bigHome=null;
 function tickBig(){
   const el=document.getElementById('hTimer'); if(!el) return;
   const landscape = !!(window.matchMedia && window.matchMedia('(orientation:landscape)').matches);
-  const want = landscape && isLive() && el.classList.contains('on');
+  const want = landscape && (isLive() || el.classList.contains('recovery')) && el.classList.contains('on');
   const isOut = el.parentElement===document.body;
   if(want && !isOut){
     _bigHome = el.parentElement;
@@ -608,7 +621,7 @@ if(typeof window!=='undefined'){
 function tickWake(){
   const el=document.getElementById('hTimer');
   const landscape = window.matchMedia && window.matchMedia('(orientation:landscape)').matches;
-  const want = !!(el && el.classList.contains('on') && isLive() && landscape);   // same three as tickBig
+  const want = !!(el && el.classList.contains('on') && (isLive() || el.classList.contains('recovery')) && landscape);
   if(want!==_wakeWant){ _wakeWant=want; syncWakeLock(); }
 }
 setInterval(tickWake,1000);
