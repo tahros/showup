@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.324 — Extra sets stay on their load's line
+
+- Last vs today (in the app and when shared): a set added beyond the plan, at a load that is already shown, now joins that load's line and stays marked in blue as extra. It no longer opens a separate line, so "175 · 6 4 4" and "175 · 3" read as "175 · 6 4 4 3".
+- The shared image has more vertical air between loads, rep rows, lanes, exercises and the totals row. Type sizes and columns are unchanged.
+
 ## v4.6.323 — Approved crew animations
 
 - All ten profile characters use the approved 3D artwork and four rendered reactions: Hello, Tap, Medal earned, and Rest.
