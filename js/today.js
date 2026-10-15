@@ -697,7 +697,7 @@ function renderToday(){
        still carries the state and the invitation for anyone who cannot see
        the card do it visually. */
     return `<button class="card dayclosed" data-replayday="1" aria-label="Day ${fmt(_n)}, ${pretty(todayISO)}. Today is complete; logging another set reopens it. Tap to see it again.">
-          ${(typeof companionHTML==='function'&&companionHTML('su-hello-comp su-comp-rest'))||mascotHTML('cool')}
+          ${(typeof companionHTML==='function'&&companionHTML('su-hello-comp su-comp-rest crew-fit'))||mascotHTML('cool')}
           <b class="dcn">${fmt(_n)}</b>
           <span class="dcm">${_n===1?'day':'days'} of showing up</span>
         </button>`;
