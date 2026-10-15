@@ -121,7 +121,8 @@ function drawPlateShare(data,mascot,frame={}){
     if(frame.dust!==false&&age>=340&&age<680){const v=(age-340)/340;for(const d of [-1,1])shadow(cx+d*(plateRX*.74+v*36),end+4-v*15,15+v*35,6+v*12);}
   }
   x.restore();
-  if(data.companion){const bob=Number.isFinite(frame.time)?Math.max(0,Math.sin(frame.time/260))*-8:0;shadow(891,780,64,12);shareDrawCompanion(x,816,628+bob,150);}
+  /* the crew stands on the plates' floor with its own baked shadow (Sungjee, 2026-10-15) */
+  if(data.companion){const bob=Number.isFinite(frame.time)?Math.max(0,Math.sin(frame.time/260))*-8:0;shareDrawCompanionFloor(x,891,776+bob,250);}
   else{if(!frame.mascot&&!data.retro)shadow(891,778,80,13);x.save();if(data.retro)x.imageSmoothingEnabled=false;x.drawImage(frame.mascot||mascot,783,659,216,132);x.restore();}
   const shown=animated?Math.round(data.unit==='lb'?total*LB:total).toLocaleString():data.total;
   x.font='700 112px '+sans;const numberWidth=x.measureText(shown).width;

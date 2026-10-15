@@ -307,8 +307,13 @@ function companionHTML(cls=''){
   return `<span class="su-companion ${cls}" data-companion="${c[0]}" aria-hidden="true">${clubIconHTML(c,anim,moment).replace('club-avatar ','club-avatar club-visible ')}</span>`;
 }
 function clubAvatar(){if(clubIconsLocked())return clubFreeIcon();const k=DB.settings.clubAvatar;return clubChoices().find(x=>x[0]===k)||clubFreeIcon();}
+/* Where each crew stands inside its square art (Sungjee, 2026-10-15): the share of the
+   square below the body (the baked shadow lives there), the body's centre, and its width.
+   Measured from assets/crew/<key>.webp; the 384px animations share the same framing. */
+const CREW_FOOT={bag:[.217,.5,.695],ball:[.193,.516,.578],band:[.24,.523,.664],bell:[.182,.5,.508],bottle:[.201,.506,.363],headphones:[.209,.52,.641],mat:[.24,.5,.695],pip:[.338,.498,.535],plate:[.203,.5,.547],roller:[.303,.479,.559]};
+function crewFoot(k){return CREW_FOOT[k]||[.22,.5,.6];}
 function clubIconHTML(item,animated=false,moment='hello'){
-  return `<span class="club-avatar crew-avatar club-${item[0]}${animated?' club-animate':''}" data-crew="${item[0]}" data-crew-moment="${moment}" aria-hidden="true"><img class="crew-art${item[0]==='pip'?' club-pip-img':''}" src="assets/crew/${item[0]}${moment==='rest'?'-rest-still':''}.webp" width="384" height="384" alt=""></span>`;
+  return `<span class="club-avatar crew-avatar club-${item[0]}${animated?' club-animate':''}" data-crew="${item[0]}" data-crew-moment="${moment}" style="--foot:${crewFoot(item[0])[0]};--mid:${crewFoot(item[0])[1]}" aria-hidden="true"><img class="crew-art${item[0]==='pip'?' club-pip-img':''}" src="assets/crew/${item[0]}${moment==='rest'?'-rest-still':''}.webp" width="384" height="384" alt=""></span>`;
 }
 // Lazy lifecycle module: no animation state is stored in the user's profile.
 if(typeof window!=='undefined'&&typeof IntersectionObserver!=='undefined')import('./crew-motion.js').catch(()=>{});
@@ -899,6 +904,10 @@ function shareMedalImg(){const t=userMedals().at(-1);return t?shareImg('data:ima
 function shareDrawCompanion(x,dx,dy,size){
   const img=shareCompanionImg();if(!shareReady(img))return false;
   x.drawImage(img,dx,dy,size,size);return true;
+}
+/* Stand the crew on a floor line: its body's base on floorY, its body centred on cx. */
+function shareDrawCompanionFloor(x,cx,floorY,size){
+  const f=crewFoot(clubAvatar()[0]);return shareDrawCompanion(x,cx-f[1]*size,floorY-(1-f[0])*size,size);
 }
 function sharePreload(){const d=document.documentElement.dataset.theme==='dark';const l=[shareCompanionImg(),shareWordmarkImg(d),shareWordmarkImg(!d),shareMedalImg(),sharePipImg()].filter(Boolean);return Promise.all(l.map(i=>i.decode?i.decode().catch(()=>{}):null));}
 setTimeout(()=>{try{sharePreload();}catch(e){}},2500);
