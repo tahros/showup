@@ -225,10 +225,10 @@ function pwTodayHTML(){
   const pushing=hasToday&&!started&&planShiftable(planRunFrom(todayISO),1).ok,showNext=!!upcoming&&!pushing&&!started;
   const count=future.length+(hasToday?1:0),target=next||writeDateISO();
   /* v4.6.331: ONE ROW OF TOOLS (Sungjee, 2026-10-15). Edit and Paste used to repeat under each plan card.
-     The row at the top now works on the plan in front of you: Plan opens it (today's, else the next),
-     Paste lands on it, and Copy puts it on the clipboard as text that Paste reads back. */
+     The row at the top: Plan plans ahead (dates, new days); Edit opens the plan in front of you (today's,
+     else the next); Paste lands on it; Copy puts it on the clipboard as text that Paste reads back. */
   const shown=hasToday?todayISO:showNext?next:null,pasteTo=shown||target;
-  let html=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwDatesButton()}</div><div class="pw-home-tools" role="group" aria-label="Plan actions">${shown?pwAction('open-date','Plan','sparkle','',`data-date="${shown}"`):pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${pasteTo}"`)}${shown?pwAction('plan-copy','Copy','copy','',`data-date="${shown}"`):''}${count?`<span>${count} planned ${count===1?'day':'days'}</span>`:''}</div>`;
+  let html=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwDatesButton()}</div><div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${shown?pwAction('open-date','Edit','edit','',`data-date="${shown}"`):''}${pwAction('paste-open','Paste','paste','',`data-date="${pasteTo}"`)}${shown?pwAction('plan-copy','Copy','copy','',`data-date="${shown}"`):''}${count&&!shown?`<span>${count} planned ${count===1?'day':'days'}</span>`:''}</div>`;   /* with four tools the count gives way; "N more plans" says it below */
   if(hasToday)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary>${pwPlanHeading('Today · '+pwDate(todayISO),now)}</summary>${planCardHTML(now,true)}</details>`;
   /* v4.6.101: the day you can't do, on the day you can't do it. One line
      under today's plan, only while nothing has been logged -- once a set is
