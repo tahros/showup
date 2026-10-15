@@ -224,8 +224,12 @@ function pwTodayHTML(){
   const started=hasToday&&!!(DB.days[todayISO]?.w||[]).length;
   const pushing=hasToday&&!started&&planShiftable(planRunFrom(todayISO),1).ok,showNext=!!upcoming&&!pushing&&!started;
   const count=future.length+(hasToday?1:0),target=next||writeDateISO();
-  let html=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwDatesButton()}</div><div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${target}"`)}${count?`<span>${count} planned ${count===1?'day':'days'}</span>`:''}</div>`;
-  if(hasToday)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary>${pwPlanHeading('Today · '+pwDate(todayISO),now)}</summary>${planCardHTML(now,true)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${todayISO}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}</div></details>`;
+  /* v4.6.331: ONE ROW OF TOOLS (Sungjee, 2026-10-15). Edit and Paste used to repeat under each plan card.
+     The row at the top: Plan plans ahead (dates, new days); Edit opens the plan in front of you (today's,
+     else the next); Paste lands on it; Copy puts it on the clipboard as text that Paste reads back. */
+  const shown=hasToday?todayISO:showNext?next:null,pasteTo=shown||target;
+  let html=`<section class="pw-home"><div class="pw-home-heading"><h2>${closed?'Plan ahead':'Your plan'}</h2>${pwDatesButton()}</div><div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${shown?pwAction('open-date','Edit','edit','',`data-date="${shown}"`):''}${pwAction('paste-open','Paste','paste','',`data-date="${pasteTo}"`)}${shown?pwAction('plan-copy','Copy','copy','',`data-date="${shown}"`):''}${count&&!shown?`<span>${count} planned ${count===1?'day':'days'}</span>`:''}</div>`;   /* with four tools the count gives way; "N more plans" says it below */
+  if(hasToday)html+=`<details class="pw-saved" data-pw-fold="today" ${pwFoldOpen('today')?'open':''}><summary>${pwPlanHeading('Today · '+pwDate(todayISO),now)}</summary>${planCardHTML(now,true)}</details>`;
   /* v4.6.101: the day you can't do, on the day you can't do it. One line
      under today's plan, only while nothing has been logged -- once a set is
      down the day is not movable, and the line would be a lie. */
@@ -236,7 +240,7 @@ function pwTodayHTML(){
      with the rest, not as a second card under today's (it used to appear in
      both). Before the first set nothing changes. Every future plan is still
      shown exactly once: in this card, or in the fold, never both. */
-  else if(showNext){const key='future:'+next;html+=`<details class="pw-saved pw-future" data-pw-fold="${key}" ${pwFoldOpen(key)?'open':''}><summary>${pwPlanHeading((next===tomorrowISO()?'Tomorrow · ':'')+pwDate(next),upcoming)}</summary>${planCardHTML(upcoming,false)}<div class="pw-actions pw-future-actions">${pwAction('open-date','Edit','edit','',`data-date="${next}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${next}"`)}</div></details>`;}
+  else if(showNext){const key='future:'+next;html+=`<details class="pw-saved pw-future" data-pw-fold="${key}" ${pwFoldOpen(key)?'open':''}><summary>${pwPlanHeading((next===tomorrowISO()?'Tomorrow · ':'')+pwDate(next),upcoming)}</summary>${planCardHTML(upcoming,false)}</details>`;}
   else if(!upcoming)html+='<div class="card pw-home-card pw-home-empty"><h3>Plan your next workout</h3><p class="pw-small">Choose dates or paste a routine to get started.</p></div>';
   const drafts=s.dates.filter(d=>d>=todayISO&&s.book[d]&&s.book[d].source!=='Saved plan'&&(s.book[d].rows.length||s.book[d].parts.length));
   if(drafts.length)html+=pwAction('resume','Resume draft','edit','pw-resume');
@@ -858,6 +862,9 @@ function pwHandle(e){
     if(a==='plan-push-ask'){planPushSheet();return true;}
     if(a==='plan-push-go'){const r=planShift(planRunFrom(todayISO),1);document.getElementById('planMoveDialog')?.remove();if(r.ok){render({soft:true});toastUndo('Moved '+r.moves.length+(r.moves.length===1?' day':' days'),()=>{r.undo();render({soft:true});});}return true;}
     if(a==='plan-push-close'){document.getElementById('planMoveDialog')?.remove();return true;}
+    if(a==='plan-copy'){const p=pwSaved(d),text=p?planText(p):'';if(!text)return true;
+      const done=()=>toast((d===todayISO?'Today’s workout':'This workout')+' copied');
+      try{navigator.clipboard.writeText(text).then(done,()=>toast('Could not copy. Try again.'));}catch(e){toast('Could not copy. Try again.');}return true;}
     if(a==='open'||a==='resume'){if(a==='open')pw().datesFrom='today';pwOpen(null,a==='open'?'dates':undefined);return true;}
     if(a==='open-date'||a==='paste-open'){
       /* v4.1.5: A CLEAR THAT WAS NEVER SAVED IS NOT THE RECORD.
