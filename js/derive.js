@@ -498,9 +498,13 @@ function tickRest(){
   let buddy=el.querySelector('.rt-buddy');
   if(!buddy){
     buddy=document.createElement('img');buddy.className='rt-buddy';
-    buddy.src='assets/mascot-white.png';buddy.alt='';buddy.setAttribute('aria-hidden','true');
+    buddy.alt='';buddy.setAttribute('aria-hidden','true');
     el.appendChild(buddy);
   }
+  // The selected crew, in the timer's white material. Read the resolved choice
+  // so membership locks and the user's free companion follow the existing rules.
+  const crew=typeof clubAvatar==='function'&&(DB.settings.clubAvatar||DB.settings.companionName)?clubAvatar()[0]:'pip';
+  if(buddy.dataset.crewId!==crew){buddy.dataset.crewId=crew;buddy.src=`assets/crew/white/${crew}.webp`;}
 }
 setInterval(tickRest,1000);
 /* The landscape clock and colon use the same last-set timestamp on every

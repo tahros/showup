@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.331 — Your crew in the timer
+
+- Landscape workout timer shows the user's selected crew in a white material, with gray shading and dark facial details. All ten characters are available; no choice defaults to white Pip.
+- Blue crew artwork elsewhere remains unchanged. The timer companion is still so the clock stays the focus; Mascot Off continues to hide it.
+- Changing the companion does not reset or alter the timer, workout, or membership rules.
+
 ## v4.6.330 — Last vs today in the app, as it was
 
 - Reverts v4.6.329: the in-app Last vs today goes back to its previous look, including its parts line. The share image keeps its v4.6.324 layout.

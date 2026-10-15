@@ -21,7 +21,17 @@ await p.evaluate(()=>{window.colonNode=document.querySelector('.rt-colon');tickR
 assert(await p.locator('.rt-colon').evaluate(e=>parseFloat(getComputedStyle(e).opacity)>0));
 assert.equal(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e,'::before').display),'none');
 assert(await p.locator('#hTimer .rt-buddy').isVisible());
-assert(await p.locator('#hTimer .rt-buddy').evaluate(e=>e.complete&&e.naturalWidth>0&&getComputedStyle(e).animationName==='rtBuddyHop'));
+await p.locator('#hTimer .rt-buddy').evaluate(e=>e.decode());
+assert(await p.locator('#hTimer .rt-buddy').evaluate(e=>e.complete&&e.naturalWidth>0&&getComputedStyle(e).animationName==='none'&&e.src.endsWith('/white/pip.webp')));
+for(const id of await p.evaluate(()=>clubChoices().map(x=>x[0]))){
+ await p.evaluate(id=>{DB.settings.clubAvatar=id;DB.settings.companionName=id;DB.settings.companionFree=id;tickRest();},id);
+ await p.locator('.rt-buddy').evaluate(e=>e.decode());
+ assert(await p.locator('.rt-buddy').evaluate((e,id)=>e.dataset.crewId===id&&e.src.endsWith('/white/'+id+'.webp')&&e.naturalWidth===512,id));
+ assert(await p.evaluate(()=>lastSetAt===window.testAnchor));
+}
+await p.evaluate(()=>{DB.settings.clubAvatar='mat';tickRest();});await p.locator('.rt-buddy').evaluate(e=>e.decode());
+await p.screenshot({path:'../Crew-Final-Review/White-Crew-Timer.png'});
+console.log('PASS ten white selected crews; switching does not reset timer');
 assert.equal(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e,'::after').animationName),'rtSunPulse');
 assert.equal(await p.locator('#hTimer .rt-ctx').evaluate(e=>getComputedStyle(e).fontSize),await p.locator('#hTimer .rt-detail').evaluate(e=>getComputedStyle(e).fontSize));
 assert(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e).gap.endsWith('px')));
