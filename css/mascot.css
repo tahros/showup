@@ -170,7 +170,7 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 /* v4.6.311: the companion in Pip's place */
 .su-companion{display:block;flex:none;pointer-events:none}
 .su-companion:has(.crew-avatar){pointer-events:auto;animation:none!important;opacity:1!important;transform:none!important}
-.crew-avatar{pointer-events:auto;cursor:pointer}
+.crew-avatar{pointer-events:auto;cursor:pointer;--foot:0;--mid:.5}
 .crew-avatar .crew-art,.crew-pip .crew-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;margin:0;transform:none!important;animation:none!important;filter:none!important}
 .crew-pip>.crew-avatar{width:100%;height:100%}
 /* On a floor (the plates, beside the day count) the crew stands with its body's base on the

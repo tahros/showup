@@ -67,7 +67,8 @@ ok('tomorrow reuses the saved-plan disclosure',`!!${tomorrow}&&!${tomorrow}.open
 run(`${tomorrow}.querySelector('summary').dispatchEvent(new window.MouseEvent('click',{bubbles:true,cancelable:true}))`);
 ok('tomorrow opens and displays saved exercises and sets',`${tomorrow}.open&&${tomorrow}.textContent.includes('Squat')&&${tomorrow}.textContent.includes('6 6 6 6')`);
 run(`render();`);
-ok('tomorrow expansion survives render and Edit targets tomorrow',`${tomorrow}.open&&!!${tomorrow}.querySelector('[data-pw="open-date"][data-date="2026-09-12"]')`);
+// v4.6.332: Edit lives in the one tool row (Plan · Edit · Paste · Copy), not inside the card.
+ok('tomorrow expansion survives render and Edit targets tomorrow',`${tomorrow}.open&&!!document.querySelector('#view [data-pw="open-date"][data-date="2026-09-12"]')&&!${tomorrow}.querySelector('[data-pw="open-date"]')`);
 run(`${tomorrow}.querySelector('summary').dispatchEvent(new window.MouseEvent('click',{bubbles:true,cancelable:true}))`);
 ok('tomorrow collapses again',`!${tomorrow}.open`);
 process.exit(fails?1:0);

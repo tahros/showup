@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.332 — 2026-10-15
+- The crew stands on the floor: on the Stats plate card, the shared Weight moved image and beside the day count on "You showed up", the crew's body now sits on the floor line and is a little bigger. Pip's separate drawn shadow no longer floats under a crew (each crew brings its own).
+- Plan home: one tool row — Plan · Edit · Paste · Copy. Copy puts today's (or the next) workout on the clipboard. The Edit/Paste rows under the plan cards are gone.
+- Weight step per exercise: in the equipment panel, choose Auto or a fixed step (2.5–25 lb / 1–10 kg). Each machine remembers its own increment.
+
 ## v4.6.331 — Your crew in the timer
 
 - Landscape workout timer shows the user's selected crew in a white material, with gray shading and dark facial details. All ten characters are available; no choice defaults to white Pip.
