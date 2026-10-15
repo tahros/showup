@@ -1,5 +1,8 @@
 # ShowUppp — changelog
 
+## v4.6.333 — 2026-10-15
+- Home "days of showing up" card: the crew is bigger and every crew carries the same visual weight (scaled by how much of its art the body fills); the water bottle sits 15% smaller. Pip and every crew stand on the same floor above the number, and the card is the same height whoever is on it.
+
 ## v4.6.332 — 2026-10-15
 - The crew stands on the floor: on the Stats plate card, the shared Weight moved image and beside the day count on "You showed up", the crew's body now sits on the floor line and is a little bigger. Pip's separate drawn shadow no longer floats under a crew (each crew brings its own).
 - Plan home: one tool row — Plan · Edit · Paste · Copy. Copy puts today's (or the next) workout on the clipboard. The Edit/Paste rows under the plan cards are gone.
