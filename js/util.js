@@ -219,6 +219,9 @@ const catFor=part=>[
    settings, checked ahead of the catalog. The W_TABLE still owns the LAW
    (what each class steps); this only decides which class an exercise is. */
 const equipOv=()=>DB.settings.equipOv||(DB.settings.equipOv={});
+/* v4.6.331: your machine's own increment, per exercise, in the unit you set it in (Sungjee, 2026-10-15) */
+const stepOv=()=>DB.settings.stepOv||(DB.settings.stepOv={});
+const stepMine=ex=>{const o=stepOv()[ex];return o&&o.u===(isLb()?'lb':'kg')&&o.v>0?o.v:0;};
 /* v4.6.61: AN EZ BAR IS NOT AN OLYMPIC BAR. Both were class 'barbell', so a curl
    bar inherited the 45 lb default: the load line read "45 lb bar / 5 lb per side"
    on a 55 lb curl, and pressing "All barbell" from that screen re-barred Squat,
@@ -956,7 +959,7 @@ const W_TABLE={
 function wLaw(ex){
   const row=W_TABLE[equipOf(ex)]||W_TABLE.machine;   // unknown classes read as a stack, the safest guess
   const c=isLb()?row.lb:row.kg;
-  return {s:c.s, a:c.bar?toU(barKg(ex)):0};
+  return {s:stepMine(ex)||c.s, a:c.bar?toU(barKg(ex)):0};
 }
 /* snap to the LAW (v3.3.250). Given an exercise it lands on a weight that
    exercise can actually make — a rack bell, a stack face, a buildable bar

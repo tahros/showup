@@ -809,7 +809,10 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
         h+=`<div class="eqedit"><label class="mono eq-q">Equipment for ${ex}</label>
           <div class="chips">${Object.entries(EQUIP_LABEL).map(([k,v])=>
             `<button class="chip ${equipOf(ex)===k?'on':''}" data-seteq="${k}" data-seteqex="${ex}">${v}</button>`).join('')}</div>
-          <div class="note">This changes how the weight steps for this exercise only. Everything already logged stays exactly as trained.</div>
+          <label class="mono eq-q eq-step-q">Weight step</label>
+          <div class="chips eq-steps">${(()=>{const mine=stepMine(ex),auto=(W_TABLE[equipOf(ex)]||W_TABLE.machine)[isLb()?'lb':'kg'].s,opts=isLb()?[2.5,5,10,15,20,25]:[1,2,2.5,5,10];
+            return `<button class="chip ${mine?'':'on'}" data-setstep="auto" data-setstepex="${ex}">Auto · ${fmt(auto)} ${U()}</button>`+opts.map(v=>`<button class="chip ${mine===v?'on':''}" data-setstep="${v}" data-setstepex="${ex}">${fmt(v)} ${U()}</button>`).join('');})()}</div>
+          <div class="note">The weight step and equipment change how the weight moves for this exercise only, saved for next time. Everything already logged stays exactly as trained.</div>
           <button class="btn ghost" data-eqcancel="1" style="margin-top:10px">Done</button></div>`;
       }else{
         h+=`<button class="eqline mono" data-editequip="${ex}">steps ${fmt(wStep(ex))} ${U()} · ${EQUIP_LABEL[equipOf(ex)]} <span class="eqpen">\u270e</span></button>`;
