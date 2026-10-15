@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.330 — Last vs today in the app, as it was
+
+- Reverts v4.6.329: the in-app Last vs today goes back to its previous look, including its parts line. The share image keeps its v4.6.324 layout.
+
 ## v4.6.329 — Last vs today, neat in the app too
 
 - The in-app Last vs today now follows its share image: weights in bold mono, today's in full ink and the plan's quieter, reps as plain numbers with a blue pill only where today beat the plan, and more space between weights, lanes and exercises.
