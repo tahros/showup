@@ -27,7 +27,8 @@ try{
   await p.click('[data-club-icon="plate"]');await p.waitForTimeout(700);
   d=await p.evaluate(()=>({a:clubAvatar()[0],n:DB.settings.companionName,confirm:!!document.querySelector('.crew-confirm:not([hidden])'),open:!document.querySelector('.club-picker').hidden,on:document.querySelectorAll('.club-medal.on').length}));
   ok('switching is a plain choice: Plato at once, no prompt, medals unchanged',d.a==='plate'&&d.n==='Plato'&&!d.confirm&&d.open&&d.on===3,d);
-  await p.click('[data-club-icon="plate"]');await p.waitForTimeout(500);
+  await p.evaluate(()=>scrollTo(0,400));await p.click('[data-club-icon="plate"]');await p.waitForTimeout(900);
+  ok('...and the page rises to the top, to the membership card (v4.6.327)',await p.evaluate(()=>scrollY<4));
   ok('tapping Plato again is the choice: the picker closes, no Done needed (v4.6.325)',await p.evaluate(()=>clubAvatar()[0]==='plate'&&document.querySelector('.club-picker').hidden&&document.querySelector('.club-avatar-button').getAttribute('aria-expanded')==='false'));
   await p.evaluate(()=>document.querySelector('[data-club-picker]').click());await p.waitForTimeout(400);
   await p.click('[data-crew-rename]');await p.waitForTimeout(200);await p.fill('.crew-rename-in','Plates');await p.click('[data-crew-save]');await p.waitForTimeout(600);
