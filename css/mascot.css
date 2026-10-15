@@ -179,7 +179,7 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 /* Same visual weight for every crew (Sungjee, 2026-10-15): the art is scaled by --fit so each
    body covers the same area, then stood on the box's floor and centred. */
 .crew-fit .crew-art{width:calc(var(--fit)*100%);height:calc(var(--fit)*100%);top:calc(100% - (1 - var(--foot))*var(--fit)*100%);left:calc(50% - var(--mid)*var(--fit)*100%);bottom:auto;right:auto}
-.card.dayclosed .su-hello-comp{width:104px;height:104px;margin:-12px auto -6px}
+.card.dayclosed .su-hello-comp{width:90px;height:90px;margin:-8px auto -6px}
 .crew-pip{pointer-events:auto}
 .club-avatar.crew-avatar .club-pip-img{width:100%;height:100%;margin:0;animation:none!important}
 .su-companion .club-avatar{width:100%;height:100%}
