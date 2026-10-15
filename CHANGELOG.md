@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.328 — More sets means another exercise
+
+- Plan › Set target +: each exercise fills to your usual sets, then whole exercises come in, your own most recent first, then the app's recommendation for the day's parts (one that's new to you starts by feel). A set or two left over goes to what was just added. Only when nothing is left to add does an exercise go past its usual sets. A 13-set leg day raised to 16 now gains Hip Thrust × 3; Squats stay at 4.
+- − takes the added exercises away first, so the day returns to how it was.
+- Regenerate now writes to the count you set with + / −, instead of falling back to Auto.
+- New tools/test-plan-more-sets.js.
+
 ## v4.6.327 — Choose, then see it
 
 - Your crew: when you tap the chosen companion again, the picker closes and Settings scrolls back to the top, so the membership card with your new companion is in view.
