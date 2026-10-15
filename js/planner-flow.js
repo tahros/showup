@@ -815,11 +815,28 @@ function pfFocusSwap(day,focus,locked=[]){
    added chest fly goes with the chest work, ahead of the core, where it would
    be done. st.base is the day as the stepping began and st.locks its fixed
    rows as they were then, so the fixed rows follow their exercises. */
+/* v4.6.328: MORE SETS MEANS ANOTHER EXERCISE, NOT A LONGER ONE (Sungjee, 2026-10-15). Raising the count
+   fills each exercise to your usual sets, then brings in whole exercises -- your own most recent first,
+   then the app's recommendation for the part (new ones start by feel) -- and only when nothing is left
+   to add does any exercise go past its usual sets. It used to stretch Squats to 8. */
 function pfAllocate(b,st,target){
- const baseLocks=st.locks||b.locks||[],out=pwAllocateSets({...b,rows:pwCopy(st.base),locks:baseLocks},target);
- const rows=out.filter(r=>!r.added);let locks=baseLocks.slice();
- for(const r of out.filter(r=>r.added)){const idx=pwPlaceIndex(rows,r.ex);rows.splice(idx,0,r);locks=locks.map(i=>i>=idx?i+1:i);}
- b.rows=rows.map(r=>{delete r.added;return r;});b.locks=locks;
+ const baseLocks=st.locks||b.locks||[],base={...b,rows:pwCopy(st.base),locks:baseLocks};
+ const lim=pwSetLimits(base),soft=Math.min(target,Math.max(pwCounts(base.rows).total,lim.full+lim.extra));
+ const place=(out,keep)=>{const rows=out.filter(r=>!r.added);let locks=keep.slice();
+  for(const r of out.filter(r=>r.added)){const idx=pwPlaceIndex(rows,r.ex);rows.splice(idx,0,r);locks=locks.map(i=>i>=idx?i+1:i);}
+  b.rows=rows.map(r=>{delete r.added;return r;});b.locks=locks;};
+ place(pwAllocateSets(base,soft),baseLocks);
+ if(pwCounts(b.rows).total<target&&typeof pfRecommend==='function'){
+  const fixed=b.locks.map(i=>b.rows[i]),lockedText=fixed.map(r=>pwText([r]));
+  const before=b.rows.slice();
+  for(let guard=0;guard<6&&pwCounts(b.rows).total<target;guard++){const n=b.rows.length;pfRecommend(b,pfPartsSel(b).length?pfPartsSel(b):pwDayParts(b),pfFocus(b),lockedText,target);if(b.rows.length===n)break;}
+  b.locks=b.rows.map((r,i)=>fixed.includes(r)?i:-1).filter(i=>i>=0);
+  /* a set or two left over goes to what was just brought in, not back onto your own exercises */
+  const fresh=b.rows.filter(r=>!before.includes(r)&&r.kind==='ex');
+  if(fresh.length&&pwCounts(b.rows).total<target){const hold=b.rows.map((r,i)=>fresh.includes(r)?-1:i).filter(i=>i>=0),keep=b.locks.slice();place(pwAllocateSets({...b,rows:pwCopy(b.rows),locks:hold},target),keep);}
+ }
+ /* nothing left to bring in: the plan's own exercises take the rest, as before */
+ if(pwCounts(b.rows).total!==target){const keep=b.locks.slice();place(pwAllocateSets({...b,rows:pwCopy(b.rows),locks:keep},target),keep);}
 }
 /* v4.6.197: the exercises the app recommends to close a gap to the set target.
    Mutates day.rows; returns the rows it added. */
@@ -1057,7 +1074,8 @@ pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn
     for it to infer from a note. usual_sets is every part's usual, for days
     whose parts the writer chooses itself. */
  for(const x of p.workspace.schedule){const f=pfFocus(pwDay(x.date));if(f.length)x.focus=f.map(m=>({part:MUSCLE_PART[m],muscle:m}));}
- if(action==='generate')for(const x of p.workspace.drafts){const b=pwDay(x.date),a=pfAuto(b);if(a?.target&&b.target==null)x.target_total_sets=a.target;}
+ /* v4.6.328: a count you set with + / - is the count Regenerate writes to (it used to fall back to Auto) */
+ if(action==='generate')for(const x of p.workspace.drafts){const b=pwDay(x.date),a=pfAuto(b);if(b.target==null&&b.setsMine&&b.rows.length)x.target_total_sets=pwSetCount(b.rows);else if(a?.target&&b.target==null)x.target_total_sets=a.target;}
  p.workspace.usual_sets=Object.fromEntries(pfPartList().filter(x=>x!=='Run').map(x=>[x,pwUsualSets(x)]).filter(x=>x[1]!=null));
  p.note=[p.note,'Planning preferences: '+JSON.stringify({size:prefs.mode==='limit'?{max_sets:prefs.maxSets}:'auto',warm_up:prefs.warmup,avoid:prefs.avoid}),"Respect avoided exercises: leave them out; when one would have been chosen, pick another exercise for the same muscle. Prefer the exercises the person returns to most (their Go-to) when choosing between options. Only generate the explicitly selected dates. Write only for the body parts set for each date: do not add core, or any other part, on your own. Do not write cardio lines, even for a date whose parts include Run: the app adds that day's cardio itself.",prefs.warmup?'Open each day with ONE lighter warm-up line on its first exercise (about two thirds of the working weight, marked "(warm-up)"); no other warm-up lines.':'Do not write warm-up lines.',prefs.mode==='limit'?`Each selected day must total at most ${prefs.maxSets} sets, counting every set including warm-ups.`:''].filter(Boolean).join('\n');return p;};
 function pfMoveDay(from,to){const ds=pfDates(),a=ds.indexOf(from),b=ds.indexOf(to);if(a<0||b<0||a===b)return;const bundles=ds.map(d=>pwCopy(pwDay(d))),[moved]=bundles.splice(a,1);bundles.splice(b,0,moved);ds.forEach((d,i)=>{const old=pwDay(d);pw().book[d]={...bundles[i],base:old.base,source:'Your draft'};});pwPersist();pwRender();}
