@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.329 — Last vs today, neat in the app too
+
+- The in-app Last vs today now follows its share image: weights in bold mono, today's in full ink and the plan's quieter, reps as plain numbers with a blue pill only where today beat the plan, and more space between weights, lanes and exercises.
+- Its parts line reads Core and Cardio, not Sixpack and Run.
+
 ## v4.6.328 — More sets means another exercise
 
 - Plan › Set target +: each exercise fills to your usual sets, then whole exercises come in, your own most recent first, then the app's recommendation for the day's parts (one that's new to you starts by feel). A set or two left over goes to what was just added. Only when nothing is left to add does an exercise go past its usual sets. A 13-set leg day raised to 16 now gains Hip Thrust × 3; Squats stay at 4.
