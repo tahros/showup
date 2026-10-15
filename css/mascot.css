@@ -170,12 +170,16 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 /* v4.6.311: the companion in Pip's place */
 .su-companion{display:block;flex:none;pointer-events:none}
 .su-companion:has(.crew-avatar){pointer-events:auto;animation:none!important;opacity:1!important;transform:none!important}
-.crew-avatar{pointer-events:auto;cursor:pointer;--foot:0;--mid:.5}
+.crew-avatar{pointer-events:auto;cursor:pointer;--foot:0;--mid:.5;--fit:1}
 .crew-avatar .crew-art,.crew-pip .crew-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;margin:0;transform:none!important;animation:none!important;filter:none!important}
 .crew-pip>.crew-avatar{width:100%;height:100%}
 /* On a floor (the plates, beside the day count) the crew stands with its body's base on the
    box's bottom edge and its body centred, wherever the art sits inside its square. */
 .plate-comp .crew-art,.dd-companion .crew-art{top:calc(var(--foot,0)*100%);left:calc((.5 - var(--mid,.5))*100%);bottom:auto;right:auto}
+/* Same visual weight for every crew (Sungjee, 2026-10-15): the art is scaled by --fit so each
+   body covers the same area, then stood on the box's floor and centred. */
+.crew-fit .crew-art{width:calc(var(--fit)*100%);height:calc(var(--fit)*100%);top:calc(100% - (1 - var(--foot))*var(--fit)*100%);left:calc(50% - var(--mid)*var(--fit)*100%);bottom:auto;right:auto}
+.card.dayclosed .su-hello-comp{width:104px;height:104px;margin:-12px auto -6px}
 .crew-pip{pointer-events:auto}
 .club-avatar.crew-avatar .club-pip-img{width:100%;height:100%;margin:0;animation:none!important}
 .su-companion .club-avatar{width:100%;height:100%}

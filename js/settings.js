@@ -308,12 +308,13 @@ function companionHTML(cls=''){
 }
 function clubAvatar(){if(clubIconsLocked())return clubFreeIcon();const k=DB.settings.clubAvatar;return clubChoices().find(x=>x[0]===k)||clubFreeIcon();}
 /* Where each crew stands inside its square art (Sungjee, 2026-10-15): the share of the
-   square below the body (the baked shadow lives there), the body's centre, and its width.
+   square below the body (the baked shadow lives there), the body's centre, its width, and the
+   scale that gives every crew the same visual weight (body area matched).
    Measured from assets/crew/<key>.webp; the 384px animations share the same framing. */
-const CREW_FOOT={bag:[.217,.5,.695],ball:[.193,.516,.578],band:[.24,.523,.664],bell:[.182,.5,.508],bottle:[.201,.506,.363],headphones:[.209,.52,.641],mat:[.24,.5,.695],pip:[.338,.498,.535],plate:[.203,.5,.547],roller:[.303,.479,.559]};
-function crewFoot(k){return CREW_FOOT[k]||[.22,.5,.6];}
+const CREW_FOOT={bag:[.217,.5,.695,0.9],ball:[.193,.516,.578,0.96],band:[.24,.523,.664,1.04],bell:[.182,.5,.508,0.97],bottle:[.201,.506,.363,1.17],headphones:[.209,.52,.641,0.89],mat:[.24,.5,.695,1.08],pip:[.338,.498,.535,1.33],plate:[.203,.5,.547,1.0],roller:[.303,.479,.559,1.3]};
+function crewFoot(k){return CREW_FOOT[k]||[.22,.5,.6,1];}
 function clubIconHTML(item,animated=false,moment='hello'){
-  return `<span class="club-avatar crew-avatar club-${item[0]}${animated?' club-animate':''}" data-crew="${item[0]}" data-crew-moment="${moment}" style="--foot:${crewFoot(item[0])[0]};--mid:${crewFoot(item[0])[1]}" aria-hidden="true"><img class="crew-art${item[0]==='pip'?' club-pip-img':''}" src="assets/crew/${item[0]}${moment==='rest'?'-rest-still':''}.webp" width="384" height="384" alt=""></span>`;
+  return `<span class="club-avatar crew-avatar club-${item[0]}${animated?' club-animate':''}" data-crew="${item[0]}" data-crew-moment="${moment}" style="--foot:${crewFoot(item[0])[0]};--mid:${crewFoot(item[0])[1]};--fit:${crewFoot(item[0])[3]}" aria-hidden="true"><img class="crew-art${item[0]==='pip'?' club-pip-img':''}" src="assets/crew/${item[0]}${moment==='rest'?'-rest-still':''}.webp" width="384" height="384" alt=""></span>`;
 }
 // Lazy lifecycle module: no animation state is stored in the user's profile.
 if(typeof window!=='undefined'&&typeof IntersectionObserver!=='undefined')import('./crew-motion.js').catch(()=>{});
