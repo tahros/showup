@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.322 — Attendance, pattern first
+
+- Shared Attendance (one year): each day is a plain square with no date number, so streaks and gaps read at a glance.
+- Month names have more room above the weekday row, and the days start a little lower.
+
 ## v4.6.321 — The day's totals close the workout log
 
 - The shared workout log's subtitle is now just the body parts.
