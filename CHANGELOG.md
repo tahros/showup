@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.326 — One set of body-part colors
+
+- Settings › Appearance: the Body-part colors section (Normal / Neon) is gone. Everyone sees Normal, including a profile or synced device that had picked Neon.
+- tools/test-bodypalette.js now checks the retirement; tools/check-bodypalette.cjs is removed.
+
 ## v4.6.325 — Tap again to choose
 
 - Your crew: tap a companion to see it move, then tap the same one again to choose it. The picker closes as Done would.
