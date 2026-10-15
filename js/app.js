@@ -756,6 +756,11 @@ document.addEventListener('click',e=>{
   const _ee=e.target.closest&&e.target.closest('[data-editequip]');
   if(_ee){ lift.editEquip=_ee.dataset.editequip; return renderLift(); }
   if(e.target.closest&&e.target.closest('[data-eqcancel]')){ lift.editEquip=null; return renderLift(); }
+  /* v4.6.331: your machine's increment for this exercise; Auto follows the equipment again */
+  const _ss=e.target.closest&&e.target.closest('[data-setstep]');
+  if(_ss){const ex2=_ss.dataset.setstepex,v=_ss.dataset.setstep;
+    if(v==='auto')delete stepOv()[ex2];else stepOv()[ex2]={v:+v,u:isLb()?'lb':'kg'};
+    DB.settingsAt=Date.now();save(true);lift.weight=snapW(lift.weight,ex2);return renderLift();}
   const _se=e.target.closest&&e.target.closest('[data-seteq]');
   if(_se){
     const ex2=_se.dataset.seteqex, to=_se.dataset.seteq;
