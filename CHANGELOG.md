@@ -1,6 +1,6 @@
 # ShowUppp — changelog
 
-## Unreleased — Approved crew animations
+## v4.6.323 — Approved crew animations
 
 - All ten profile characters use the approved 3D artwork and four rendered reactions: Hello, Tap, Medal earned, and Rest.
 - Transparent artwork on both themes; updated picker, companion surfaces, and companion share images. Pip's separate brand artwork is unchanged.
