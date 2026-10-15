@@ -5,18 +5,15 @@ const w=dom.window,ctx=dom.getInternalVMContext();w.fetch=()=>Promise.reject(Err
 for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g))vm.runInContext(fs.readFileSync(path.join(dir,m[1]),'utf8'),ctx);
 const run=s=>vm.runInContext(s,ctx);
 try{
- run("DB.settings={theme:'light',name:'Fixture',sex:'f',onboarded:true};DB.days={};DB.week={days:{'2026-09-16':[]}};checkDate=()=>false;settingsBaseline();applyTheme();view='sync';renderSync();");
+ /* v4.6.326: the Body-part colors setting is retired (Sungjee, 2026-10-15): no picker, and Normal
+    everywhere -- even for a profile or a synced device that still says Neon */
+ run("DB.settings={theme:'light',name:'Fixture',sex:'f',onboarded:true,bodyPalette:'neon'};DB.days={};DB.week={days:{'2026-09-16':[]}};checkDate=()=>false;settingsBaseline();applyTheme();view='sync';renderSync();");
  assert.equal(run('bodyPalette()'),'normal');assert.equal(w.document.documentElement.dataset.bodyPalette,'normal');
- assert.equal(w.document.querySelectorAll('[data-body-palette-pick]').length,2);assert.equal(w.document.querySelectorAll('.body-palette-preview span').length,8);
- run('day(todayISO)'); // Normal app rendering initializes the current empty day.
- const before=run('JSON.stringify({days:DB.days,week:DB.week,name:DB.settings.name,sex:DB.settings.sex})');
- w.document.querySelector('[data-body-palette-pick="neon"]').click();
- assert.equal(run('DB.settings.bodyPalette'),'neon');assert.equal(w.document.documentElement.dataset.bodyPalette,'neon');assert.equal(w.localStorage.getItem('showup-body-palette'),'neon');
- assert(run('DB.settingsAtK.bodyPalette>0'));assert.equal(run('settingsSnap().bodyPalette'),'"neon"');
- assert.equal(run('JSON.stringify({days:DB.days,week:DB.week,name:DB.settings.name,sex:DB.settings.sex})'),before);
- run("adoptRemoteSettings({settings:{bodyPalette:'normal'},settingsAt:Date.now()+10000,settingsAtK:{bodyPalette:Date.now()+10000}})");
+ assert.equal(w.document.querySelectorAll('[data-body-palette-pick]').length,0);assert.equal(w.document.querySelectorAll('.body-palette-preview').length,0);
+ assert(!/Body-part colors/.test(w.document.getElementById('view').textContent));
+ run("adoptRemoteSettings({settings:{bodyPalette:'neon'},settingsAt:Date.now()+10000,settingsAtK:{bodyPalette:Date.now()+10000}})");
  assert.equal(w.document.documentElement.dataset.bodyPalette,'normal');assert.equal(run('DB.settings.name'),'Fixture');
- run("DB.settings.bodyPalette='invalid';applyTheme()");assert.equal(w.document.documentElement.dataset.bodyPalette,'normal');
- console.log('PASS palette default, controls, safe persistence, per-key sync, remote repaint and unknown fallback');
+ assert(!/'showup-body-palette'\)==='neon'/.test(html));
+ console.log('PASS Body-part colors retired: no picker, Normal everywhere, a synced Neon stays Normal');
 }finally{dom.window.close();}
 process.exit(0);

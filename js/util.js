@@ -321,7 +321,7 @@ function systemTheme(){
   catch(e){ return 'dark'; }
 }
 let _themeWatched=false;
-function bodyPalette(){return DB.settings.bodyPalette==='neon'?'neon':'normal';}
+function bodyPalette(){return 'normal';}   /* v4.6.326: the Neon choice is retired; Normal everywhere */
 function applyTheme(){
   const pref=DB.settings.theme;
   /* Design-review links may pin a theme without mutating the user's saved
