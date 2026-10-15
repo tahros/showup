@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.327 — Choose, then see it
+
+- Your crew: when you tap the chosen companion again, the picker closes and Settings scrolls back to the top, so the membership card with your new companion is in view.
+
 ## v4.6.326 — One set of body-part colors
 
 - Settings › Appearance: the Body-part colors section (Normal / Neon) is gone. Everyone sees Normal, including a profile or synced device that had picked Neon.
