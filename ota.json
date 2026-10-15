@@ -30,11 +30,6 @@
    "download_url": "https://tahros.github.io/showup/apple-touch-icon-blue.png?ota=4.6.322"
   },
   {
-   "file_name": "assets/STATUS-ICONS.md",
-   "file_hash": "e9794dae6fee7d65c85f6bb17dd90b68cba9816afdc2a2cb03b3ff570293a4e0",
-   "download_url": "https://tahros.github.io/showup/assets/STATUS-ICONS.md?ota=4.6.322"
-  },
-  {
    "file_name": "assets/club-icons-0.webp",
    "file_hash": "1e200190575b5671c85769987a5d7286adb2de81b16286fe431cddec8d6ccefc",
    "download_url": "https://tahros.github.io/showup/assets/club-icons-0.webp?ota=4.6.322"
@@ -58,6 +53,311 @@
    "file_name": "assets/club-seal.webp",
    "file_hash": "ec004166b303bbfa97d33cea69aaf10d1b84ee51c171c6c211c3db2663d2a619",
    "download_url": "https://tahros.github.io/showup/assets/club-seal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bag-hello.webp",
+   "file_hash": "eddc5a23d0f75ed68f1e89acdf6a1991081c2cf5588b96c2feea4148d07ec289",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bag-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bag-medal.webp",
+   "file_hash": "c81823c6625884fb87cffd8f6dac99a20355ab9bf6756ba324bfd2c04bb819b9",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bag-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bag-rest-still.webp",
+   "file_hash": "1816a68f48e64376d983410702a125d44e3f868c7d4970c0c5fef67796b506be",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bag-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bag-rest.webp",
+   "file_hash": "31ada6ec7cc421d4e2ad82f5d3e802d08907e83f8139c5c977140dba087d2a74",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bag-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bag-tap.webp",
+   "file_hash": "ac724751e59807c8f2bb2abfa7247169bb5ee7b687cb07f2613ebb7eba2da1d4",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bag-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bag.webp",
+   "file_hash": "794be92b0281ccd48e0d17ba361499e6832eea81419b7ae13a0c9d58a8be7477",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bag.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/ball-hello.webp",
+   "file_hash": "bb409fad0e81be1240a3eb5e858313ce7fdf27c76072d11d01cbf78c43e45fd6",
+   "download_url": "https://tahros.github.io/showup/assets/crew/ball-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/ball-medal.webp",
+   "file_hash": "52057c29806644472a4433630d9fb5d5cf4d336aff284bab876d4f21f5fbbbbd",
+   "download_url": "https://tahros.github.io/showup/assets/crew/ball-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/ball-rest-still.webp",
+   "file_hash": "6672c2ff8ed457aa52e5ef5fcc55a7878acec1941f2bb03909ab0ed74cebf1d5",
+   "download_url": "https://tahros.github.io/showup/assets/crew/ball-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/ball-rest.webp",
+   "file_hash": "7adc2294df847ae77685a56e3e35211c18d5e8e31fb5514d99ccf345f9eed219",
+   "download_url": "https://tahros.github.io/showup/assets/crew/ball-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/ball-tap.webp",
+   "file_hash": "8b440f12122c0c016e071a94a72b0f240a15d1f36fad11f42975b157880b3c4d",
+   "download_url": "https://tahros.github.io/showup/assets/crew/ball-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/ball.webp",
+   "file_hash": "175155e62472997b5b41a9cec0d118670ea55409a652cffa5b9eef7573f0ffa6",
+   "download_url": "https://tahros.github.io/showup/assets/crew/ball.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/band-hello.webp",
+   "file_hash": "d5fa70a26cfa372adafb71e7570aebb28870b2d79daf0987bb4c6edffdf87a23",
+   "download_url": "https://tahros.github.io/showup/assets/crew/band-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/band-medal.webp",
+   "file_hash": "209915d7cfde2d4cdbf794d595869f4abbfbbdd1b0547a92d781d0caeaab4290",
+   "download_url": "https://tahros.github.io/showup/assets/crew/band-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/band-rest-still.webp",
+   "file_hash": "f527f90cb8c45b69d7ab2f84f25e02a7ca32ab7bc748ce37654b93036db2ba21",
+   "download_url": "https://tahros.github.io/showup/assets/crew/band-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/band-rest.webp",
+   "file_hash": "da3b37d34287b4a06ab8b1c477474b1eb0eabce07005c9a7325969b72e71f821",
+   "download_url": "https://tahros.github.io/showup/assets/crew/band-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/band-tap.webp",
+   "file_hash": "c4451e34e58aeea86dd67e51d3162777b0692415127f83ff143e96c89587a7c4",
+   "download_url": "https://tahros.github.io/showup/assets/crew/band-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/band.webp",
+   "file_hash": "6bb2b90e8db0d391f77f3dcf8a3f6349f81eae0d90fdfa41086f7574e8977cce",
+   "download_url": "https://tahros.github.io/showup/assets/crew/band.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/beats-cue.wav",
+   "file_hash": "b3d3088c6a95096d1add014d98009ed743f43bb73b70f2df9bb6503ecbd3b7f7",
+   "download_url": "https://tahros.github.io/showup/assets/crew/beats-cue.wav?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bell-hello.webp",
+   "file_hash": "cb4f405ffb7e658b1343ddd7dbfea5026f0ac8175c3d588b41d7e58aac1ab6a9",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bell-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bell-medal.webp",
+   "file_hash": "c4e88353cec6231af9506116cd17974007de83c7a9b38b8b4783b89ec3ffe5e4",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bell-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bell-rest-still.webp",
+   "file_hash": "cdfc257237b8e0783d19260c8ff1eedc354dde2ac2f6620d9d6f73961115d393",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bell-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bell-rest.webp",
+   "file_hash": "cdf124bdc555ef04e46e2265fc32434580a757fc95a3414c77e0e5a070e0e7f1",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bell-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bell-tap.webp",
+   "file_hash": "49408cf94dbe0775e151a2d3b44a690d9a5ceb206fa924c71f38577fc60e9019",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bell-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bell.webp",
+   "file_hash": "3434b8dead738c7d2bdcdd39557b8314fefc0452370388d23926f7fba9aa4c2a",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bell.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bottle-hello.webp",
+   "file_hash": "e89d71b652026f3e023f7eeff56b952602273af8611bff01839ae991ae0ff9ba",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bottle-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bottle-medal.webp",
+   "file_hash": "5ab9c9233a7eb1e3022bbcec6ded0e28332a8e7043ac84448788321de910b687",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bottle-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bottle-rest-still.webp",
+   "file_hash": "b3275884101134fd1dea326114850d90f5deca2ab787537154d4b222db3b2f96",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bottle-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bottle-rest.webp",
+   "file_hash": "d4d9d96c0f7aa8d9be0fbd3c53174d713e109e2a6d5b1f02a2aaaa8749e6143b",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bottle-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bottle-tap.webp",
+   "file_hash": "f1fc3541393df81beed3980271981fa1501bf078a0283d193ab88bf0822a98d6",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bottle-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/bottle.webp",
+   "file_hash": "b654253b16abc8276d96673b378fcce1a53e0a205cae8a7aab462d5ff71608f0",
+   "download_url": "https://tahros.github.io/showup/assets/crew/bottle.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/headphones-hello.webp",
+   "file_hash": "c1cd8f5a0fa6972620eb426186c1dce682f0183dabaf2f4c302bdc71835e3681",
+   "download_url": "https://tahros.github.io/showup/assets/crew/headphones-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/headphones-medal.webp",
+   "file_hash": "2082076bed67a95070ebd0f6b459afcd021cfcfa9f14e35d606bcbecfd13c10b",
+   "download_url": "https://tahros.github.io/showup/assets/crew/headphones-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/headphones-rest-still.webp",
+   "file_hash": "3e1e9e0cdf836597af6d418a6a11bbf0e3b16fe8d2dccedd030f73e786c1a8b8",
+   "download_url": "https://tahros.github.io/showup/assets/crew/headphones-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/headphones-rest.webp",
+   "file_hash": "44b2f0ec528d8614be9e0172419435e01a460d4221a4cdfd8b136b1fc83a48a9",
+   "download_url": "https://tahros.github.io/showup/assets/crew/headphones-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/headphones-tap.webp",
+   "file_hash": "ba6946b9bc255c719220b69c13c97f10566fdc2d3b832e933f25d74aa386c0d1",
+   "download_url": "https://tahros.github.io/showup/assets/crew/headphones-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/headphones.webp",
+   "file_hash": "a2e08b7e90481b8d5045cb928233f9b0efa331f4d960132035c156ba548e9cc4",
+   "download_url": "https://tahros.github.io/showup/assets/crew/headphones.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/mat-hello.webp",
+   "file_hash": "cbb128e6fb95474e1ab9324877f8caa1cf1a3a6591e711a12e0e150c4bd045ce",
+   "download_url": "https://tahros.github.io/showup/assets/crew/mat-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/mat-medal.webp",
+   "file_hash": "26a79c07daa67c0f662e9f9b7b06d304cc448a5ae54ec76581aa5e0eece151d3",
+   "download_url": "https://tahros.github.io/showup/assets/crew/mat-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/mat-rest-still.webp",
+   "file_hash": "abf9880226c17687808c4179e6f7b4b4a40752a531b96a7d05e08dc03a77c189",
+   "download_url": "https://tahros.github.io/showup/assets/crew/mat-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/mat-rest.webp",
+   "file_hash": "5954fff9e314a6dc91e999da1a95c1aa8e7cf32c9207d6f2ca8e95b5f1a0c1cd",
+   "download_url": "https://tahros.github.io/showup/assets/crew/mat-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/mat-tap.webp",
+   "file_hash": "9191deec9b51742038292eac52707547dbaf8bfc2d5c9fc299760926a507330b",
+   "download_url": "https://tahros.github.io/showup/assets/crew/mat-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/mat.webp",
+   "file_hash": "1879441058c16cce5d1da40d658203b9b0cae31a7d62d346b21a720b5ecdbc0e",
+   "download_url": "https://tahros.github.io/showup/assets/crew/mat.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/pip-hello.webp",
+   "file_hash": "215e06730d74dd8e1151c747c2e7f500eddccb69a73d36165d84fb81b7f9bd61",
+   "download_url": "https://tahros.github.io/showup/assets/crew/pip-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/pip-medal.webp",
+   "file_hash": "0fd3d67c19d94d49bdf4d8ead4e52716a9b71e13d126d482e511d28ac4effa72",
+   "download_url": "https://tahros.github.io/showup/assets/crew/pip-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/pip-rest-still.webp",
+   "file_hash": "8fcad79ae45b4fc460bb41c77e5f8363784339c095e994d3921b8ce341a1b561",
+   "download_url": "https://tahros.github.io/showup/assets/crew/pip-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/pip-rest.webp",
+   "file_hash": "21c70b354ce0a10d23bb0f59a60c22c59c3d8e3b1962dadca03323ba64cc71ec",
+   "download_url": "https://tahros.github.io/showup/assets/crew/pip-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/pip-tap.webp",
+   "file_hash": "68db57538bbf38b12d88c6c59aaed8ef75947c33de0a67ae46ec0096889a1b38",
+   "download_url": "https://tahros.github.io/showup/assets/crew/pip-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/pip.webp",
+   "file_hash": "b17f3ded388694ed6df4ad6ad5433c4838fd2b52ee87e9f12aa57b64036c2a1f",
+   "download_url": "https://tahros.github.io/showup/assets/crew/pip.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/plate-hello.webp",
+   "file_hash": "2e00cbe4cb70859bb76533fa959266b09460aef6086f4a7eaea1e45d1d03c645",
+   "download_url": "https://tahros.github.io/showup/assets/crew/plate-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/plate-medal.webp",
+   "file_hash": "7fe44daaa3d74a0b1f3f6951f9e68c9d970aeb9bc5ac66566f379f9cb36475a0",
+   "download_url": "https://tahros.github.io/showup/assets/crew/plate-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/plate-rest-still.webp",
+   "file_hash": "5f07b572ba8215f08e868d56c456c1150e6d29251bbde309966f91a81a18fde9",
+   "download_url": "https://tahros.github.io/showup/assets/crew/plate-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/plate-rest.webp",
+   "file_hash": "fb4b2a4a76e927574251b01acdefe0fe27e9dbb3fcbee784b368a5f6b079be60",
+   "download_url": "https://tahros.github.io/showup/assets/crew/plate-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/plate-tap.webp",
+   "file_hash": "6d9888c85a91ab8144261c34e4654684c49619759d86a7ad4ed1715c7ae8ab82",
+   "download_url": "https://tahros.github.io/showup/assets/crew/plate-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/plate.webp",
+   "file_hash": "f07a8c6e67f3523ea6c58616a816418dabfdbe7415d898e5a7bdd56c0061e4ee",
+   "download_url": "https://tahros.github.io/showup/assets/crew/plate.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/roller-hello.webp",
+   "file_hash": "b1cd93147c5ac91287837bece89b17b80143e6950bf790f9ded4ee46d894c2d5",
+   "download_url": "https://tahros.github.io/showup/assets/crew/roller-hello.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/roller-medal.webp",
+   "file_hash": "6aaaf6bf037c0028d4d4e7c84198b82d256571c209f395a0e8f7af4794feac73",
+   "download_url": "https://tahros.github.io/showup/assets/crew/roller-medal.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/roller-rest-still.webp",
+   "file_hash": "06e6cf434db2493f6e81fab7cac9adb2897c8508fd9d4bba55aa4a620dfec810",
+   "download_url": "https://tahros.github.io/showup/assets/crew/roller-rest-still.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/roller-rest.webp",
+   "file_hash": "5a6513414c543ddd52f6d7b5aef68b026b058c0e6ddfa37829a5ac1ddbffca54",
+   "download_url": "https://tahros.github.io/showup/assets/crew/roller-rest.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/roller-tap.webp",
+   "file_hash": "d4401c194a91a78c6fa5defc8429a320fd140cbc0f6b06067d30bb82c70ab2b5",
+   "download_url": "https://tahros.github.io/showup/assets/crew/roller-tap.webp?ota=4.6.322"
+  },
+  {
+   "file_name": "assets/crew/roller.webp",
+   "file_hash": "a07d179f95832721d6a36c5efb3be30fbc2d4c3626de22d302b3c625fc4aa510",
+   "download_url": "https://tahros.github.io/showup/assets/crew/roller.webp?ota=4.6.322"
   },
   {
    "file_name": "assets/fonts/IBMPlexSans-Bold.ttf",
@@ -250,6 +550,11 @@
    "download_url": "https://tahros.github.io/showup/assets/status-flat.png?ota=4.6.322"
   },
   {
+   "file_name": "assets/STATUS-ICONS.md",
+   "file_hash": "e9794dae6fee7d65c85f6bb17dd90b68cba9816afdc2a2cb03b3ff570293a4e0",
+   "download_url": "https://tahros.github.io/showup/assets/STATUS-ICONS.md?ota=4.6.322"
+  },
+  {
    "file_name": "assets/status-up.png",
    "file_hash": "48200fe0b11efd8f97b7912d7308fc2cfb2abbc582ba8518dc0aae8809f98b04",
    "download_url": "https://tahros.github.io/showup/assets/status-up.png?ota=4.6.322"
@@ -266,7 +571,7 @@
   },
   {
    "file_name": "css/mascot.css",
-   "file_hash": "41a4592571166cd38eee6f134eca45a9549b07ab4e34d5dbb15c58d0157ea6a8",
+   "file_hash": "4e9e10d1eb3f68d8e66da88c63707afe9383459fd1491f47fee876b1cbd8aee9",
    "download_url": "https://tahros.github.io/showup/css/mascot.css?ota=4.6.322"
   },
   {
@@ -313,6 +618,11 @@
    "file_name": "js/core.js",
    "file_hash": "89b8eb916ed2b1f17ab8c69b8fc51e46371a4325c3bf08959a8731bc04177461",
    "download_url": "https://tahros.github.io/showup/js/core.js?ota=4.6.322"
+  },
+  {
+   "file_name": "js/crew-motion.js",
+   "file_hash": "7c8f7fc1e356826855820acec70db9a9ab3d91d514a9630aa2116124a78357c1",
+   "download_url": "https://tahros.github.io/showup/js/crew-motion.js?ota=4.6.322"
   },
   {
    "file_name": "js/day-review.js",
@@ -366,7 +676,7 @@
   },
   {
    "file_name": "js/mascot.js",
-   "file_hash": "37c353adebfb32c678ef00df671fba1604585692bc7d105da824d3d6d74274f2",
+   "file_hash": "9271fb4dbb8bd9c25bab9b11a81eb771d6e702494d66769a9da1a993b2a99182",
    "download_url": "https://tahros.github.io/showup/js/mascot.js?ota=4.6.322"
   },
   {
@@ -456,7 +766,7 @@
   },
   {
    "file_name": "js/settings.js",
-   "file_hash": "18f131770cc2fe2f03a8fd791143b427dc5336b4919ad78f9fd7d0395ab13357",
+   "file_hash": "1e19e34dcc2714a9af540fe659ea82033d173bf8f17f7f7ddb4eaa5c46dff70e",
    "download_url": "https://tahros.github.io/showup/js/settings.js?ota=4.6.322"
   },
   {
@@ -496,7 +806,7 @@
   },
   {
    "file_name": "sw.js",
-   "file_hash": "dd8397eea476c5946383b496af913b832fbcddfce5065e11933a2a23b5f10c7d",
+   "file_hash": "ae1fdb8c92de9bf1f3aa65f6daf18173c9749543363b8f1e79b22aafbbb0d8b7",
    "download_url": "https://tahros.github.io/showup/sw.js?ota=4.6.322"
   },
   {

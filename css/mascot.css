@@ -169,6 +169,12 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 #dayDone.dd-ink .showuppp-ground{visibility:hidden}
 /* v4.6.311: the companion in Pip's place */
 .su-companion{display:block;flex:none;pointer-events:none}
+.su-companion:has(.crew-avatar){pointer-events:auto;animation:none!important;opacity:1!important;transform:none!important}
+.crew-avatar{pointer-events:auto;cursor:pointer}
+.crew-avatar .crew-art,.crew-pip .crew-art{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;margin:0;transform:none!important;animation:none!important;filter:none!important}
+.crew-pip>.crew-avatar{width:100%;height:100%}
+.crew-pip{pointer-events:auto}
+.club-avatar.crew-avatar .club-pip-img{width:100%;height:100%;margin:0;animation:none!important}
 .su-companion .club-avatar{width:100%;height:100%}
 .su-hello-comp{width:68px;height:68px;margin-right:6px;animation:compIn .7s .25s cubic-bezier(.3,1.6,.5,1) both}
 .rest-home .su-hello-comp{width:118px;height:118px}

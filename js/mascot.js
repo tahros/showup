@@ -59,6 +59,10 @@ function mascotHTML(mode='hello',className='',tone=''){
   if(mascotMode()==='off')return '';
   // The PNG and renderer use the same resolved tone, including explicit blue.
   const resolved=mascotTone(mode,tone);
+  if(!isRetro()&&resolved==='blue'&&typeof clubIconHTML==='function'&&DB.settings.companionName&&clubAvatar()[0]==='pip'){
+    const moment=['rest','cool'].includes(mode)?'rest':['jump','dance'].includes(mode)?'medal':'hello';
+    return `<span class="su-mascot crew-pip ${className}" data-mascot="${mode}" data-mascot-tone="blue" aria-hidden="true">${clubIconHTML(['pip'],true,moment)}</span>`;
+  }
   const src=isRetro()?retroStill(mode,resolved):'assets/mascot-'+resolved+'.png';
   return '<span class="su-mascot '+className+'" data-mascot="'+mode+'" data-mascot-tone="'+resolved+'" aria-hidden="true"><img src="'+src+'" alt="" width="360" height="220"></span>';
 }
@@ -277,6 +281,7 @@ for(const tone of ['white','chrome']){
     live.get(el)?.dispose();live.delete(el);el.classList.remove('su-ready');
   }
   async function mount(el){
+    if(el.classList.contains('crew-pip'))return; // Approved pre-rendered 3D crew owns its lifecycle.
     if(el.closest('.showuppp-c'))return; // This one-shot lockup owns its motion.
     if(pending.has(el)||live.has(el)||!visible.has(el)||document.hidden||live.size>=2||el.dataset.failed)return;
     // Static fallbacks are intentional for reduced-motion and the Still setting.

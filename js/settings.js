@@ -310,10 +310,15 @@ function companionHTML(cls=''){
   if(typeof mascotMode==='function'&&mascotMode()==='off')return '';
   if(companionIsPip())return '';   /* the caller shows Pip, as before */
   const c=clubAvatar(),anim=typeof mascotMode!=='function'||mascotMode()==='animated';
-  return `<span class="su-companion ${cls}" data-companion="${c[0]}" aria-hidden="true">${clubIconHTML(c,anim).replace('club-avatar ','club-avatar club-visible ')}</span>`;
+  const moment=cls.includes('su-comp-rest')?'rest':cls.includes('dd-companion')?'medal':'hello';
+  return `<span class="su-companion ${cls}" data-companion="${c[0]}" aria-hidden="true">${clubIconHTML(c,anim,moment).replace('club-avatar ','club-avatar club-visible ')}</span>`;
 }
 function clubAvatar(){if(clubIconsLocked())return clubFreeIcon();const k=DB.settings.clubAvatar;return clubChoices().find(x=>x[0]===k)||clubFreeIcon();}
-function clubIconHTML(item,animated=false){if(item[0]==='pip'){const t=typeof mascotTone==='function'?mascotTone('hello'):'chrome';return `<span class="club-avatar club-pip${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><img class="club-pip-img" src="assets/mascot-${t}.png" alt=""></span>`;}return `<span class="club-avatar club-${item[0]}${animated?' club-animate':''}" aria-hidden="true"><span class="club-shadow"></span><span class="club-sprite" style="background-image:url('assets/club-icons-${item[2]}.webp');background-position:${item[3]}% 0"></span></span>`;}
+function clubIconHTML(item,animated=false,moment='hello'){
+  return `<span class="club-avatar crew-avatar club-${item[0]}${animated?' club-animate':''}" data-crew="${item[0]}" data-crew-moment="${moment}" aria-hidden="true"><img class="crew-art${item[0]==='pip'?' club-pip-img':''}" src="assets/crew/${item[0]}${moment==='rest'?'-rest-still':''}.webp" width="384" height="384" alt=""></span>`;
+}
+// Lazy lifecycle module: no animation state is stored in the user's profile.
+if(typeof window!=='undefined'&&typeof IntersectionObserver!=='undefined')import('./crew-motion.js').catch(()=>{});
 function clubAvatarEditHTML(item){return clubIconHTML(item,true)+`<span class="club-avatar-edit" aria-hidden="true">${icon('edit',14)}</span>`;}
 function clubCoinNumberHTML(number){
   const chars=Array.from(String(number)),size=Math.min(10,74/Math.max(6,chars.length));
@@ -890,13 +895,13 @@ function userMedalLineHTML(hit){
 const _shareImgs={};
 function shareImg(src){if(!_shareImgs[src]){const i=new Image();i.src=src;_shareImgs[src]=i;}return _shareImgs[src];}
 const shareReady=i=>!!(i&&i.complete&&i.naturalWidth);
-function shareCompanionImg(){if(typeof companionIsPip!=='function'||companionIsPip())return null;const c=clubAvatar();return c[2]>=0?shareImg(`assets/club-icons-${c[2]}.webp`):null;}
+function shareCompanionImg(){if(typeof companionIsPip!=='function'||companionIsPip())return null;return shareImg(`assets/crew/${clubAvatar()[0]}.webp`);}
 function shareWordmarkImg(dark){return shareImg(`assets/showuppp-wordmark-${dark?'dark':'light'}.svg`);}
 function shareMedalImg(){const t=userMedals().at(-1);return t?shareImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(medalSVG(t[1],64).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))):null;}
-/* draws your companion (one 400x400 frame of its sheet) into a square; false if Pip plays or the art isn't in */
+/* Draw the approved transparent 3D still; false if Pip's brand mark plays or the art isn't ready. */
 function shareDrawCompanion(x,dx,dy,size){
-  const img=shareCompanionImg();if(!shareReady(img))return false;const c=clubAvatar(),fw=img.naturalWidth/3,col=Math.round(c[3]/50);
-  x.drawImage(img,col*fw,0,fw,img.naturalHeight,dx,dy,size,size);return true;
+  const img=shareCompanionImg();if(!shareReady(img))return false;
+  x.drawImage(img,dx,dy,size,size);return true;
 }
 function sharePreload(){const d=document.documentElement.dataset.theme==='dark';const l=[shareCompanionImg(),shareWordmarkImg(d),shareWordmarkImg(!d),shareMedalImg(),sharePipImg()].filter(Boolean);return Promise.all(l.map(i=>i.decode?i.decode().catch(()=>{}):null));}
 setTimeout(()=>{try{sharePreload();}catch(e){}},2500);

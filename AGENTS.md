@@ -45,6 +45,8 @@ push being rejected. These rules exist so that doesn't repeat.
 
 ## In flight
 
+2026-10-14 — Codex: approved ten-character animation integration; js/settings.js, js/mascot.js, js/app.js, css/mascot.css, assets/crew/, sw.js SHELL, tests. Preserve settings data and membership rules.
+
 **Claude — iOS App Store track.** Sungjee wants ShowUp on the App Store, with
 the listing live before the day-1,000 Show HN post. This is a native Capacitor
 shell around the existing static app, so most of the work lands in this repo

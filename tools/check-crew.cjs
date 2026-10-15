@@ -43,8 +43,8 @@ try{
   await p.evaluate(()=>{view='today';render();});await p.waitForTimeout(900);
   const tone=await p.evaluate(()=>document.querySelector('#view .su-hello-row .su-mascot')?.dataset.mascotTone);
   await p.evaluate(()=>{view='sync';render();});await p.waitForTimeout(700);
-  let d={tone,tile:await p.evaluate(()=>document.querySelector('.club-avatar-button .club-pip-img')?.getAttribute('src'))};
-  ok('Pip as your companion: blue on Today and on the profile tile',d.tone==='blue'&&/mascot-blue/.test(d.tile||''),d);
+  let d={tone,tile:await p.evaluate(()=>{const e=document.querySelector('.club-avatar-button [data-crew="pip"]'),i=e?.querySelector('.crew-art');return !!e&&i?.complete&&i.naturalWidth>0;})};
+  ok('Pip as your companion: approved blue crew render on Today and profile',d.tone==='blue'&&d.tile,d);
   ok('no page errors',!errors.length,errors);await ctx.close();}
  {const {ctx,p,errors}=await open(12,{companionAsked:undefined});
   await p.evaluate(()=>{view='sync';render();});await p.waitForTimeout(600);

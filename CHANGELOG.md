@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## Unreleased — Approved crew animations
+
+- All ten profile characters use the approved 3D artwork and four rendered reactions: Hello, Tap, Medal earned, and Rest.
+- Transparent artwork on both themes; updated picker, companion surfaces, and companion share images. Pip's separate brand artwork is unchanged.
+- Motion pauses off-screen and follows Still/Off and reduced-motion preferences. Beats plays its cue only on a user tap with sound enabled.
+- All character assets are included in the offline shell and native update bundle; membership choices and earned-medal data are unchanged.
+
 ## v4.6.322 — Attendance, pattern first
 
 - Shared Attendance (one year): each day is a plain square with no date number, so streaks and gaps read at a glance.
