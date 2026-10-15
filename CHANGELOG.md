@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.325 — Tap again to choose
+
+- Your crew: tap a companion to see it move, then tap the same one again to choose it. The picker closes as Done would.
+- An open crew picker now stays open when Settings redraws in the background (it used to snap shut).
+- tools/check-crew.cjs covers both and opens the picker with a direct tap (the crew art now swaps frames on pointerdown).
+
 ## v4.6.324 — Extra sets stay on their load's line
 
 - Last vs today (in the app and when shared): a set added beyond the plan, at a load that is already shown, now joins that load's line and stays marked in blue as extra. It no longer opens a separate line, so "175 · 6 4 4" and "175 · 3" read as "175 · 6 4 4 3".
