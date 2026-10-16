@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.338 — Sharper, calmer recovery Crews
+
+- Re-rendered all ten white recovery Crews and their ground shadows at the approved high-resolution quality: 3× the previous linear resolution, supersampled from the original 3D models.
+- Seven seconds per crossing, with 60 distinct source frames per second and smooth turnarounds.
+- HD animation loads in one-second pages, retaining only the current and next page in the player. Missing pages, Still, Off and reduced-motion preferences preserve the selected Crew fallback.
+
 ## v4.6.337 — Smoother recovery Crews
 
 - All ten recovery Crews now use 600 frames rendered directly from their approved 3D models: 60fps source animation, with five seconds per crossing.

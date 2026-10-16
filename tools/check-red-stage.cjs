@@ -75,12 +75,20 @@ assert.equal(await p.locator('.rt-caption').innerText(),'Time since workout');
 for(const id of await p.evaluate(()=>clubChoices().map(x=>x[0]))){
  await p.evaluate(id=>{DB.settings.clubAvatar=id;DB.settings.companionName=id;DB.settings.companionFree=id;tickRest();},id);
  await p.waitForFunction(id=>{const el=document.querySelector('#hTimer');return el._recoveryCrew?.id===id&&el._recoveryCrew?.ready&&el.classList.contains('rt-synced');},id);
- await p.waitForFunction(()=>document.querySelector('.rt-sync').getContext('2d').getImageData(0,0,720,80).data.some(x=>x>0));
- assert.deepEqual(await p.evaluate(()=>[0,5000,10000,15000].map(recoveryFrame)),[0,300,0,300]);
- assert(await p.evaluate(()=>{const s=document.querySelector('#hTimer')._recoveryCrew;return s.offsets.length===600&&s.image.naturalWidth===3200&&s.image.naturalHeight===2400;}));
+ await p.waitForFunction(()=>document.querySelector('.rt-sync').getContext('2d').getImageData(0,0,2160,240).data.some(x=>x>0));
+ assert.deepEqual(await p.evaluate(()=>[0,7000,14000,21000].map(recoveryFrame)),[0,420,0,420]);
+ assert(await p.evaluate(()=>{const el=document.querySelector('#hTimer'),s=el._recoveryCrew,c=el.querySelector('.rt-sync');return s.offsets.length===840&&s.pages.size<=2&&c.width===2160&&c.height===240&&[...s.pages.values()].some(p=>p.ready&&p.image.naturalWidth===3840&&p.image.naturalHeight===1920);}));
 }
-// Sixty distinct frame addresses per second, with exact five-second arrivals.
+// Sixty distinct frame addresses per second, with exact seven-second arrivals.
 assert.equal(await p.evaluate(()=>new Set(Array.from({length:60},(_,i)=>recoveryFrame((i+.01)*1000/60))).size),60);
+// Seek through every one-second HD page, including wraparound. The selected
+// Crew must remain visible without retaining the full decoded animation.
+for(let page=0;page<14;page++){
+ await p.evaluate(n=>{day(todayISO).completedAt=Date.now()-(28000+n*1000+100);tickRest();},page);
+ await p.waitForFunction(n=>{const s=document.querySelector('#hTimer')._recoveryCrew;return s.ready&&Math.floor(s.frame/60)===n;},page);
+ assert(await p.evaluate(()=>document.querySelector('#hTimer')._recoveryCrew.pages.size<=2));
+}
+console.log('PASS all 14 HD pages, bounded decoded-page references, full-resolution canvas');
 await p.route('**/assets/crew/synced/frames.json',r=>r.fulfill({contentType:'application/json',body:'{"count":120,"crews":{}}'}));
 await p.evaluate(()=>{syncRecoveryCrew.manifest=null;document.querySelector('#hTimer')._recoveryCrew.id=null;tickRest();});
 await p.waitForTimeout(150);

@@ -474,41 +474,59 @@ function paintQuietClock(el,anchor,now=Date.now()){
   const bottom=button.offsetTop+button.offsetHeight;
   el.style.setProperty('--rt-crew-y',(bottom+(el.clientHeight-bottom)/2)+'px');
 }
-function recoveryFrame(ms){return Math.floor((((ms%10000)+10000)%10000)/10000*600);}
+function recoveryFrame(ms){return Math.floor((((ms%14000)+14000)%14000)/14000*840);}
 function syncRecoveryCrew(el,crew,enabled){
   let state=el._recoveryCrew;
-  if(!state)state=el._recoveryCrew={id:null,image:null,raf:0,ready:false,frame:-1};
+  if(!state)state=el._recoveryCrew={id:null,raf:0,ready:false,frame:-1,pages:new Map()};
   state.enabled=enabled;
   el.classList.toggle('rt-synced',!!(enabled&&state.ready&&state.id===crew));
-  if(!enabled){if(state.raf)cancelAnimationFrame(state.raf);state.raf=0;state.frame=-1;return;}
+  if(!enabled){if(state.raf)cancelAnimationFrame(state.raf);state.raf=0;state.frame=-1;state.ready=false;state.pages.clear();return;}
   if(state.id!==crew){
-    state.id=crew;state.ready=false;state.frame=-1;
-    const img=new Image();state.image=img;
-    img.onload=()=>{if(state.image!==img)return;if(img.naturalWidth!==3200||img.naturalHeight!==2400){img.onerror();return;}state.ready=true;el.classList.toggle('rt-synced',state.enabled);};
-    img.onerror=()=>{if(state.image!==img)return;state.ready=false;el.classList.remove('rt-synced');};
-    // Fetch offsets once; load only the selected cropped 60fps sheet. A missing
-    // or stale manifest falls back to the still rather than drawing wrong tiles.
+    state.id=crew;state.ready=false;state.frame=-1;state.offsets=null;state.pages.clear();
+    const token={};state.token=token;el.classList.remove('rt-synced');
+    // Only two one-second HD pages are decoded at a time (about 59 MB), not
+    // a 387 MB full-cycle atlas. Missing assets fall back to the selected still.
     if(typeof fetch==='function'){
       if(!syncRecoveryCrew.manifest)syncRecoveryCrew.manifest=fetch('assets/crew/synced/frames.json').then(r=>{if(!r.ok)throw Error('Crew frames unavailable');return r.json();}).catch(e=>{syncRecoveryCrew.manifest=null;throw e;});
       syncRecoveryCrew.manifest.then(m=>{
-        if(state.image!==img)return;
+        if(state.token!==token)return;
         const x=m.crews?.[crew]?.x;
-        if(m.count!==600||m.columns!==20||m.tileWidth!==160||m.tileHeight!==80||!Array.isArray(x)||x.length!==600||x.some(v=>!Number.isInteger(v)||v<0||v>560))throw Error('Invalid Crew frames');
-        state.offsets=x;img.src=`assets/crew/synced/${crew}.webp`;
-      }).catch(()=>{if(state.image===img)img.onerror();});
+        if(m.fps!==60||m.cycleMs!==14000||m.count!==840||m.columns!==8||m.framesPerPage!==60||m.pages!==14||m.tileWidth!==480||m.tileHeight!==240||!Array.isArray(x)||x.length!==840||x.some(v=>!Number.isInteger(v)||v<0||v>1680))throw Error('Invalid Crew frames');
+        state.offsets=x;
+      }).catch(()=>{if(state.token===token){state.ready=false;el.classList.remove('rt-synced');}});
     }
   }
   if(state.raf)return;
   let canvas=el.querySelector('.rt-sync');
-  if(!canvas){canvas=document.createElement('canvas');canvas.className='rt-sync';canvas.width=720;canvas.height=80;canvas.setAttribute('aria-hidden','true');el.appendChild(canvas);}
+  if(!canvas){canvas=document.createElement('canvas');canvas.className='rt-sync';canvas.width=2160;canvas.height=240;canvas.setAttribute('aria-hidden','true');el.appendChild(canvas);}
   const ctx=canvas.getContext('2d');
   if(!ctx)return;
+  function loadPage(n){
+    let item=state.pages.get(n);
+    if(item&&(!item.failedAt||Date.now()-item.failedAt<5000))return item;
+    const img=new Image();item={image:img,ready:false,failedAt:0};state.pages.set(n,item);
+    img.onload=()=>{item.ready=img.naturalWidth===3840&&img.naturalHeight===1920;if(!item.ready)item.failedAt=Date.now();};
+    img.onerror=()=>{item.failedAt=Date.now();};
+    img.src=`assets/crew/synced/${state.id}${n?'-'+n:''}.webp`;
+    return item;
+  }
   function draw(){
     state.raf=0;
     if(!state.enabled||document.hidden||!el.classList.contains('recovery')||!document.documentElement.classList.contains('bigtimer')){el.classList.remove('rt-synced');return;}
     const now=Date.now(),anchor=Number(el.dataset.recoveryAnchor),ms=el.dataset.clockMode==='clock'?now:now-anchor;
     const frame=recoveryFrame(ms);
-    if(state.ready&&frame!==state.frame){ctx.clearRect(0,0,720,80);ctx.drawImage(state.image,(frame%20)*160,Math.floor(frame/20)*80,160,80,state.offsets[frame],0,160,80);state.frame=frame;canvas.dataset.frame=frame;}
+    if(state.offsets){
+      const page=Math.floor(frame/60),next=(page+1)%14;
+      for(const n of state.pages.keys())if(n!==page&&n!==next)state.pages.delete(n);
+      const item=loadPage(page);loadPage(next);
+      state.ready=item.ready;
+      if(item.ready&&frame!==state.frame){
+        const local=frame%60;ctx.clearRect(0,0,2160,240);
+        ctx.drawImage(item.image,(local%8)*480,Math.floor(local/8)*240,480,240,state.offsets[frame],0,480,240);
+        state.frame=frame;canvas.dataset.frame=frame;
+      }
+      el.classList.toggle('rt-synced',state.ready);
+    }
     // The digits and the motion sample the same clock on the same paint.
     const second=Math.floor(ms/1000);if(state.second!==second){state.second=second;paintQuietClock(el,anchor,now);}
     state.raf=requestAnimationFrame(draw);
