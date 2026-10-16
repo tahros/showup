@@ -71,7 +71,7 @@ assert(await p.locator('.rt-wordmark').isVisible());
 assert(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e).backgroundImage.includes('radial-gradient')));
 await p.emulateMedia({reducedMotion:'no-preference'});
 await p.setViewportSize({width:852,height:393});await p.evaluate(()=>{tickRest();tickBig();});
-assert.equal(await p.locator('.rt-caption').innerText(),'Time since workout');
+assert.equal(await p.locator('.rt-caption').innerText(),'Since workout');
 for(const id of await p.evaluate(()=>clubChoices().map(x=>x[0]))){
  await p.evaluate(id=>{DB.settings.clubAvatar=id;DB.settings.companionName=id;DB.settings.companionFree=id;tickRest();},id);
  await p.waitForFunction(id=>{const el=document.querySelector('#hTimer');return el._recoveryCrew?.id===id&&el._recoveryCrew?.ready&&el.classList.contains('rt-synced');},id);

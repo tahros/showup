@@ -466,11 +466,13 @@ function paintQuietClock(el,anchor,now=Date.now()){
   }
   const clock=el.dataset.clockMode==='clock',d=new Date(now),pad=n=>String(n).padStart(2,'0');
   const parts=clock?{period:new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(d),time:[d.getHours(),d.getMinutes(),d.getSeconds()].map(pad).join(':')}:recoveryParts(anchor,now);
-  button.querySelector('.rt-caption').textContent=clock?'':'Time since workout';
-  button.querySelector('.rt-period').textContent=parts.period;
+  /* v4.6.345: one line, shorter (Sungjee, 2026-10-16): "Since workout · 1 day"
+     rather than "Time since workout" over "1 day". The clock face keeps its date line. */
+  button.querySelector('.rt-caption').textContent=clock?'':'Since workout'+(parts.period?' · '+parts.period:'');
+  button.querySelector('.rt-period').textContent=clock?parts.period:'';
   button.querySelector('.rt-digits').textContent=parts.time;
   button.setAttribute('aria-pressed',String(clock));
-  button.setAttribute('aria-label',clock?'Current local time. Tap for recovery timer.':'Time since workout. Tap for current local time.');
+  button.setAttribute('aria-label',clock?'Current local time. Tap for recovery timer.':'Since workout'+(parts.period?', '+parts.period:'')+'. Tap for current local time.');
   const bottom=button.offsetTop+button.offsetHeight;
   el.style.setProperty('--rt-crew-y',(bottom+(el.clientHeight-bottom)/2-10)+'px');
 }
