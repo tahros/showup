@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.343 — 2026-10-16
+- Tapping Rest with a crew chosen: the crew glides from beside the greeting to the middle of the page, growing as it goes, and its awake face dissolves into its resting face. The rest of the page fades up under it; no more doubled cross-fade or jump.
+- A rest day hides the Plan · Edit · Paste · Copy · Dates row (plans are still a tap away on their cards) and drops the "N days in." line under "Rest day".
+
 ## v4.6.342 — Smaller recovery Crews
 
 - Reduced every Crew and its shadow by 20% on the blue recovery timer and clock, matching the approved preview. Preserved HD rendering, seven-second crossings, background pulse, and timer layout. The red workout timer is unchanged.
