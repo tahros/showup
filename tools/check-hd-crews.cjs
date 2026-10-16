@@ -18,6 +18,16 @@ const root=path.resolve(__dirname,'..'),dir=path.join(root,'assets/crew/synced')
   }
   // Frame 150: native pixels, no enlargement or resampling for QA.
   const tile=await sharp(path.join(dir,id+'-2.webp')).extract({left:6*480,top:3*240,width:480,height:240}).png().toBuffer();
+  const pixels=await sharp(tile).ensureAlpha().raw().toBuffer();let tinted=0,neutral=0;
+  for(let i=0;i<pixels.length;i+=4)if(pixels[i+3]>2&&pixels[i+3]<45){
+   // Judge visible (alpha-weighted) tint. Lossy WebP can tint individual
+   // almost-transparent antialias pixels without a visible colored shadow.
+   const a=pixels[i+3]/255;
+   if((pixels[i]-pixels[i+1])*a>6&&(pixels[i+2]-pixels[i+1])*a>3)tinted++;
+   if(pixels[i]+pixels[i+1]+pixels[i+2]<12)neutral++;
+  }
+  assert.equal(tinted,0,id+' must not have a visible reddish-purple ground shadow');
+  assert(neutral>100,id+' retains its neutral ground shadow');
   layers.push({input:tile,left:index%2*480,top:Math.floor(index/2)*240});
  }
  const out=path.resolve(root,'../Crew-Final-Review/HD-Recovery-7s/All-Ten-HD-QA.png');

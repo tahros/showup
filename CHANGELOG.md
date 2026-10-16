@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.339 — Grounded, neutral Crew shadows
+
+- Removed the reddish-purple tint from all ten recovery Crew shadows.
+- Ground shadows now use a separate, softly feathered 3D shadow pass. Character edges remain sharp; jumping Crews gain slightly softer shadows while airborne.
+- Preserved the approved HD characters, 60fps playback, seven-second crossings and timer layout.
+
 ## v4.6.338 — Sharper, calmer recovery Crews
 
 - Re-rendered all ten white recovery Crews and their ground shadows at the approved high-resolution quality: 3× the previous linear resolution, supersampled from the original 3D models.
