@@ -1,5 +1,8 @@
 # ShowUppp — changelog
 
+## v4.6.344 — 2026-10-16
+- Choosing a crew member no longer makes the screen stutter. Each tap redrew Settings and replayed every card's entrance (an 8px drop and slide back); an in-place redraw of Settings now skips it. And every crew tile keeps room for the "With you" line, so moving it to another row never resizes a row.
+
 ## v4.6.343 — 2026-10-16
 - Tapping Rest with a crew chosen: the crew glides from beside the greeting to the middle of the page, growing as it goes, and its awake face dissolves into its resting face. The rest of the page fades up under it; no more doubled cross-fade or jump.
 - A rest day hides the Plan · Edit · Paste · Copy · Dates row (plans are still a tap away on their cards) and drops the "N days in." line under "Rest day".
