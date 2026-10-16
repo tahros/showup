@@ -2358,8 +2358,12 @@
   @keyframes grow{from{transform:scaleY(.02)}to{transform:none}}
 
   /* 1. tab switching — View Transitions API (iOS 18+); a quiet 3px drift + fade */
-  ::view-transition-old(root){animation:vtout var(--dur-quick) var(--settle) both}
-  ::view-transition-new(root){animation:vtin var(--dur-arrive) var(--settle) both}
+  /* v4.6.346: ONE CURVE FOR BOTH HALVES. The old page left in .16s and the new one
+     arrived over .42s, both on an ease-out -- so for a beat both were mostly
+     transparent and the screen washed out pale between tabs. Same duration and
+     curve for both keeps their opacities summing to one: a true cross-fade. */
+  ::view-transition-old(root){animation:vtout var(--dur-move) ease-in-out both}
+  ::view-transition-new(root){animation:vtin var(--dur-move) ease-in-out both}
   @keyframes vtout{to{opacity:0}}
   @keyframes vtin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   /* v3.3.442: THE CHROME DOES NOT RIDE THE ROOT. Without a name of their own,
