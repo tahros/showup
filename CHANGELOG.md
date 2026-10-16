@@ -1,5 +1,8 @@
 # ShowUppp — changelog
 
+## v4.6.345 — 2026-10-16
+- Landscape recovery timer: the caption is one line and shorter -- "Since workout · 1 day" instead of "Time since workout" over "1 day". Under a day it reads "Since workout".
+
 ## v4.6.344 — 2026-10-16
 - Choosing a crew member no longer makes the screen stutter. Each tap redrew Settings and replayed every card's entrance (an 8px drop and slide back); an in-place redraw of Settings now skips it. And every crew tile keeps room for the "With you" line, so moving it to another row never resizes a row.
 
