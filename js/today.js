@@ -406,8 +406,7 @@ function helloCard(){
      is the countdown that goes, since you are not closing on anything today.
      The name goes with it: "Rest, Sungjee." reads as an instruction. */
   if(restingToday())
-    return `<div class="hello resting"><span class="hi">Rest day</span><span class="hisub">${
-      fmt(SEED.totals.sessions)} days in.</span></div>`;
+    return `<div class="hello resting"><span class="hi">Rest day</span></div>`;   /* v4.6.343: the count goes too -- Rest day says it (Sungjee) */
   const part=helloPart(new Date().getHours());
   const sub=helloSub(SEED.totals.sessions);
   return `<div class="hello"><span class="hi">${part}${n?', '+n:''}.</span>${

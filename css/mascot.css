@@ -21,8 +21,9 @@ body.rest-home::before{content:"";position:fixed;top:0;left:0;right:0;height:cal
 .rest-home .hello{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;text-align:center}
 .rest-home .hello .hi{font-size:27px;line-height:1.2}
 .rest-home .hello .hisub{font-size:12px;margin:0;color:var(--muted)}
-.rest-home .pw-home-tools{justify-content:center;margin:14px 0 0;gap:8px}
-.rest-home .pw-home-tools button{flex:0 0 auto}
+/* v4.6.343: a rest day is not a planning screen -- the tool row stays on a training
+   day; the plans are still a tap away on their cards (Sungjee, 2026-10-16) */
+.rest-home .pw-home-tools{display:none}
 :root body.rest-home #restBtn{display:block;min-height:44px;width:auto;margin:12px auto 24px;padding:8px 18px;background:transparent;border-color:transparent;box-shadow:none;color:var(--muted);font-size:13px}
 .pw-rest-later{border-top:1px solid var(--line)}
 .pw-rest-later>summary{display:flex;align-items:center;gap:10px;padding:15px 16px;min-height:48px;cursor:pointer;list-style:none;font-size:12px;color:var(--accent-ink)}

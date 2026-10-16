@@ -651,8 +651,9 @@ ok("the status-bar style no longer puts content under the status bar",
        return t.length===1 && t[0].classList.contains('tod');})()`));
   // 2. the greeting
   ok("...the greeting is 'Rest day' without a dot", run(`document.querySelector('.hello .hi')?.textContent`)==='Rest day' && !/Morning|Afternoon|Evening/.test(V()));
-  ok("...keeping the day count, dropping the countdown",
-     /days in\./.test(V()) && !/to 1,000|to 1000/.test(V()));
+  /* v4.6.343: the day count goes too -- "Rest day" says it (Sungjee, 2026-10-16) */
+  ok("...with no day count and no countdown",
+     !/days in\./.test(V()) && !/to 1,000|to 1000/.test(V()));
   // 3. the fold
   /* asserted on the row's TEXT, not on innerHTML: the first version matched
      /kept/ against the markup, and the .plankept CLASS satisfied it -- so

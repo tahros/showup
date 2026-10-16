@@ -3,10 +3,49 @@
 function mascotMode(){return ['still','off'].includes(DB.settings.mascotMotion)?DB.settings.mascotMotion:'animated';}
 /* Keep one live canvas across Today/Rest. A snapshot cross-fade cannot morph
    its pose and used to flash the poster before the new renderer mounted. */
+/* v4.6.343: THE CREW MAKES THE SAME MOVE (Sungjee, 2026-10-16). Tapping Rest
+   moved Pip from the greeting to the middle of the page in one glide, but a
+   chosen crew was never part of that: the page cross-faded around it and the
+   crew jumped from 68px at the side to 118px in the middle, swapping its art
+   halfway. Now the crew glides from where it was to where it lands, growing
+   as it goes, and its awake art dissolves into its resting art on the way. */
+function crewRestMorph(paint){
+  /* the companion box pins its transform (!important) so entrances never
+     shift it; the glide moves the crew-avatar inside it instead */
+  const sel='.su-hello-row .su-companion .crew-avatar';
+  const was=document.querySelector(sel);
+  if(!was||!was.animate){paint();return;}
+  const before=was.getBoundingClientRect();
+  const oldArt=was.querySelector('.crew-art');
+  const oldSrc=oldArt&&(oldArt.currentSrc||oldArt.src);
+  paint();
+  const now=document.querySelector(sel);
+  if(!now)return;
+  const after=now.getBoundingClientRect();
+  if(!before.width||!after.width)return;
+  const timing={duration:850,easing:'cubic-bezier(.22,1,.36,1)'};
+  now.animate([
+    {transformOrigin:'0 0',transform:`translate(${before.left-after.left}px,${before.top-after.top}px) scale(${before.width/after.width},${before.height/after.height})`},
+    {transformOrigin:'0 0',transform:'none'}
+  ],timing);
+  /* everything else settles in under it rather than snapping: the new page
+     fades up while the crew travels (never a doubled cross-fade of two pages) */
+  const view=document.getElementById('view'),row=now.closest('.su-hello-row');
+  const rest=[...(view?view.children:[])].flatMap(c=>c.contains(now)?[...(row?row.children:[])].filter(k=>!k.contains(now)):[c]);
+  rest.forEach(el=>el.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:420,delay:180,easing:'ease-out',fill:'backwards'}));
+  const art=now.querySelector('.crew-art'),box=now;
+  if(!art||!box||!oldSrc)return;
+  const ghost=art.cloneNode(false);ghost.removeAttribute('class');ghost.src=oldSrc;
+  ghost.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none';
+  box.appendChild(ghost);
+  const fade={duration:520,delay:160,easing:'ease-in-out',fill:'both'};
+  art.animate([{opacity:0},{opacity:1}],fade);
+  ghost.animate([{opacity:1},{opacity:0}],fade).finished.then(()=>ghost.remove(),()=>ghost.remove());
+}
 function mascotRestMorph(paint){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches){paint();return;}
   const pip=document.querySelector('.su-hello-row .su-mascot');
-  if(!pip||!pip.animate){paint();return;}
+  if(!pip||!pip.animate){crewRestMorph(paint);return;}
   const before=pip.getBoundingClientRect();
   const art=[...pip.querySelectorAll('canvas,img')];
   const transforms=art.map(el=>getComputedStyle(el).transform);

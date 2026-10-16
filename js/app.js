@@ -2455,7 +2455,7 @@ function render(opts){
     renderHeader(); paint({inplace:inplace||restMorph});
     if(restMorph)window.scrollTo({top:0,behavior:'instant'});
   };
-  if(restMorph && MOTION_OK && !isRetro() && typeof mascotRestMorph==='function' && document.querySelector('.su-hello-row .su-mascot')?.animate){
+  if(restMorph && MOTION_OK && !isRetro() && typeof mascotRestMorph==='function' && document.querySelector('.su-hello-row .su-mascot,.su-hello-row .su-companion')?.animate){
     lastView=view;
     mascotRestMorph(both);
   } else if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft)){
