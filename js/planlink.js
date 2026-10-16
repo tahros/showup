@@ -402,7 +402,7 @@ function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
    the Your sets table: the context columns step aside, Logged moves into Last's
    place, and each value becomes a pair of targets with its own delete. */
 const plVtName=a=>'lw-'+((DB.days?.[todayISO]?.w||[]).indexOf(a.source))+'-'+a.ri;
-const PL_PEN='<svg class="lw-pen" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
+const PL_PEN=icon('edit',ICON_SZ.sm,0,'lw-pen');
 function plEditBody(ex,rows){
   const w=DB.days?.[todayISO]?.w||[];
   return rows.filter(r=>r.actual.length).map(row=>row.actual.map(a=>{

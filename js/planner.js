@@ -177,7 +177,7 @@ function pwGo(step){const s=pw();s.step=step;s.error='';pwPersist();render({inpl
 function pwButton(action,label,cls='',extra=''){return `<button type="button" class="pw-btn ${cls}" data-pw="${action}" ${extra}>${label}</button>`;}
 function pwFields(){const s=pw(),goals=[['lose','Lose weight'],['strength','Strength'],['grow','Grow']];return `<div class="pw-goal"><label for="pw-goal">Training goal</label><input id="pw-goal" type="range" min="0" max="2" step="1" data-pw-field="goal" value="${Math.max(0,goals.findIndex(g=>g[0]===s.objective))}" aria-valuetext="${goals.find(g=>g[0]===s.objective)?.[1]||'Grow'}"><div class="pw-goal-labels">${goals.map(([v,t])=>pwButton('goal',t,s.objective===v?'pw-goal-on':'pw-text',`data-goal="${v}" aria-pressed="${s.objective===v}"`)).join('')}</div></div>`;}
 // Same calendar glyph, independent of the former History navigation button.
-function pwCalendarIcon(){return '<svg class="pw-calendar-icon" viewBox="0 0 24 24" aria-hidden="true"><rect class="frame" x="3" y="4.5" width="18" height="17" rx="3.2"/><rect x="3" y="4.5" width="18" height="4.6" rx="2.2"/><rect x="7" y="2" width="2.4" height="5" rx="1.2"/><rect x="14.6" y="2" width="2.4" height="5" rx="1.2"/><rect x="6.5" y="12" width="3" height="3" rx="1"/><rect x="10.5" y="12" width="3" height="3" rx="1"/><rect x="14.5" y="12" width="3" height="3" rx="1"/><rect x="6.5" y="16" width="3" height="3" rx="1"/><rect x="10.5" y="16" width="3" height="3" rx="1"/></svg>';}
+function pwCalendarIcon(){return icon('calendar',ICON_SZ.sm,0,'pw-calendar-icon');}
 function pwAction(action,label,glyph,cls='',extra=''){return pwButton(action,icon(glyph,ICON_SZ.sm)+label,cls,extra);}
 function pwDatesButton(action='open'){return pwButton(action,pwCalendarIcon()+'Dates '+icon('chevron',ICON_SZ.sm),'pw-text','aria-label="Choose dates"');}
 function pwTabs(){const s=pw();return `<div class="pw-days" aria-label="Days being planned">${s.dates.map(d=>pwButton('day',hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'numeric',day:'numeric'})),s.active===d?'selected':'',`data-date="${d}" aria-pressed="${s.active===d}"`)).join('')}</div>`;}
@@ -484,7 +484,7 @@ function pwAllocateSets(base,target,skip=[]){
   }
   return rows;
 }
-const PW_MAG='<svg class="pw-add-mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>';
+const PW_MAG=icon('search',ICON_SZ.sm,0,'pw-add-mag');
 const PW_ADD_MAX=8;
 /* every strength exercise the app knows: the catalog and your own */
 function pwAllExercises(){

@@ -1931,8 +1931,8 @@ function lbGrow(){
 /* v4.6.174: the avoid mark. One glyph everywhere it appears (the exercise
    screen, Train's list, a plan row, Settings). */
 /* v4.6.194: Hold -- the icons, the tag, and the line under the switch */
-const XH_ICON='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
-const XH_UP='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/></svg>';
+const XH_ICON=icon('lock',ICON_SZ.sm,0,'xp-ic');
+const XH_UP=icon('trendUp',ICON_SZ.sm,0,'xp-ic');
 const xhTag=ex=>typeof isHeld==='function'&&isHeld(ex)?`<span class="xh-tag">${XH_ICON}Hold</span>`:'';
 function xhNoteHTML(ex){
   if(!isHeld(ex)) return '';
@@ -1952,8 +1952,8 @@ document.addEventListener('click',e=>{
   const nud=on&&document.querySelector('#view .nudge [data-nw]');
   if(nud&&seg){const y0=seg.getBoundingClientRect().top;nud.closest('.nudge').remove();const dy=seg.getBoundingClientRect().top-y0;if(Math.abs(dy)>0.5)window.scrollBy(0,dy);}
 });
-const XP_ICON='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>';
-const XP_CHECK='<svg class="xp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const XP_ICON=icon('avoid',ICON_SZ.sm,0,'xp-ic');
+const XP_CHECK=icon('check',ICON_SZ.sm,0,'xp-ic');
 const xpBannerHTML=()=>`<div class="xp-banner" role="status">${XP_ICON}<span><b>Avoided.</b> Left out of plans and suggestions. Your sets still count.</span><button type="button" data-expref="include">Include</button></div>`;
 /* v4.6.177: NOTHING MOVES WHEN YOU CHOOSE. The switch used to re-render the
    whole exercise screen, and the Avoided note appearing at the top pushed

@@ -1501,7 +1501,7 @@ function bestLiftsSection(){
   const {slots,any}=bestLiftsData();if(!any)return '';
   const md=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
   const my=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',year:'numeric'});
-  const chev='<svg viewBox="0 0 8 14" aria-hidden="true"><path d="M1 1l6 6-6 6"/></svg>';
+  const chev=''+icon('chevronR',ICON_SZ.sm)+'';
   const have=slots.filter(s=>!s.none),sum=Math.round(have.reduce((a,s)=>a+s.w,0)*10)/10;
   const rows=slots.map(s=>{
     const sub=s.none?(s.last?`Last: ${my(s.last.d)} · ${s.last.w} × ${s.last.r}`:'Not logged yet')

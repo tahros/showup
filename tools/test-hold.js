@@ -61,7 +61,7 @@ test('a bodyweight exercise holds its added weight',`near(heldW('Dip')*LBv,45)&&
 test('an exercise with nothing on record is held with no weight yet',`isHeld('Chest Fly')&&heldW('Chest Fly')===null`);
 
 /* what you see */
-test('Hold uses the approved decorative lock and retains its text label',`(()=>{const e=document.createElement('div');e.innerHTML=xhTag('Barbell Bench Press');return e.textContent==='Hold'&&e.querySelector('svg[aria-hidden="true"] rect')?.getAttribute('rx')==='2'&&e.querySelector('svg path')?.getAttribute('d')==='M8 10V7a4 4 0 0 1 8 0v3';})()`);
+test('Hold uses the icon set\'s lock (v4.6.341) and retains its text label',`(()=>{const e=document.createElement('div');e.innerHTML=xhTag('Barbell Bench Press');return e.textContent==='Hold'&&!!e.querySelector('svg.ic-lock[aria-hidden="true"]');})()`);
 test('the tag is on a held exercise and not on the others',`/xh-tag/.test(xhTag('Barbell Bench Press'))&&xhTag('Incline Barbell Bench Press')===''`);
 test('the line under the switch states the weight',`/Holding at <b>135 lb<\\/b>/.test(xhNoteHTML('Barbell Bench Press'))&&/Holding at <b>BW\\+45 lb<\\/b>/.test(xhNoteHTML('Dip'))&&xhNoteHTML('Incline Barbell Bench Press')===''`);
 run(`var HC=holdingCardHTML();`);

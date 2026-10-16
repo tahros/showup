@@ -262,14 +262,11 @@ ok("the refined week edge is edit and Write, with no Copy",
      && b[1].getAttribute('data-planwrite')==='week';})()`));
 ok("...each with a name for the screen reader, since the word is gone",
    run(`[...document.querySelectorAll('h2 .planedge .pedge')].every(b=>b.getAttribute('aria-label'))`));
-ok("...edit keeps its filled outline, not a stroke",
+/* v4.6.341: the pencil is the solid set's -- filled, its band cut out by a mask */
+ok("...edit is the set's solid pencil, its detail cut out",
    run(`(function(){const e=document.querySelector('.ic-edit path');
-     return !!e && e.getAttribute('fill')==='currentColor'
-       && e.getAttribute('fill-rule')==='evenodd' && !e.parentNode.getAttribute('stroke');})()`));
-ok("...its holes survive: one path of three subpaths",
-   run(`(function(){const n=s=>(document.querySelector(s).getAttribute('d').match(/M/g)||[]).length;
-     return n('.ic-edit path')===3;})()`),
-   run(`(document.querySelector('.ic-edit path').getAttribute('d').match(/M/g)||[]).length+' subpaths in edit'`));
+     return !!e && /fill:currentColor/.test(e.getAttribute('style')||'')
+       && /mask="url\\(#icm-edit\\)"/.test(document.querySelector('.ic-edit').outerHTML);})()`));
 /* v3.3.491: the turn is a CLASS on a span (.pfchev.open), not a rotation baked
    into the icon's style, so it can transition. Same glyph, same directions:
    right when folded, down when open. The icon's own style stays clean. */

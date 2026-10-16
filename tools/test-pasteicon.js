@@ -20,24 +20,14 @@ for(const s of order) vm.runInContext(fs.readFileSync(path.join(dir,s),"utf8"),c
 w.document.dispatchEvent(new w.Event("DOMContentLoaded",{bubbles:true}));
 const run=c=>vm.runInContext(c,ctx);
 
-const svg=run(`icon('paste',15)`);
+/* v4.6.341: the paste glyph is the solid set's clipboard -- the arrow is still
+   IN it (cut out of the board), so it still says the action. */
+const svg=run(`icon('paste',ICON_SZ.sm)`);
 ok("the set has a paste glyph", /ic-paste/.test(svg), svg.slice(0,52));
-ok("...stroked, at the set's own weight and joins, like sparkle and chevron",
-   /stroke="currentColor"/.test(svg) && /stroke-linecap="round"/.test(svg) &&
-   /stroke-linejoin="round"/.test(svg) && !/fill="currentColor"/.test(svg));
-ok("...normalised through ICON_INK like every other glyph, not hand-placed",
-   run(`!!ICON_INK.paste`) && run(`ICON_INK.paste.join(',')`)==='14,5,86,96',
-   run(`(ICON_INK.paste||[]).join(',')`));
-/* the whole point: it must not be another document-with-lines */
-const d=run(`ICON_STROKE.paste`);
-ok("...and it is an arrow going IN, not three lines on a board",
-   /M50 40 L50 74/.test(d) && /M36 60 L50 74 L64 60/.test(d), d.slice(-34));
-/* the first cut crossed the clip over the board's top edge and rendered a
-   notch with the line doubled behind it */
-ok("...drawn as one continuous outline, clip and gap on the same span",
-   /M34 16 L34 10/.test(d) && /L66 16 L76 16/.test(d) &&
-   (d.match(/Z/g)||[]).length===1, (d.match(/Z/g)||[]).length+" close(s)");
-
+ok("...a solid board, its arrow cut out of it",
+   /style="fill:currentColor/.test(svg) && /mask="url\(#icm-paste\)"/.test(svg));
+ok("...and the cut is an arrow going IN, not lines on a board",
+   /M50 44V72M39 61L50 72L61 61/.test(run(`ICON_SET.paste.c`)), run(`ICON_SET.paste.c`).slice(0,60));
 /* it rides with the word, in both places Paste is offered */
 const src=fs.readFileSync(path.join(dir,"js/lift.js"),"utf8")+
           fs.readFileSync(path.join(dir,"js/today.js"),"utf8");

@@ -36,54 +36,52 @@ const ok = (name, cond, note) => {
    bare d before the code is ever evaluated, and every match returns NaN. This
    file's first draft did exactly that. It is the fourth time this project has
    paid for it (v3.3.350, .355, .376). */
-/* v3.3.411: ONE ICON SYSTEM.
-   Every icon shared one viewBox while the ink inside filled 52% (clear) to
-   100% (edit, copy) of it -- so a toolbar asking for three icons at one size
-   got three different sizes, and the maker's eye caught it. icon() scales each
-   path's measured ink to a shared live area, and divides a stroked icon's
-   width by its own scale so normalising cannot also thicken it. */
-const ALL=["chevron","copy","edit","clear","grip","expand","sparkle","collapse"];
+/* v4.6.341: ONE ICON SET (Sungjee, 2026-10-15). The traced outlines, the six
+   line weights, the solid shapes and the text characters became one set on one
+   grid. What has to stay true for it to read as one family: */
+const ALL=run(`Object.keys(ICON_SET)`);
+ok("the set covers every meaning in the app", ALL.length>=40, ALL.length+" icons");
 
-/* 1. EVERY ICON MEETS THE LIVE AREA. The ink's longest side, times the scale,
-      must equal the live area -- that is the whole point of the exercise. */
-for(const n of ALL){
-  const got=run(`(function(){const b=ICON_INK[${JSON.stringify(n)}];
-    const k=+(icon(${JSON.stringify(n)},ICON_SZ.md).match(/scale\\(([\\d.]+)\\)/)||[])[1];
-    return +(Math.max(b[2]-b[0],b[3]-b[1])*k).toFixed(2);})()`);
-  ok(`${n}: its ink meets the live area`, Math.abs(got-76)<0.5, String(got));
-}
+/* 1. ONE GRID: every icon draws in the same box. */
+ok("every icon shares one viewBox",
+   run(`Object.keys(ICON_SET).every(n=>/viewBox="6 6 88 88"/.test(icon(n,ICON_SZ.md)))`));
 
-/* 2. ONE STROKE WEIGHT, after scaling. Without the division a normalised
-      clear arrives at 17.5 units where the pencil reads 9 -- fatter, not
-      merely bigger. This is the assertion that catches that. */
-for(const n of ["chevron","clear","grip"]){
-  const got=run(`(function(){const h=icon(${JSON.stringify(n)},ICON_SZ.md);
-    const k=+(h.match(/scale\\(([\\d.]+)\\)/)||[])[1];
-    const w=+(h.match(/stroke-width="([\\d.]+)"/)||[])[1];
-    return +(k*w).toFixed(2);})()`);
-  ok(`${n}: renders the system's one stroke weight`, Math.abs(got-9)<0.1, String(got));
-}
+/* 2. SOLID WITH CUTS: a shape's details are cut out by a mask, so they read on
+      any background (a blue button included), and every mask exists. */
+ok("an icon with cuts points at its own mask",
+   run(`/mask="url\\(#icm-trash\\)"/.test(icon('trash',ICON_SZ.sm))`));
+ok("...and every mask is defined once, in one hidden defs block",
+   run(`(function(){const d=document.getElementById('icDefs');if(!d||getComputedStyle(d).display==='none')return false;
+     return Object.entries(ICON_SET).filter(([,v])=>v.c).every(([n])=>document.querySelectorAll('#icm-'+n).length===1);})()`));
 
-/* 3. THE CHEVRON IS A STROKE. It was the only DIRECTIONAL glyph drawn as a
-      filled wedge among simple marks that are strokes, and measured it carried
-      15% ink where copy carries 33% -- the lightest thing in every row it
-      appeared in. As a stroke it inherits the weight by construction, so there
-      is nothing to keep tuning. */
-ok("the chevron is drawn as a stroke, not a filled wedge",
-   run(`!!ICON_STROKE.chevron && !ICON_PATH.chevron`));
-ok("...so it carries the same weight as the cross beside it",
-   run(`(function(){const g=n=>{const h=icon(n,ICON_SZ.md);
-     return +(h.match(/scale\\(([\\d.]+)\\)/)||[])[1]*+(h.match(/stroke-width="([\\d.]+)"/)||[])[1];};
-     return Math.abs(g('chevron')-g('clear'))<0.1;})()`));
+/* 3. TWO WEIGHTS, ON PURPOSE: lines inside solid shapes are 7.5; an icon made
+      only of lines is 10, or Save and Replay read faint beside Paste. */
+const sw=n=>run(`(icon(${JSON.stringify(n)},ICON_SZ.md).match(/stroke-width:([\\d.]+)/)||[])[1]`);
+ok("a solid icon's outline is 7.5", sw('paste')==='7.5', sw('paste'));
+ok("a line-only icon is 10", ['check','close','chevronR','replay','arrowL'].every(n=>sw(n)==='10'),
+   ['check','close','chevronR','replay','arrowL'].map(sw).join(','));
+ok("Lands here stays a thin dashed outline", /stroke-dasharray/.test(run(`icon('calendarLands',ICON_SZ.md)`))&&sw('calendarLands')==='5');
 
-/* 4. THE PATHS THEMSELVES ARE UNTOUCHED -- normalising is a transform on a
-      group, so any path can still be lifted out of the file and pasted
-      elsewhere unchanged. */
-ok("the artwork is scaled by a transform, not rewritten",
-   run(`/<g transform="translate\\([-\\d. ]+\\) scale\\([\\d.]+\\)">/.test(icon('edit',ICON_SZ.md))`));
+/* 4. THE OLD NAMES STILL WORK, so no call site drifted to a missing icon. */
+ok("clear is the cross and chevron the right-pointer",
+   run(`/ic-close/.test(icon('clear',ICON_SZ.sm))&&/ic-chevronR/.test(icon('chevron',ICON_SZ.sm))`));
+ok("the brand mark is untouched artwork",
+   run(`/ic-brandmark/.test(icon('brandmark',ICON_SZ.md))&&/fill-rule="evenodd"/.test(icon('brandmark',ICON_SZ.md))`));
 
-/* 5. SIZES ARE NAMED. The 11/12/14/16/17/44 spread is how this started. */
+/* 5. TEXT CHARACTERS IN CONTROLS BECOME ICONS -- but a times sign between
+      numbers is typography and stays. */
+ok("a glyph at the edge of a control becomes the set's icon",
+   run(`(function(){const b=document.createElement('button');b.textContent='↻ Replay';document.body.appendChild(b);iconGlyphs(b);const r=!!b.querySelector('.ic-replay')&&b.textContent.trim()==='Replay';b.remove();return r;})()`));
+ok("...a lone × is a close button",
+   run(`(function(){const b=document.createElement('button');b.textContent='×';document.body.appendChild(b);iconGlyphs(b);const r=!!b.querySelector('.ic-close');b.remove();return r;})()`));
+ok("...but 225 × 5 stays text",
+   run(`(function(){const b=document.createElement('button');b.textContent='225 × 5';document.body.appendChild(b);iconGlyphs(b);const r=!b.querySelector('svg')&&b.textContent==='225 × 5';b.remove();return r;})()`));
+
+/* 6. SIZES ARE NAMED, and button icons sit 10% under their box (Share 19%). */
 ok("the size tokens exist and are ordered",
    run(`ICON_SZ.sm<ICON_SZ.md && ICON_SZ.md<ICON_SZ.lg && ICON_SZ.lg<ICON_SZ.hero`));
+const css=fs.readFileSync(path.join(dir,"css/app.css"),"utf8");
+ok("button icons are 10% smaller and Share a further 10%",
+   /\.pw-btn\) \.ic:not\(\.ic-brandmark\)\{scale:\.9\}/.test(css)&&/\.ic-share\{scale:\.81\}/.test(css));
 
 process.exit(fail?1:0);
