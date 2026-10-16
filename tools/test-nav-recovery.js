@@ -51,7 +51,7 @@ assert(source.includes("if(document.visibilityState==='visible') scheduleNavLayo
    function body instead, so another line can join it without a false alarm. */
 {
   const src=fs.readFileSync(path.join(dir,'js/app.js'),'utf8');
-  const body=(src.match(/function syncNav\(\)\{[\s\S]*?\n\}/)||[''])[0];
+  const body=(src.match(/function syncNav\([^)]*\)\{[\s\S]*?\n\}/)||[''])[0];
   assert(/scheduleNavLayoutCheck\(\)/.test(body),'syncNav schedules the nav layout check');
 }
 // v3.3.495: the scroll-idle trigger is gone with navReanchor(). repairNavLayout

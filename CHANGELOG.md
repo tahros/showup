@@ -1,5 +1,8 @@
 # ShowUppp — changelog
 
+## v4.6.346 — 2026-10-16
+- Tab switches are smooth. Going into or out of Progress, the Trends / History switch was shown before the transition captured the page you were leaving, so that page jumped by the switch's height and only then faded; the switch now arrives with its page. And the cross-fade uses one curve for both halves (the old page used to vanish in .16s while the new one took .42s, washing the screen out pale for a beat).
+
 ## v4.6.345 — 2026-10-16
 - Landscape recovery timer: the caption is one line and shorter -- "Since workout · 1 day" instead of "Time since workout" over "1 day". Under a day it reads "Since workout".
 

@@ -1849,7 +1849,11 @@ function paint(opts){
   const inplace=!arrived||!!(opts&&opts.inplace);
   const y=inplace?(window.scrollY||window.pageYOffset||0):0;
   const v=document.getElementById('view');
-  if(v) v.classList.toggle('norise',inplace);
+  /* v4.6.346: a tab switch that runs through the view transition already fades
+     the whole new page in; the cards' own rise (also from opacity 0) on top of
+     that left the new page nearly empty mid-fade -- the pale beat between tabs.
+     opts.norise says the page-level fade is carrying the arrival. */
+  if(v) v.classList.toggle('norise',inplace||!!(opts&&opts.norise));
   /* v4.5.14: #view's VIEW-SCOPED classes are cleared here, before the view draws.
      stats-story adds `stats-system` (and `review-stats`) to #view and nothing ever
      took them off, so after one visit to Stats they rode along onto Today and
@@ -2459,17 +2463,19 @@ function render(opts){
      becoming a different page and both snapshots are the same size.
      This touches nothing outside render(): the nav and the header are not
      read, written or measured here, and neither is anything fixed. */
+  let viaVT=false;
   const both=()=>{
     document.body.classList.toggle('rest-home',view==='today'&&!lift.plan&&restingToday());
     syncProgressSwitch();
     syncPageChrome();
-    renderHeader(); paint({inplace:inplace||restMorph});
+    renderHeader(); paint({inplace:inplace||restMorph,norise:viaVT});
     if(restMorph)window.scrollTo({top:0,behavior:'instant'});
   };
   if(restMorph && MOTION_OK && !isRetro() && typeof mascotRestMorph==='function' && document.querySelector('.su-hello-row .su-mascot,.su-hello-row .su-companion')?.animate){
     lastView=view;
     mascotRestMorph(both);
   } else if(MOTION_OK && document.startViewTransition && ((lastView!==null && lastView!==view) || soft)){
+    viaVT=true;
     lastView=view;
     if(restMorph)document.documentElement.classList.add('rest-morph');
     const transition=document.startViewTransition(both);
