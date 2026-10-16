@@ -576,6 +576,8 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .club-avatar-button .club-avatar-pin{position:absolute;left:-6px;top:-6px;width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;pointer-events:none;animation:crewPin .6s .3s cubic-bezier(.3,1.6,.5,1) both}
 .club-icon-grid .crew-name{font:600 12px var(--body)!important;display:block;margin-top:4px}
 .club-icon-grid .crew-days{display:block;font:400 10.5px var(--mono);color:var(--muted);margin-top:1px}
+/* v4.6.344: every tile keeps the line's room, so moving "With you" to another row never resizes a row (Sungjee, 2026-10-16) */
+.club-icon-grid .crew-days-slot{visibility:hidden}
 .club-icon-grid .crew-tile-pin{position:absolute;top:5px;left:6px}
 .crew-confirm{margin:12px 0 4px;padding:14px;border-radius:14px;background:var(--surface2);animation:crewPin .35s ease-out both}
 .crew-confirm p{margin:0 0 12px;font:400 14px/1.45 var(--body);color:var(--chalk)}
