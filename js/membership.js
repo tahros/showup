@@ -94,7 +94,7 @@ function paywallHTML(){
   const opts=MB_PRICES.map(p=>`<button type="button" class="mb-opt" data-mb-plan="${p.plan}" aria-pressed="${_mbPick===p.plan}">${p.badge?`<span class="mb-badge">${p.badge}</span>`:''}<span class="mb-rd" aria-hidden="true"></span>
       <span class="mb-opt-l">${p.label}${p.note?`<small>${p.note}</small>`:''}</span><span class="mb-opt-p"><b>${p.price}</b><small>${p.per}</small></span></button>`).join('');
   return `<div class="mb-card">
-    <div class="mb-top"><img class="mb-wm" src="assets/showuppp-wordmark-${document.documentElement.dataset.theme==='dark'?'dark':'light'}.svg" alt="ShowUppp"><button type="button" class="mb-x" data-mb-later aria-label="Not now"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="mb-top"><img class="mb-wm" src="assets/showuppp-wordmark-${document.documentElement.dataset.theme==='dark'?'dark':'light'}.svg" alt="ShowUppp"><button type="button" class="mb-x" data-mb-later aria-label="Not now">${icon('close',ICON_SZ.sm)}</button></div>
     <div class="mb-hero">${coin}${first.length?`<div><div class="mb-grid" aria-label="${first.length} logged days">${squares}</div>
     <p class="mb-since">${days.length} ${days.length===1?'day':'days'} logged${since?' since '+since:''}</p></div>`:''}</div>
     ${days.length>=TRIAL_DAYS?`<h2 id="pwTitle">Twenty days.<br>You’re a regular now.</h2>
@@ -286,7 +286,7 @@ function mbManageOpen(){
 }
 function mbManagePaint(){
   const el=document.getElementById('mbManage');if(!el)return;const s=mbSub();
-  const x=`<button type="button" class="mb-x" data-mbm-close aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+  const x=`<button type="button" class="mb-x" data-mbm-close aria-label="Close">${icon('close',ICON_SZ.sm)}</button>`;
   const num=typeof clubMembershipFacts==='function'?String(clubMembershipFacts().number||'').replace(/,/g,''):'';
   const coin=s.kind!=='none'&&typeof clubCoinHTML==='function'?`<div class="club-brand mbm-coin" aria-hidden="true">${clubCoinHTML(num).replace(/^<button[^>]*>/,'<span class="club-coin-button">').replace(/<\/button>$/,'</span>')}</div>`:'';
   const row=(k,v,cls='')=>`<div class="mbm-row ${cls}"><span>${k}</span><b>${v}</b></div>`;

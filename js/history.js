@@ -28,9 +28,9 @@
    fill alone is a colour, not an instruction. A tick is about as generic as a
    mark gets, but say the word and it becomes a chosen icon like the others. */
 const _ico=(box,d)=>`<svg viewBox="${box}" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
-const ICO_SHARE=_ico('-1.4 -2.8 30.8 30.8','M12,10 L12,4 C12,2.8 11.4,2.6 10.6,3.4 L1.4,12.6 C0.6,13.4 0.6,14.6 1.4,15.4 L10.6,24.6 C11.4,25.4 12,25.2 12,24 L12,18 C20,18 24.2,20.4 28,26 C26.4,18 22,10 12,10 Z');
-const ICO_EDIT=_ico('-1.2 -2.4 26.4 26.4','M9.25735931,20.3994949 L9.87867966,19.7781746 L4.22182541,14.1213203 L16.9497475,1.39339828 C18.1213203,0.221825407 20.0208153,0.221825407 21.1923882,1.39339828 L22.6066017,2.80761184 C23.7781746,3.97918472 23.7781746,5.87867966 22.6066017,7.05025253 L9.25735931,20.3994949 Z M8.45752148,21.1854435 C7.91718787,21.6447027 7.22908814,21.8994949 6.51471863,21.8994949 L2.60050506,21.8994949 C2.32436269,21.8994949 2.10050506,21.6756373 2.10050506,21.3994949 L2.10050506,17.4852814 C2.10050506,16.7709119 2.35529734,16.0828121 2.81455646,15.5424785 L8.45752148,21.1854435 Z');
-const ICO_DONE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.8l4.2 4.2L19 7.2"/></svg>`;
+const ICO_SHARE=icon('share',ICON_SZ.sm);
+const ICO_EDIT=icon('edit',ICON_SZ.sm);
+const ICO_DONE=icon('check',ICON_SZ.sm);
 
 function partForEx(ex,d){
   for(const [pt,list] of Object.entries(SEED.catalog||{})) if((list||[]).includes(ex)) return pt;

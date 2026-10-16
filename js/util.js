@@ -1335,96 +1335,84 @@ const plannedTrainPart=()=>{
   if(restingToday()||(DB.days[todayISO]||{}).doneAll)return null;
   const next=nextPlanItem();return next?homePartOf(next.ex):null;
 };
-/* ============ v3.3.398: THE PLAN'S GLYPHS ============
-   Four are the maker's picks from the Noun Project (royalty-free, credited on
-   the Settings footer beside the icons the app already credits): Sparkle by
-   Eliricon (7262146) on the writer's door, Chevron by Barracuda (1342814) on
-   every day heading, Expand (7584001) and Collapse (7584005) by LAFS on the
-   week's edge. Paths were traced from the PNGs at 700px and normalised into a
-   100-box.
-   v3.3.404: copy and edit are the maker's picks too -- Copy by maria icon and
-   Pencil by Alvida Black -- replacing the two I had drawn by hand. Both are
-   OUTLINE shapes, so their paths carry holes and are filled evenodd; the
-   hand-drawn stand-ins were solid strokes and the edge read as two families.
-   Only clear and grip are still drawn here (stroke 12 on 100, round caps),
-   and both are single strokes, which is what that measure is for.
-   All inline: a PWA on gym signal does not fetch icons. */
-const ICON_PATH={
-  /* v3.3.424: THE BRAND MARK'S CHEVRON -- the artwork itself, lifted from
-     showup-mark-black.svg unaltered. The only BRAND glyph in this set: it
-     never rotates, never goes grey, never becomes a control, and it appears
-     on a century and nowhere else. The bare `chevron` in ICON_STROKE stays
-     what it has always been -- a direction. */
-  brandmark:'M271.56 151.56L341.84 221.84Q357.4 237.4 341.84 252.96L339.16 255.64Q323.6 271.2 308.04 255.64L271.56 219.16Q256 203.6 240.44 219.16L203.96 255.64Q188.4 271.2 172.84 255.64L170.16 252.96Q154.6 237.4 170.16 221.84L240.44 151.56Q256 136 271.56 151.56Z',
-  sparkle:"M41.4 16.2 L40.0 17.3 L37.6 24.5 L33.7 33.0 L28.7 40.5 L24.7 44.4 L19.5 48.4 L11.4 52.5 L1.1 56.2 L0.2 57.1 L0.0 58.4 L1.3 60.0 L6.8 61.7 L15.8 65.6 L21.2 68.9 L25.6 72.4 L31.9 80.1 L37.0 89.9 L40.3 99.1 L41.4 100.0 L42.5 100.0 L43.8 98.9 L47.0 89.5 L50.5 82.3 L54.9 75.9 L59.7 71.1 L63.9 68.1 L72.2 63.7 L82.9 59.7 L83.8 58.6 L83.8 57.3 L82.3 56.0 L76.1 54.0 L68.3 50.5 L62.1 46.8 L58.6 44.0 L53.8 38.7 L50.5 33.7 L47.0 26.5 L43.5 16.8 L42.7 16.2Z M78.8 0.0 L74.6 9.2 L72.4 12.3 L67.8 16.2 L58.6 20.1 L58.2 21.4 L64.3 23.9 L69.8 27.1 L74.4 32.4 L78.3 41.6 L79.4 41.8 L80.1 41.1 L82.9 33.7 L85.6 29.8 L90.8 25.4 L99.3 21.9 L100.0 20.8 L99.1 19.9 L92.1 17.3 L88.4 14.9 L85.3 11.8 L83.4 9.0 L79.9 0.4Z",
-  expand:"M41.6 56.0 L39.6 55.1 L36.9 55.8 L10.5 82.2 L10.1 59.6 L8.9 58.1 L7.6 57.4 L2.7 57.4 L0.9 58.5 L0.0 60.3 L0.0 97.0 L1.3 99.2 L2.7 99.9 L40.0 99.9 L42.1 98.5 L42.7 97.0 L42.7 93.0 L42.1 91.2 L40.3 89.8 L17.9 89.6 L44.3 63.0 L44.7 59.8Z M58.4 1.0 L57.5 2.3 L57.3 6.6 L58.2 9.1 L60.0 10.2 L81.9 10.2 L82.1 10.6 L55.9 36.8 L55.3 38.1 L55.7 41.1 L59.5 44.6 L61.7 44.9 L62.9 44.4 L89.5 17.8 L89.9 40.4 L90.8 41.7 L92.6 42.6 L97.1 42.6 L98.7 41.9 L100.0 39.7 L100.0 3.0 L99.3 1.5 L97.5 0.1 L59.7 0.1Z",
-  collapse:"M3.8 57.2 L2.3 59.2 L2.1 63.1 L2.9 65.5 L4.5 66.6 L26.1 66.6 L26.3 67.0 L1.4 91.9 L0.5 93.7 L1.2 96.5 L4.9 99.8 L6.7 100.0 L8.0 99.6 L33.5 74.0 L34.0 96.1 L35.0 97.6 L36.4 98.3 L41.2 98.3 L42.2 97.8 L43.8 95.6 L43.8 59.6 L43.1 58.1 L41.2 56.8 L4.7 56.8Z M96.0 0.7 L94.4 0.0 L91.8 0.7 L66.5 26.0 L66.0 3.9 L65.2 2.6 L63.6 1.7 L58.8 1.7 L57.1 2.8 L56.2 4.6 L56.2 40.4 L57.5 42.6 L58.8 43.2 L95.3 43.2 L97.3 41.9 L97.9 40.4 L97.9 36.5 L97.1 34.5 L95.5 33.4 L73.7 33.2 L98.8 7.9 L99.5 6.6 L99.2 4.1Z",
-  edit:"M94.9 4.8 L91.9 2.5 L89.4 1.2 L84.6 0.0 L80.9 0.0 L77.9 0.5 L76.3 1.1 L72.2 3.4 L7.8 67.6 L0.0 96.1 L0.0 97.5 L1.1 99.3 L2.5 100.0 L4.1 100.0 L32.4 92.2 L95.8 28.8 L98.1 25.5 L99.5 21.9 L100.0 19.1 L100.0 15.6 L98.8 10.6 L97.5 8.1Z M63.9 20.5 L79.5 36.1 L29.0 86.5 L8.0 92.2 L7.8 91.7 L13.5 71.0Z M81.2 6.4 L85.3 6.5 L88.8 8.1 L92.0 11.5 L93.1 13.6 L93.6 15.8 L93.6 18.9 L92.2 22.8 L90.8 24.8 L84.1 31.5 L68.7 16.1 L75.9 8.7 L78.2 7.3Z",
-  copy:"M24.1 0.8 L20.5 3.4 L19.1 5.4 L18.2 7.6 L17.8 9.8 L17.8 21.2 L9.4 21.4 L6.9 22.0 L5.0 22.9 L1.7 26.0 L0.8 27.7 L0.0 30.2 L0.0 91.4 L0.6 93.3 L1.9 95.8 L4.8 98.5 L8.6 100.0 L69.8 100.0 L71.9 99.4 L74.0 98.3 L77.1 95.0 L78.0 93.1 L78.6 90.8 L78.8 85.7 L91.4 85.7 L93.3 85.1 L95.8 83.7 L98.5 80.9 L100.0 77.1 L100.0 8.6 L99.4 6.7 L98.1 4.2 L95.2 1.5 L91.4 0.0 L26.6 0.0Z M8.4 29.1 L10.7 28.3 L67.9 28.3 L69.8 28.9 L71.1 30.2 L71.7 32.1 L71.7 89.3 L71.3 91.0 L70.0 92.5 L68.6 93.1 L9.8 93.1 L7.8 92.0 L6.9 90.2 L6.9 31.4 L7.5 30.0Z M26.2 7.6 L27.7 6.9 L90.2 6.9 L91.2 7.3 L92.7 8.8 L93.1 9.8 L93.1 75.9 L92.7 76.9 L91.2 78.4 L90.2 78.8 L78.6 78.6 L78.6 30.8 L77.8 27.9 L76.5 25.6 L73.2 22.8 L69.2 21.4 L25.0 21.4 L24.9 9.8Z"
-};
-const ICON_STROKE={
-  selectall:"M30 12 H12 V30 M70 12 H88 V30 M12 70 V88 H30 M88 70 V88 H70 M34 50 L45 61 L68 37",
-/* v3.3.527: PASTE. The maker's own clipboard glyph read as "a document" --
-   a board with three lines on it, which is what this app already draws for a
-   list. The action had to be IN the glyph, not only in the word beside it, so
-   the board is open at the top and an arrow drops into it.
-   Drawn to the set's grammar rather than imported: a 100-unit box, stroke 9,
-   round caps and joins, same as sparkle and chevron. A traced Noun outline at
-   its native weight would have sat noticeably darker than the sparkle three
-   characters to its left.
-   ONE CONTINUOUS OUTLINE. The first cut drew the board with a gap from 36 to
-   64 and the clip from 34 to 66, so the clip's corners crossed the board's top
-   edge and rendered as a notch with the line doubled behind it. The gap and
-   the clip are the same span now, and the whole thing is a single stroke: up
-   the left of the opening, over the clip, down, and on round the board. */
-  paste:"M34 16 L34 10 A5 5 0 0 1 39 5 L61 5 A5 5 0 0 1 66 10 L66 16 L76 16 A10 10 0 0 1 86 26 L86 86 A10 10 0 0 1 76 96 L24 96 A10 10 0 0 1 14 86 L14 26 A10 10 0 0 1 24 16 Z M50 40 L50 74 M36 60 L50 74 L64 60",
+/* ============ v4.6.341: ONE ICON SET (Sungjee, 2026-10-15) ============
+   Every icon in the app was drawn one of four ways -- traced outlines, lines at
+   six weights, solid shapes, and plain text characters (← ↻ × ✓ ›) -- so a row
+   of buttons never read as one family. This is the set that replaced them,
+   approved icon by icon:
+   - ONE GRID. A 100 box, ink inside 12..88, corners of 10, round caps and joins.
+   - SOLID. Anything with a body (pencil, clipboard, bin, lock, calendar...) is
+     filled; its details are CUT out of it (the `c` paths, applied as a mask), so
+     the cut reads on any background, a blue button included.
+   - LINE MARKS STAY LINES (arrows, ticks, crosses, chevrons), drawn at 10 rather
+     than 7.5: a line carries less ink than a shape at the same size, and at 7.5
+     Save and Replay read faint beside Paste and Delete.
+   - Button icons sit 10% under their box, and Share a further 10% (css/app.css).
+   - The nav bar, the weather and the brand chevron are NOT part of this set.
+   Each entry: m = the drawing, t = drawn above the cuts, c = the cuts.
+   The table is generated from the design source; edit the drawing there and
+   regenerate rather than hand-editing paths here. */
+const ICON_SET={
+  sparkle:{m:'<path d="M42 30Q47.6 52.4 70 58Q47.6 63.6 42 86Q36.4 63.6 14 58Q36.4 52.4 42 30Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/><path d="M76 11Q78.6 21.4 89 24Q78.6 26.6 76 37Q73.4 26.6 63 24Q73.4 21.4 76 11Z" style="fill:currentColor;stroke:currentColor;stroke-width:4"/>'},
+  edit:{m:'<path d="M65 17L83 35L36 82L15 86L19 65Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M56 26L74 44" fill="none" stroke="#000" stroke-width="6"/>'},
+  copy:{m:'<path d="M44 14H76A10 10 0 0 1 86 24V56A10 10 0 0 1 76 66H44A10 10 0 0 1 34 56V24A10 10 0 0 1 44 14Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',t:'<path d="M24 34H56A10 10 0 0 1 66 44V76A10 10 0 0 1 56 86H24A10 10 0 0 1 14 76V44A10 10 0 0 1 24 34Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M24 34H56A10 10 0 0 1 66 44V76A10 10 0 0 1 56 86H24A10 10 0 0 1 14 76V44A10 10 0 0 1 24 34Z" fill="none" stroke="#000" stroke-width="17"/>'},
+  paste:{m:'<path d="M28 22H72A10 10 0 0 1 82 32V78A10 10 0 0 1 72 88H28A10 10 0 0 1 18 78V32A10 10 0 0 1 28 22Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/><path d="M44 12H56A6 6 0 0 1 62 18V24A6 6 0 0 1 56 30H44A6 6 0 0 1 38 24V18A6 6 0 0 1 44 12Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M50 44V72M39 61L50 72L61 61" fill="none" stroke="#000" stroke-width="7.5"/>'},
+  selectall:{m:'<path d="M28 14H72A14 14 0 0 1 86 28V72A14 14 0 0 1 72 86H28A14 14 0 0 1 14 72V28A14 14 0 0 1 28 14Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M34 51L45 62L67 39" fill="none" stroke="#000" stroke-width="7.5"/>'},
+  close:{m:'<path d="M28 28L72 72M72 28L28 72" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  plus:{m:'<path d="M50 20V80M20 50H80" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  minus:{m:'<path d="M20 50H80" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  trash:{m:'<path d="M16 27H84" style="fill:none;stroke:currentColor;stroke-width:7.5"/><path d="M38 27V22A6 6 0 0 1 44 16H56A6 6 0 0 1 62 22V27" style="fill:none;stroke:currentColor;stroke-width:7.5"/><path d="M24 37H76L73 80A8 8 0 0 1 65 88H35A8 8 0 0 1 27 80Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M42 50V74M58 50V74" fill="none" stroke="#000" stroke-width="6"/>'},
+  move:{m:'<path d="M18 36H80M66 22L80 36L66 50M82 64H20M34 50L20 64L34 78" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  grip:{m:'<path d="M20 32H80M20 50H80M20 68H80" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  check:{m:'<path d="M18 52L40 74L82 28" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  undo:{m:'<path d="M34.6 30.4A29 29 0 1 0 70.5 34.5L65.6 29.5" style="fill:none;stroke:currentColor;stroke-width:10"/><path d="M82.6 29.5L65.6 29.5L65.6 46.5" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  replay:{m:'<path d="M65.4 30.4A29 29 0 1 1 29.5 34.5L34.4 29.5" style="fill:none;stroke:currentColor;stroke-width:10"/><path d="M17.4 29.5L34.4 29.5L34.4 46.5" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  expand:{m:'<path d="M58 16H84V42M84 16L58 42M42 84H16V58M16 84L42 58" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  collapse:{m:'<path d="M82 42H58V18M58 42L84 16M18 58H42V82M42 58L16 84" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  share:{m:'<path d="M46 18L14 48L46 78V61C64 61 75 66 86 82C83 57 70 40 46 37Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>'},
+  search:{m:'<path d="M19 44A25 25 0 1 0 69 44A25 25 0 1 0 19 44Z" style="fill:none;stroke:currentColor;stroke-width:10"/><path d="M63 63L84 84" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  download:{m:'<path d="M50 14V58M32 40L50 58L68 40" style="fill:none;stroke:currentColor;stroke-width:10"/><path d="M16 64V76A10 10 0 0 0 26 86H74A10 10 0 0 0 84 76V64" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  link:{m:'<path d="M42.4 53.8A19 19 0 0 0 71.1 55.9L82.5 44.5A19 19 0 0 0 55.6 17.6L49 24.1" style="fill:none;stroke:currentColor;stroke-width:10"/><path d="M57.6 46.2A19 19 0 0 0 28.9 44.1L17.5 55.5A19 19 0 0 0 44.4 82.4L50.9 75.9" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  file:{m:'<path d="M28 12H54L80 38V80A8 8 0 0 1 72 88H28A8 8 0 0 1 20 80V20A8 8 0 0 1 28 12Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M54 14V30A8 8 0 0 0 62 38H78" fill="none" stroke="#000" stroke-width="6"/><path d="M34 58H66M34 72H56" fill="none" stroke="#000" stroke-width="6"/>'},
+  chevronR:{m:'<path d="M38 20L68 50L38 80" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  chevronL:{m:'<path d="M62 20L32 50L62 80" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  chevronD:{m:'<path d="M20 36L50 66L80 36" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  chevronU:{m:'<path d="M20 64L50 34L80 64" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  arrowR:{m:'<path d="M16 50H82M58 26L82 50L58 74" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  arrowL:{m:'<path d="M84 50H18M42 26L18 50L42 74" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  arrowU:{m:'<path d="M50 84V18M26 42L50 18L74 42" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  arrowD:{m:'<path d="M50 16V82M26 58L50 82L74 58" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  arrowUR:{m:'<path d="M24 76L74 26M36 26H74V64" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  calendar:{m:'<path d="M24 20H76A10 10 0 0 1 86 30V78A10 10 0 0 1 76 88H24A10 10 0 0 1 14 78V30A10 10 0 0 1 24 20Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/><path d="M34 10V22M66 10V22" style="fill:none;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M32 52H36A2 2 0 0 1 38 54V58A2 2 0 0 1 36 60H32A2 2 0 0 1 30 58V54A2 2 0 0 1 32 52ZM48 52H52A2 2 0 0 1 54 54V58A2 2 0 0 1 52 60H48A2 2 0 0 1 46 58V54A2 2 0 0 1 48 52ZM64 52H68A2 2 0 0 1 70 54V58A2 2 0 0 1 68 60H64A2 2 0 0 1 62 58V54A2 2 0 0 1 64 52ZM32 68H36A2 2 0 0 1 38 70V74A2 2 0 0 1 36 76H32A2 2 0 0 1 30 74V70A2 2 0 0 1 32 68ZM48 68H52A2 2 0 0 1 54 70V74A2 2 0 0 1 52 76H48A2 2 0 0 1 46 74V70A2 2 0 0 1 48 68Z" fill="#000" stroke="#000" stroke-width="2"/>'},
+  calendarCheck:{m:'<path d="M24 20H76A10 10 0 0 1 86 30V78A10 10 0 0 1 76 88H24A10 10 0 0 1 14 78V30A10 10 0 0 1 24 20Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/><path d="M34 10V22M66 10V22" style="fill:none;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M34 62L45 73L66 51" fill="none" stroke="#000" stroke-width="7.5"/>'},
+  calendarLands:{m:'<path d="M24 20H76A10 10 0 0 1 86 30V78A10 10 0 0 1 76 88H24A10 10 0 0 1 14 78V30A10 10 0 0 1 24 20Z" style="fill:none;stroke:currentColor;stroke-width:5;stroke-dasharray:8 7.5"/><path d="M34 12V26M66 12V26" style="fill:none;stroke:currentColor;stroke-width:5"/>'},
+  lock:{m:'<path d="M32 46V34A18 18 0 0 1 68 34V46" style="fill:none;stroke:currentColor;stroke-width:7.5"/><path d="M30 46H70A10 10 0 0 1 80 56V78A10 10 0 0 1 70 88H30A10 10 0 0 1 20 78V56A10 10 0 0 1 30 46Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M50 60V72" fill="none" stroke="#000" stroke-width="7.5"/>'},
+  trendUp:{m:'<path d="M14 74L38 50L56 64L84 34M64 34H84V54" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  trendFlat:{m:'<path d="M14 50H84M66 32L84 50L66 68" style="fill:none;stroke:currentColor;stroke-width:10"/>'},
+  avoid:{m:'<path d="M16 50A34 34 0 1 0 84 50A34 34 0 1 0 16 50Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M30 50H70" fill="none" stroke="#000" stroke-width="13"/>'},
+  alert:{m:'<path d="M16 50A34 34 0 1 0 84 50A34 34 0 1 0 16 50Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M50 32V54" fill="none" stroke="#000" stroke-width="7.5"/><path d="M44.5 68A5.5 5.5 0 1 0 55.5 68A5.5 5.5 0 1 0 44.5 68Z" fill="#000" stroke="#000" stroke-width="2"/>'},
+  info:{m:'<path d="M16 50A34 34 0 1 0 84 50A34 34 0 1 0 16 50Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',c:'<path d="M50 46V68" fill="none" stroke="#000" stroke-width="7.5"/><path d="M44.5 32A5.5 5.5 0 1 0 55.5 32A5.5 5.5 0 1 0 44.5 32Z" fill="#000" stroke="#000" stroke-width="2"/>'},
+  eye:{m:'<path d="M10 50C25 26 75 26 90 50C75 74 25 74 10 50Z" style="fill:currentColor;stroke:currentColor;stroke-width:7.5"/>',t:'<path d="M41 50A9 9 0 1 0 59 50A9 9 0 1 0 41 50Z" style="fill:currentColor;stroke:currentColor;stroke-width:0"/>',c:'<path d="M33 50A17 17 0 1 0 67 50A17 17 0 1 0 33 50Z" fill="#000" stroke="#000" stroke-width="2"/>'}
 
-  clear:'M30 30l40 40M70 30 30 70',
-  /* v4.6.73: THE BIN MEANS DELETE. The cross meant two things -- dismiss a
-     suggestion, delete a logged set -- and the same glyph cannot promise
-     both "nothing happens to your data" and "this is gone". So: the bin is
-     for anything that destroys a record (a logged set, a plan line, a custom
-     exercise); the cross stays for dismissing, skipping and closing. Drawn
-     as strokes like clear and grip so it inherits the set's weight. */
-  trash:'M22 30h56M40 30v-8h20v8M30 30l4 52h32l4-52M44 44v26M56 44v26',
-  move:'M18 38h64M66 24l16 14-16 14M82 62H18M34 48 18 62l16 14',
-  grip:'M22 34h56M22 50h56M22 66h56',
-  /* v3.3.424: THE BRAND MARK'S CHEVRON, the artwork itself -- lifted from
-     showup-mark-black.svg unaltered, not redrawn. It is the only icon in this
-     set that is BRAND rather than UI: it never rotates, never goes grey, and
-     never becomes a control. It appears on a century and nowhere else.
-     The bare `chevron` below stays what it has always been: a direction. */
-  /* v3.3.411: the chevron was the only DIRECTIONAL glyph drawn as a filled
-     wedge, in a set whose other simple marks -- the cross and the grip -- are
-     strokes. Measured, it carried 15% ink inside the live area where copy
-     carries 33% and clear 28%: the lightest thing in every row it appeared
-     in. Drawn as two lines it inherits the system's weight BY CONSTRUCTION
-     rather than by tuning, and every future chevron is right for free. */
-  chevron:'M38 24 L64 50 L38 76',
-  check:'M24 50 L43 69 L76 31'
 };
-/* v3.3.411: THE LIVE AREA. Every icon shared one viewBox, but the ink inside
-   filled anywhere from 52% (clear) to 100% (edit, copy) of it -- so a toolbar
-   asking for three icons at one size got three different sizes, and the cross
-   rendered barely half the pencil beside it.
-   Measured ink bounds, per icon. Each is scaled so its longest side meets ONE
-   live area, and a stroked icon's width is divided by its own scale so
-   normalising cannot also thicken it. Nothing is redrawn to achieve this.
-   If a path is edited, its numbers here must be re-measured -- buildcheck
-   fails if a name is missing from this table. */
-const ICON_INK={
-  sparkle:[0,0,100,100], expand:[0,0.1,100,99.9], collapse:[0.5,0,99.5,100],
-  edit:[0,0,100,100],    copy:[0,0,100,100],
-  paste:[14,5,86,96], selectall:[12,12,88,88],
-  clear:[24,24,76,76],   grip:[16,28,84,72],      chevron:[33.5,19.5,68.5,80.5],
-  trash:[17.5,17.5,82.5,86.5],
-  move:[15,20,86,80],
-  brandmark:[154.6,136,357.4,271.2], check:[19.5,26.5,80.5,73.5]
+/* the old names keep working: clear was always the cross, chevron the right-pointer */
+const ICON_ALIAS={clear:'close',chevron:'chevronR'};
+/* the brand mark is artwork, not UI: it keeps its own path and measured bounds */
+const ICON_PATH={
+  brandmark:'M271.56 151.56L341.84 221.84Q357.4 237.4 341.84 252.96L339.16 255.64Q323.6 271.2 308.04 255.64L271.56 219.16Q256 203.6 240.44 219.16L203.96 255.64Q188.4 271.2 172.84 255.64L170.16 252.96Q154.6 237.4 170.16 221.84L240.44 151.56Q256 136 271.56 151.56Z',
 };
-const ICON_LIVE=0.76;      // share of the box the ink meets
-const ICON_STROKE_W=9;     // rendered stroke, in box units, for every stroked icon
-/* the sizes icons are allowed to be. A raw number at a call site is how the
-   11/12/14/16/17 spread happened; buildcheck rejects one now. */
+const ICON_INK={ brandmark:[154.6,136,357.4,271.2] };
+const ICON_LIVE=0.76;
+/* The cuts are masks, and a mask has to live somewhere every icon can see it.
+   One hidden <svg> holds them all -- never display:none, which would switch the
+   masks off -- and each icon points at its own by name. */
+function iconMask(){
+  if(typeof document==='undefined'||document.getElementById('icDefs'))return;
+  if(!document.body){document.addEventListener('DOMContentLoaded',iconMask,{once:true});return;}
+  const masks=Object.entries(ICON_SET).filter(([,v])=>v.c).map(([n,v])=>`<mask id="icm-${n}" maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120"><rect x="-10" y="-10" width="120" height="120" fill="#fff"/>${v.c}</mask>`).join('');
+  document.body.insertAdjacentHTML('afterbegin',`<div id="icDefs" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none"><svg focusable="false" width="0" height="0"><defs>${masks}</defs></svg></div>`);
+}
+iconMask();
 const ICON_SZ={ sm:15, md:18, lg:22, hero:44 };
 /* v4.6.68: MINUTES READ AS TIME PAST 99. "399 min" is arithmetic, not a
    duration anyone thinks in. Under 100 the bare minutes stay -- "95 min" is
@@ -1439,24 +1427,55 @@ function fmtMinutes(m,long){
   if(long) return `${h} hour${h===1?'':'s'}`+(r?` ${r} minute${r===1?'':'s'}`:'');
   return `${h} h`+(r?` ${r} min`:'');
 }
-function icon(name,sz,rot){
+function icon(name,sz,rot,cls){
   sz=sz||ICON_SZ.md;
   const tf=rot?` style="transform:rotate(${rot}deg)"`:'';
-  /* v3.3.411: scale the ink to the live area and centre it. The transform is
-     applied to a group so the path itself is untouched and can still be
-     copied out of the file and pasted anywhere. */
-  const b=ICON_INK[name]||[0,0,100,100];
-  const w=b[2]-b[0], h=b[3]-b[1];
-  const k=(100*ICON_LIVE)/Math.max(w,h);
-  const tx=50-k*(b[0]+b[2])/2, ty=50-k*(b[1]+b[3])/2;
-  const g=`transform="translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${k.toFixed(4)})"`;
-  /* evenodd, because an outline icon is one path with holes in it: a pencil
-     has a body and a copy has two open squares, and nonzero would fill them */
-  if(ICON_PATH[name]) return `<svg class="ic ic-${name}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} aria-hidden="true"><g ${g}><path d="${ICON_PATH[name]}" fill="currentColor" fill-rule="evenodd"/></g></svg>`;
-  /* the stroke is divided by the icon's own scale: normalising the ink must
-     not also thicken the line. Without this, clear and grip arrive fat. */
-  const sw=(ICON_STROKE_W/k).toFixed(2);
-  return `<svg class="ic ic-${name}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g ${g}><path d="${ICON_STROKE[name]}"/></g></svg>`;
+  if(ICON_PATH[name]){
+    const b=ICON_INK[name],w=b[2]-b[0],h=b[3]-b[1],k=(100*ICON_LIVE)/Math.max(w,h);
+    const tx=50-k*(b[0]+b[2])/2,ty=50-k*(b[1]+b[3])/2;
+    return `<svg class="ic ic-${name}${cls?' '+cls:''}" viewBox="0 0 100 100" width="${sz}" height="${sz}"${tf} aria-hidden="true"><g transform="translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${k.toFixed(4)})"><path d="${ICON_PATH[name]}" fill="currentColor" fill-rule="evenodd"/></g></svg>`;
+  }
+  const n=ICON_ALIAS[name]||name,s=ICON_SET[n];
+  if(!s)return '';
+  if(s.c)iconMask();
+  return `<svg class="ic ic-${name}${n!==name?' ic-'+n:''}${cls?' '+cls:''}" viewBox="6 6 88 88" width="${sz}" height="${sz}"${tf} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><g${s.c?` mask="url(#icm-${n})"`:''}>${s.m}</g>${s.t||''}</svg>`;
+}
+/* v4.6.341: TEXT GLYPHS BECOME ICONS. Controls across the app were written with
+   characters for icons -- "← Back", "↻ Replay", "+ set", a lone "×" -- each a
+   font's idea of an arrow, at the font's weight. Rather than re-type every call
+   site, a control whose text starts or ends with one of these characters has it
+   swapped for the set's own icon as it reaches the page. Only controls (and the
+   two list marks .pk / .pi), only a glyph standing alone at an edge; "×" and "✕"
+   only when they are the whole control, so "225 × 5" stays typography; "+5 lb"
+   stays text. */
+const GLYPH_ICON={'←':'arrowL','‹':'chevronL','›':'chevronR','→':'arrowR','↻':'replay','↺':'undo','↗':'arrowUR','↓':'download','↑':'arrowU','⌄':'chevronD','×':'close','✕':'close','✓':'check','✎':'edit','+':'plus','−':'minus','＋':'plus'};
+const GLYPH_CTRL='button,a,summary,[role=button],.xbtn,.lsx,.pk,.pi';
+const GLYPH_HEAD=/^(\s*)([←‹›→↻↺↗↓↑⌄×✕✓✎+−＋])(\s|$)/, GLYPH_TAIL=/(\s)([←‹›→↻↺↗↓↑⌄✓✎])(\s*)$/;
+function iconGlyphs(root){
+  if(!root||typeof document==='undefined')return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),hits=[];
+  while(w.nextNode()){
+    const t=w.currentNode,p=t.parentElement;
+    if(!p||p.closest('svg,nav,script,style,textarea,input,[data-noglyph]'))continue;
+    const c=p.closest(GLYPH_CTRL);if(!c)continue;
+    const v=t.nodeValue,m=v.match(GLYPH_HEAD)||v.match(GLYPH_TAIL);if(!m)continue;
+    if(/^\s*[+−]\s*\d/.test(v))continue;
+    if((m[2]==='×'||m[2]==='✕')&&c.textContent.trim()!==m[2])continue;
+    hits.push([t,m[2]]);
+  }
+  for(const [t,g] of hits){
+    const fs=parseFloat(getComputedStyle(t.parentElement).fontSize)||14,sz=Math.round(Math.max(12,Math.min(fs*1.05,18)));
+    const i=t.nodeValue.indexOf(g),before=t.nodeValue.slice(0,i),after=t.nodeValue.slice(i+1);
+    const tmp=document.createElement('span');tmp.innerHTML=icon(GLYPH_ICON[g],sz,0,'ic-glyph');
+    const frag=document.createDocumentFragment();
+    if(before.trim())frag.append(before);frag.append(tmp.firstChild);
+    if(after)frag.append(after.startsWith(' ')||!after.trim()?after:' '+after);
+    t.replaceWith(frag);
+  }
+}
+if(typeof document!=='undefined'&&typeof MutationObserver!=='undefined'){
+  const go=()=>{iconGlyphs(document.body);new MutationObserver(rs=>{for(const r of rs)for(const n of r.addedNodes){if(n.nodeType===1)iconGlyphs(n);else if(n.nodeType===3&&n.parentElement)iconGlyphs(n.parentElement);}}).observe(document.body,{childList:true,subtree:true});};
+  if(document.body)go();else document.addEventListener('DOMContentLoaded',go,{once:true});
 }
 /* v3.3.399: NEW is a fact about the record, not a verdict from a model: an
    exercise with no set in the last eight weeks. The writer tags what it adds;

@@ -106,5 +106,5 @@ run(`DB.days[todayISO]={w:[{part:'Shoulders',ex:'Rear Deltoids',w:13.6,reps:[10]
 test('Edit Logged deletes with the bin',`document.querySelector('[data-lw-del] .ic-trash')&&!document.querySelector('[data-lw-del] .ic-clear')`);
 run(`lift.editToday=false;view='history';hist.y=2026;hist.m=9;hist.edit='2026-09-14';render();`);
 test('History set tiles delete with the bin',`document.querySelector('[data-hdel] .ic-trash')&&!document.querySelector('[data-hdel]')?.textContent.includes('✕')`);
-test('the icon set has a measured bin',`typeof ICON_INK==='object'&&Array.isArray(ICON_INK.trash)&&/ic-trash/.test(icon('trash',ICON_SZ.sm))`);
+test('the icon set has a bin',`typeof ICON_SET==='object'&&!!ICON_SET.trash&&/ic-trash/.test(icon('trash',ICON_SZ.sm))`);
 console.log(`${checks} checks passed`);process.exit(0);

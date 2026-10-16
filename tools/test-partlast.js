@@ -172,7 +172,7 @@ ok("...and the chevron says so, by ROTATION -- the same glyph, turned",
 ok("...and it is the same control the plan's fold uses",
    run(`(function(){
      const a=document.querySelector('.plfold .ic-chevron');
-     return !!a && a.tagName.toLowerCase()==='svg' && a.getAttribute('viewBox')==='0 0 100 100';})()`));
+     return !!a && a.tagName.toLowerCase()==='svg' && a.getAttribute('viewBox')==='6 6 88 88';})()`));
 ok("...with no text glyph left anywhere in it",
    run(`(function(){const b=document.querySelector('.plfold');
      return !/[\u25b8\u25be\u25b6\u25bc]/.test(b.textContent||'');})()`));

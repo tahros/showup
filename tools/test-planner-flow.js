@@ -56,7 +56,7 @@ test('selection and filled statuses have separate keys',`!document.querySelector
 run(`pfState().anchor=[];pwRender();`);
 test('with nothing drafted the key drops the ring',`!document.querySelector('.pf-calendar .pf-editing')&&!document.querySelector('.pf-key-ring')&&/Saved/.test(document.querySelector('.pf-calendar-key').textContent)&&!/Saved plan|Up to 7 days/.test(document.querySelector('.pf-calendar-key').textContent)`);
 run(`pfState().anchor=window.__anchorWas;pwRender();`);
-test('calendar uses filled icons rather than dots or editing rings',`!document.querySelector('.pf-calendar .pf-plan-dot,.pf-calendar .pf-editing')&&document.querySelectorAll('.pf-calendar-key svg[fill="currentColor"]').length===2`);
+test('calendar uses filled icons rather than dots or editing rings',`!document.querySelector('.pf-calendar .pf-plan-dot,.pf-calendar .pf-editing')&&document.querySelectorAll('.pf-calendar-key svg.ic').length===2`);
 test('returning to Dates retains completed steps',`!document.querySelector('[data-stage="2"]').disabled&&!document.querySelector('[data-stage="3"]').disabled`);
 run(`pw().dates.push('2026-09-15');pwDay('2026-09-15');pwRender();`);
 test('changing date selection disables later steps, retaining saved status icons',`document.querySelector('[data-stage="2"]').disabled&&document.querySelector('[data-stage="3"]').disabled&&document.querySelector('[data-date="2026-09-14"] .pf-status-icon')`);

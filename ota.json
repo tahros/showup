@@ -30,6 +30,11 @@
    "download_url": "https://tahros.github.io/showup/apple-touch-icon-blue.png?ota=4.6.340"
   },
   {
+   "file_name": "assets/STATUS-ICONS.md",
+   "file_hash": "e9794dae6fee7d65c85f6bb17dd90b68cba9816afdc2a2cb03b3ff570293a4e0",
+   "download_url": "https://tahros.github.io/showup/assets/STATUS-ICONS.md?ota=4.6.340"
+  },
+  {
    "file_name": "assets/club-icons-0.webp",
    "file_hash": "1e200190575b5671c85769987a5d7286adb2de81b16286fe431cddec8d6ccefc",
    "download_url": "https://tahros.github.io/showup/assets/club-icons-0.webp?ota=4.6.340"
@@ -1355,18 +1360,13 @@
    "download_url": "https://tahros.github.io/showup/assets/status-flat.png?ota=4.6.340"
   },
   {
-   "file_name": "assets/STATUS-ICONS.md",
-   "file_hash": "e9794dae6fee7d65c85f6bb17dd90b68cba9816afdc2a2cb03b3ff570293a4e0",
-   "download_url": "https://tahros.github.io/showup/assets/STATUS-ICONS.md?ota=4.6.340"
-  },
-  {
    "file_name": "assets/status-up.png",
    "file_hash": "48200fe0b11efd8f97b7912d7308fc2cfb2abbc582ba8518dc0aae8809f98b04",
    "download_url": "https://tahros.github.io/showup/assets/status-up.png?ota=4.6.340"
   },
   {
    "file_name": "css/app.css",
-   "file_hash": "1f55008b265c078580e1cd1f16c26208dab0a397565533bd25d671f7baf35d7f",
+   "file_hash": "d9d878164950be13c2fe92f75506e1dfed6774e137010a4224e9a8bce4989ce5",
    "download_url": "https://tahros.github.io/showup/css/app.css?ota=4.6.340"
   },
   {
@@ -1466,12 +1466,12 @@
   },
   {
    "file_name": "js/history.js",
-   "file_hash": "0b1476556881923f2048148bcdb0b51fe29899715705b9b51570093944c43d55",
+   "file_hash": "23928a67a60dfd5eb3e56aa8257e991ea243117a9803844d09d4962bc2bc11b4",
    "download_url": "https://tahros.github.io/showup/js/history.js?ota=4.6.340"
   },
   {
    "file_name": "js/lift.js",
-   "file_hash": "bb6ae2303dba2530b3dccaad4fa590073ee472f7a9f9429bb6c3f6bd76b3e008",
+   "file_hash": "69b1eabfd7c766d421da3a1098883d725c9048afa98106ecb911af6827932ed1",
    "download_url": "https://tahros.github.io/showup/js/lift.js?ota=4.6.340"
   },
   {
@@ -1486,7 +1486,7 @@
   },
   {
    "file_name": "js/membership.js",
-   "file_hash": "5a697b5b89b64f1e2cc7d5ae0ab035ce048b6207cd943668aa50f20979877d6a",
+   "file_hash": "dff96847b48968d18b6accc3e0cf91394697400728b993f27c5450da1f61ede8",
    "download_url": "https://tahros.github.io/showup/js/membership.js?ota=4.6.340"
   },
   {
@@ -1501,17 +1501,17 @@
   },
   {
    "file_name": "js/planlink.js",
-   "file_hash": "a9eb4043fd03251248d8f6c7a0e71da936519c85a9d6def07a541ae8795073fe",
+   "file_hash": "35ee06c512e398ae5bd6db400bacecaf3669689b15012aae763006c2b64c6648",
    "download_url": "https://tahros.github.io/showup/js/planlink.js?ota=4.6.340"
   },
   {
    "file_name": "js/planner-flow.js",
-   "file_hash": "3b9debfe803365c66ff2ec7169e623d1a0d790c612d4bec82d0679c164bb921c",
+   "file_hash": "9f4ba7a4073ff42361d59a6abab8c44fb1e3eb4df67885caf65956e7b37653e6",
    "download_url": "https://tahros.github.io/showup/js/planner-flow.js?ota=4.6.340"
   },
   {
    "file_name": "js/planner.js",
-   "file_hash": "1e0203ab218875e1ced86e9dd47329e44f1432a6bb4e0923c7862d0b6055996e",
+   "file_hash": "96c44c242a584c79fb11d038a885927a68c04a99ae8adaab77f4488ce8610ed8",
    "download_url": "https://tahros.github.io/showup/js/planner.js?ota=4.6.340"
   },
   {
@@ -1541,7 +1541,7 @@
   },
   {
    "file_name": "js/progression.js",
-   "file_hash": "fb63fde7feabe9ce488cb5de2972141f341e6ecb33cee3a24f81fbea4c040799",
+   "file_hash": "9dbccf34816e313b974185747f87a1e9dd18fd89455be371c98a4ad44a7a96b7",
    "download_url": "https://tahros.github.io/showup/js/progression.js?ota=4.6.340"
   },
   {
@@ -1571,7 +1571,7 @@
   },
   {
    "file_name": "js/settings.js",
-   "file_hash": "510581b6992bcac6ee3b088d5ceef3f67e8b579ac0ec43383ceae4710d6fdc63",
+   "file_hash": "07770e415b3c7796d6efdd12bd2e8800cb34aff47fce3588ba966af0eb91585f",
    "download_url": "https://tahros.github.io/showup/js/settings.js?ota=4.6.340"
   },
   {
@@ -1581,17 +1581,17 @@
   },
   {
    "file_name": "js/stats.js",
-   "file_hash": "8a48fef9779ce717cb9682361e16fbfd15990358358d45b02f5d3cf709e31ccd",
+   "file_hash": "467a07f3c6ffea316368eb765a03c73bfd468fbed0c0d8d653ff1fd7250201f5",
    "download_url": "https://tahros.github.io/showup/js/stats.js?ota=4.6.340"
   },
   {
    "file_name": "js/today.js",
-   "file_hash": "65b1895b5f866f4bbaee29d1f142f507534cc7d6e3b3138c36155d88fe0a442f",
+   "file_hash": "696ca686b80f4385453f3526f9343100dc9b0c113e0e9ca8588509cbfc3f40a8",
    "download_url": "https://tahros.github.io/showup/js/today.js?ota=4.6.340"
   },
   {
    "file_name": "js/util.js",
-   "file_hash": "943973dcf5edce9bfb513f4a9e0a998c3f792e404261ca5a619ee7cc6c30db28",
+   "file_hash": "6ecdacf9fb72b2bdf8fc35535f55f7317776592fde92fb8e2fd1453b7dea20ff",
    "download_url": "https://tahros.github.io/showup/js/util.js?ota=4.6.340"
   },
   {

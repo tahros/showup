@@ -382,7 +382,7 @@
   /* v4.6.45: the live-workout bar joins this list. It is fixed furniture mounted
      outside #app, and furniture must not be text-selectable -- a long press during
      a set should not raise a selection handle over the thing you are tapping. */
-  #repOv,.calreturn,#liveWorkoutBar{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  #repOv,.calreturn,#liveWorkoutBar,#icDefs{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   #repOv img{-webkit-touch-callout:default}
   #app{
     max-width:520px;margin:0 auto;min-height:100vh;
@@ -4803,3 +4803,9 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .ps-mrow em small{display:block;font-size:11px!important;margin-top:1px}
 .ps-note{font-size:11px;color:var(--faint);margin:12px 0 0;line-height:1.4}
   .eqedit .eq-step-q{margin-top:14px}   /* v4.6.331 */
+/* v4.6.341: ONE ICON SET. Icons inside a control sit 10% under their box so a
+   solid shape doesn't crowd the label beside it; Share, the widest silhouette,
+   a further 10% (Sungjee, 2026-10-15). `scale` leaves the layout alone. */
+:is(button,a,[role=button],.pw-btn) .ic:not(.ic-brandmark){scale:.9}
+:is(button,a,[role=button],.pw-btn) .ic-share{scale:.81}
+.ic-glyph{flex:none;vertical-align:-.18em}
