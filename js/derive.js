@@ -474,7 +474,7 @@ function paintQuietClock(el,anchor,now=Date.now()){
   const bottom=button.offsetTop+button.offsetHeight;
   el.style.setProperty('--rt-crew-y',(bottom+(el.clientHeight-bottom)/2)+'px');
 }
-function recoveryFrame(ms){return Math.floor((((ms%10000)+10000)%10000)/10000*120);}
+function recoveryFrame(ms){return Math.floor((((ms%10000)+10000)%10000)/10000*600);}
 function syncRecoveryCrew(el,crew,enabled){
   let state=el._recoveryCrew;
   if(!state)state=el._recoveryCrew={id:null,image:null,raf:0,ready:false,frame:-1};
@@ -484,9 +484,19 @@ function syncRecoveryCrew(el,crew,enabled){
   if(state.id!==crew){
     state.id=crew;state.ready=false;state.frame=-1;
     const img=new Image();state.image=img;
-    img.onload=()=>{if(state.image!==img)return;state.ready=true;el.classList.toggle('rt-synced',state.enabled);};
+    img.onload=()=>{if(state.image!==img)return;if(img.naturalWidth!==3200||img.naturalHeight!==2400){img.onerror();return;}state.ready=true;el.classList.toggle('rt-synced',state.enabled);};
     img.onerror=()=>{if(state.image!==img)return;state.ready=false;el.classList.remove('rt-synced');};
-    img.src=`assets/crew/synced/${crew}.webp`;
+    // Fetch offsets once; load only the selected cropped 60fps sheet. A missing
+    // or stale manifest falls back to the still rather than drawing wrong tiles.
+    if(typeof fetch==='function'){
+      if(!syncRecoveryCrew.manifest)syncRecoveryCrew.manifest=fetch('assets/crew/synced/frames.json').then(r=>{if(!r.ok)throw Error('Crew frames unavailable');return r.json();}).catch(e=>{syncRecoveryCrew.manifest=null;throw e;});
+      syncRecoveryCrew.manifest.then(m=>{
+        if(state.image!==img)return;
+        const x=m.crews?.[crew]?.x;
+        if(m.count!==600||m.columns!==20||m.tileWidth!==160||m.tileHeight!==80||!Array.isArray(x)||x.length!==600||x.some(v=>!Number.isInteger(v)||v<0||v>560))throw Error('Invalid Crew frames');
+        state.offsets=x;img.src=`assets/crew/synced/${crew}.webp`;
+      }).catch(()=>{if(state.image===img)img.onerror();});
+    }
   }
   if(state.raf)return;
   let canvas=el.querySelector('.rt-sync');
@@ -498,7 +508,7 @@ function syncRecoveryCrew(el,crew,enabled){
     if(!state.enabled||document.hidden||!el.classList.contains('recovery')||!document.documentElement.classList.contains('bigtimer')){el.classList.remove('rt-synced');return;}
     const now=Date.now(),anchor=Number(el.dataset.recoveryAnchor),ms=el.dataset.clockMode==='clock'?now:now-anchor;
     const frame=recoveryFrame(ms);
-    if(state.ready&&frame!==state.frame){ctx.clearRect(0,0,720,80);ctx.drawImage(state.image,(frame%4)*720,Math.floor(frame/4)*80,720,80,0,0,720,80);state.frame=frame;canvas.dataset.frame=frame;}
+    if(state.ready&&frame!==state.frame){ctx.clearRect(0,0,720,80);ctx.drawImage(state.image,(frame%20)*160,Math.floor(frame/20)*80,160,80,state.offsets[frame],0,160,80);state.frame=frame;canvas.dataset.frame=frame;}
     // The digits and the motion sample the same clock on the same paint.
     const second=Math.floor(ms/1000);if(state.second!==second){state.second=second;paintQuietClock(el,anchor,now);}
     state.raf=requestAnimationFrame(draw);

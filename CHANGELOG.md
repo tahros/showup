@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.337 — Smoother recovery Crews
+
+- All ten recovery Crews now use 600 frames rendered directly from their approved 3D models: 60fps source animation, with five seconds per crossing.
+- Removed the sudden right-hand departure speed-up. Playback follows one continuous time curve through both turnarounds.
+- Cropped frame sheets reduce decoded image memory; only the selected Crew is loaded. Still, Off and reduced-motion modes retain their existing fallbacks.
+
 ## v4.6.336 — Quiet clock, on your time
 
 - Recovery now reads in hours, days, calendar months and years, with “Time since workout” above it. The wordmark sits at the top; your Crew roams halfway between the timer and the bottom.

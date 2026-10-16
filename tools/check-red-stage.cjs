@@ -76,8 +76,18 @@ for(const id of await p.evaluate(()=>clubChoices().map(x=>x[0]))){
  await p.evaluate(id=>{DB.settings.clubAvatar=id;DB.settings.companionName=id;DB.settings.companionFree=id;tickRest();},id);
  await p.waitForFunction(id=>{const el=document.querySelector('#hTimer');return el._recoveryCrew?.id===id&&el._recoveryCrew?.ready&&el.classList.contains('rt-synced');},id);
  await p.waitForFunction(()=>document.querySelector('.rt-sync').getContext('2d').getImageData(0,0,720,80).data.some(x=>x>0));
- assert.deepEqual(await p.evaluate(()=>[0,5000,10000,15000].map(recoveryFrame)),[0,60,0,60]);
+ assert.deepEqual(await p.evaluate(()=>[0,5000,10000,15000].map(recoveryFrame)),[0,300,0,300]);
+ assert(await p.evaluate(()=>{const s=document.querySelector('#hTimer')._recoveryCrew;return s.offsets.length===600&&s.image.naturalWidth===3200&&s.image.naturalHeight===2400;}));
 }
+// Sixty distinct frame addresses per second, with exact five-second arrivals.
+assert.equal(await p.evaluate(()=>new Set(Array.from({length:60},(_,i)=>recoveryFrame((i+.01)*1000/60))).size),60);
+await p.route('**/assets/crew/synced/frames.json',r=>r.fulfill({contentType:'application/json',body:'{"count":120,"crews":{}}'}));
+await p.evaluate(()=>{syncRecoveryCrew.manifest=null;document.querySelector('#hTimer')._recoveryCrew.id=null;tickRest();});
+await p.waitForTimeout(150);
+assert(!await p.locator('.rt-sync').isVisible());assert(await p.locator('.rt-buddy').isVisible());
+await p.unroute('**/assets/crew/synced/frames.json');
+await p.evaluate(()=>{syncRecoveryCrew.manifest=null;document.querySelector('#hTimer')._recoveryCrew.id=null;tickRest();});
+await p.waitForFunction(()=>document.querySelector('#hTimer')._recoveryCrew.ready);
 await p.evaluate(()=>{day(todayISO).completedAt=Date.now()-33884000;tickRest();tickBigDigits();});
 assert((await p.locator('.rt-digits').innerText()).startsWith('09:24:'));
 const recoveryStamp=await p.evaluate(()=>day(todayISO).completedAt);

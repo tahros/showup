@@ -1,19 +1,12 @@
-// Resample the approved 16-second 3D renders into seekable 120-frame atlases.
-// Runtime maps these frames to a ten-second cycle: arrival every five seconds.
-const sharp=require('sharp'),fs=require('fs'),path=require('path');
-(async()=>{
- const root=path.resolve(process.argv[2]||'.'),out=path.join(root,'assets/crew/synced');fs.mkdirSync(out,{recursive:true});
- for(const id of ['pip','bell','bag','headphones','band','bottle','roller','ball','plate','mat']){
-  const input=path.join(root,'assets/crew/roaming',id+'.webp'),meta=await sharp(input,{animated:true}).metadata();
-  let t=0;const starts=meta.delay.map(d=>{const s=t;t+=d;return s;});const layers=[];
-  for(let i=0;i<120;i++){
-   const p=i/20;
-   const sec=p<.4?13.5+p/.4*4.5:p<3?18+(p-.4)/2.6*4.3:p<3.4?6.3+(p-3)/.4*2.7:9+(p-3.4)/2.6*4.5;
-   const page=starts.findLastIndex(s=>s<=(sec%16)*1000);
-   layers.push({input:await sharp(input,{page,pages:1}).resize(720,80).png().toBuffer(),left:(i%4)*720,top:Math.floor(i/4)*80});
-  }
-  // A grid stays within conservative mobile texture dimension limits.
-  await sharp({create:{width:2880,height:2400,channels:4,background:'#00000000'}}).composite(layers).webp({quality:88}).toFile(path.join(out,id+'.webp'));
-  console.log('Built',id);
- }
-})().catch(e=>{console.error(e);process.exit(1);});
+// Build genuine 60fps sheets from the approved 3D sources, not old WebP frames.
+// Unwrapped source seconds. Preserve every part of the original loop; map
+// right arrival (13.6s) and left arrival (22.4s / 6.4s) to opposite half cycles.
+// The smooth correction has matching speed and acceleration at the loop seam.
+// Unlike the old piecewise map, it never fast-forwards a turnaround/first hop.
+function sourceSeconds(u){return 13.6+16*u+.8*Math.sin(Math.PI*u)**2;}
+module.exports={sourceSeconds};
+if(require.main===module){
+ const path=require('path'),root=path.resolve(process.argv[2]||'.');
+ const result=require('child_process').spawnSync(process.execPath,[path.join(__dirname,'render-synced-60.cjs'),path.dirname(root)],{stdio:'inherit'});
+ process.exit(result.status??1);
+}

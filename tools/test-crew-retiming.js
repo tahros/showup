@@ -1,0 +1,11 @@
+const assert=require('assert');
+const {sourceSeconds}=require('./build-synced-crews.cjs');
+assert.equal(sourceSeconds(0),13.6);
+assert(Math.abs(sourceSeconds(.5)-22.4)<1e-12);
+assert.equal(sourceSeconds(1),29.6);
+const steps=Array.from({length:120},(_,i)=>sourceSeconds((i+1)/120)-sourceSeconds(i/120));
+assert(Math.min(...steps)>0,'no backwards time');
+assert(Math.max(...steps)<.16,'no fast-forward spike');
+assert(Math.max(...steps)/Math.min(...steps)<1.5,'bounded rate change');
+for(let i=0;i<120;i++)assert(Math.abs(steps[i]-steps[(i+1)%120])<.002,'continuous playback rate including wrap');
+console.log('PASS turnaround, departure and travel are continuous across both ends and loop seam');
