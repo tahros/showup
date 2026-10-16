@@ -2382,19 +2382,29 @@ function openWorkoutFinish(){
 }
 addEventListener('resize',()=>requestAnimationFrame(positionLiveWorkout),{passive:true});
 setInterval(()=>{if(document.visibilityState==='visible'&&document.documentElement.classList.contains('workout-active'))syncLiveWorkout();},60000);
-function syncNav(){
+/* v4.6.346: THE SWITCH ARRIVES WITH ITS PAGE (Sungjee, 2026-10-16). The Trends /
+   History switch sits above #view, so showing it pushes the page down. It was
+   shown in syncNav, BEFORE the tab switch's view transition took its "old"
+   snapshot -- so the page you were leaving jumped down by the switch's height
+   (and up, leaving Progress) and only then faded: the glitch on every switch
+   into or out of Progress. render() now defers it into the transition's update,
+   so it appears in the new snapshot only, with the page it belongs to. */
+function syncProgressSwitch(){
+  const inProgress=view==='history'||view==='stats';
+  const switcher=document.getElementById('progressSwitch');
+  if(!switcher)return;
+  const historyButton=switcher.querySelector('[data-progress-view="history"]');
+  if(historyButton&&!historyButton.querySelector('svg'))historyButton.insertAdjacentHTML('afterbegin',pwCalendarIcon());
+  switcher.hidden=!inProgress;
+  switcher.style.setProperty('--progress-slide',view==='stats'?'0%':'100%');
+  switcher.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.progressView===view)));
+}
+function syncNav(deferSwitch){
   syncLiveWorkout();
   scheduleNavLayoutCheck();
   const inProgress=view==='history'||view==='stats';
   if(inProgress&&progressView!==view){progressView=view;try{localStorage.setItem('showup:progress-view',view);}catch(_e){}}
-  const switcher=document.getElementById('progressSwitch');
-  if(switcher){
-    const historyButton=switcher.querySelector('[data-progress-view="history"]');
-    if(historyButton&&!historyButton.querySelector('svg'))historyButton.insertAdjacentHTML('afterbegin',pwCalendarIcon());
-    switcher.hidden=!inProgress;
-    switcher.style.setProperty('--progress-slide',view==='stats'?'0%':'100%');
-    switcher.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.progressView===view)));
-  }
+  if(!deferSwitch)syncProgressSwitch();
   document.querySelectorAll('nav button').forEach(b=>{const selected=b.hasAttribute('data-progress')?inProgress:b.dataset.v===view;b.classList.toggle('on',selected);if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   /* v3.3.461: Today's square in the bar shows the day's STATE -- hollow while
      open, filled once closed (doneAll). Every render passes through here, and
@@ -2405,7 +2415,7 @@ function syncNav(){
 }
 function render(opts){
   applyFlow();
-  syncNav();
+  syncNav(true);
   if(typeof killCalReturn==='function') killCalReturn();   // v3.3.59: the contextual target dies with any view change
   if(typeof syncTopBtn==='function') syncTopBtn();        // v3.3.65: the general up button re-evaluates for the new view
   if(view!=='history'&&typeof hist!=='undefined'){ hist.edit=null; hist.editSet=null; }   // v3.3.61: leaving History closes edit mode
@@ -2451,6 +2461,7 @@ function render(opts){
      read, written or measured here, and neither is anything fixed. */
   const both=()=>{
     document.body.classList.toggle('rest-home',view==='today'&&!lift.plan&&restingToday());
+    syncProgressSwitch();
     syncPageChrome();
     renderHeader(); paint({inplace:inplace||restMorph});
     if(restMorph)window.scrollTo({top:0,behavior:'instant'});
