@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.336 — Quiet clock, on your time
+
+- Recovery now reads in hours, days, calendar months and years, with “Time since workout” above it. The wordmark sits at the top; your Crew roams halfway between the timer and the bottom.
+- Tap the recovery time to see a live 24-hour local clock; tap again to return. Recovery continues in the background and follows the latest completed workout across days.
+- All ten approved white Crews reach alternating ends on five-second marks. Still, Off, reduced motion and unavailable-asset fallbacks remain supported.
+
 ## v4.6.335 — A quiet recovery timer
 
 - Rotate to landscape after completing a workout to see time elapsed since completion on a midnight-blue screen: just the clock, your selected white Crew, and the ShowUppp wordmark.

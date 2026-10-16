@@ -1074,17 +1074,24 @@
     html.bigtimer body > #hTimer.on::after{animation:none;opacity:.88}
     html.bigtimer body > #hTimer.on .rt-buddy{animation:none}
   }
-  .resttimer .rt-buddy,.resttimer .rt-wordmark{display:none}
+  .resttimer .rt-buddy,.resttimer .rt-wordmark,.resttimer .rt-quiet,.resttimer .rt-sync{display:none}
   @media (orientation:landscape){
     html.bigtimer body > #hTimer.on.recovery{
+      --rt-crew-y:78%;
       background:radial-gradient(ellipse at 50% 110%,#444f9e 0%,#252d65 35%,#141b40 68%,#0c122a 100%);
       font-size:clamp(52px,17vw,184px)}
     html.bigtimer body > #hTimer.on.recovery::after{display:none}
     html.bigtimer body > #hTimer.on.recovery :is(.rt-ctx,.rt-detail,.rt-sub){display:none}
-    html.bigtimer body > #hTimer.on.recovery .rt-time{position:absolute;top:29%;left:0;width:100%}
-    html.bigtimer body > #hTimer.on.recovery .rt-buddy{bottom:13%}
+    html.bigtimer body > #hTimer.on.recovery .rt-time{display:none}
+    html.bigtimer body > #hTimer.on.recovery .rt-quiet{display:block;position:absolute;top:30%;left:4%;width:92%;padding:0;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#f7f8ff;text-align:center;touch-action:manipulation}
+    html.bigtimer body > #hTimer.on.recovery :is(.rt-caption,.rt-period){display:block;font:400 clamp(12px,2.1vw,23px)/1.4 var(--mono);letter-spacing:.04em;color:#c6cde6;margin-bottom:1.1vw}
+    html.bigtimer body > #hTimer.on.recovery :is(.rt-caption,.rt-period):empty{display:none}
+    html.bigtimer body > #hTimer.on.recovery .rt-digits{display:block;font:400 clamp(36px,11.8vw,128px)/1.1 var(--mono);letter-spacing:-.065em;font-variant-numeric:tabular-nums;white-space:nowrap}
+    html.bigtimer body > #hTimer.on.recovery .rt-buddy{top:var(--rt-crew-y,78%);bottom:auto;transform:translateY(-50%)}
+    html.bigtimer body > #hTimer.on.recovery.rt-synced .rt-buddy{display:none}
+    html.bigtimer body > #hTimer.on.recovery.rt-synced .rt-sync{display:block;position:absolute;left:0;top:var(--rt-crew-y,78%);transform:translateY(-50%);width:100%;height:auto;pointer-events:none}
     html.bigtimer body > #hTimer.on.recovery .rt-wordmark{
-      display:block;position:absolute;bottom:4%;left:50%;transform:translateX(-50%);
+      display:block;position:absolute;top:7%;bottom:auto;left:50%;transform:translateX(-50%);
       width:6vw;max-width:64px;min-width:36px;height:auto;opacity:.8}
   }
   html[data-mascot-motion="still"].bigtimer body > #hTimer.on .rt-buddy{animation:none}

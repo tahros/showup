@@ -435,6 +435,76 @@ function restSessionLine(t){
   const span = mins<=0 ? '' : mins<120 ? `${mins} min in` : `${Math.round(mins/60)}h in`;
   return `${rows.length} set${rows.length===1?'':'s'}${span?`  \u00b7  ${span}`:''}`;
 }
+// Recovery follows the most recent explicit completion across calendar days.
+// An unfinished workout today takes precedence; legacy dates are never invented.
+function recoveryAnchor(now=Date.now()){
+  const today=day(todayISO);
+  if(isLive()||((today.w||[]).length&&!today.doneAll))return 0;
+  return Object.values(DB.days||{}).concat(today).reduce((latest,t)=>{
+    const at=Number(t.completedAt);
+    return t.doneAll&&Number.isFinite(at)&&at>0&&at<=now?Math.max(latest,at):latest;
+  },0);
+}
+function recoveryParts(anchor,now=Date.now()){
+  const start=new Date(anchor),end=new Date(now),pad=n=>String(n).padStart(2,'0');
+  function anniversary(n){const d=new Date(start),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+n);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return d;}
+  let months=Math.max(0,(end.getFullYear()-start.getFullYear())*12+end.getMonth()-start.getMonth());
+  if(anniversary(months)>end)months=Math.max(0,months-1);
+  let seconds=Math.max(0,Math.floor((now-anniversary(months))/1000));
+  const days=Math.floor(seconds/86400);seconds%=86400;
+  const h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60;
+  const period=[[Math.floor(months/12),'year'],[months%12,'month'],[days,'day']].filter(([n])=>n).map(([n,u])=>`${n} ${u}${n===1?'':'s'}`).join(' · ');
+  return {period,time:(h||days||months?pad(h)+':':'')+pad(m)+':'+pad(s)};
+}
+function paintQuietClock(el,anchor,now=Date.now()){
+  let button=el.querySelector('.rt-quiet');
+  if(!button){
+    button=document.createElement('button');button.type='button';button.className='rt-quiet';
+    for(const cls of ['rt-caption','rt-period','rt-digits']){const span=document.createElement('span');span.className=cls;button.appendChild(span);}
+    button.onclick=()=>{el.dataset.clockMode=el.dataset.clockMode==='clock'?'recovery':'clock';paintQuietClock(el,recoveryAnchor());};
+    el.appendChild(button);
+  }
+  const clock=el.dataset.clockMode==='clock',d=new Date(now),pad=n=>String(n).padStart(2,'0');
+  const parts=clock?{period:new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(d),time:[d.getHours(),d.getMinutes(),d.getSeconds()].map(pad).join(':')}:recoveryParts(anchor,now);
+  button.querySelector('.rt-caption').textContent=clock?'':'Time since workout';
+  button.querySelector('.rt-period').textContent=parts.period;
+  button.querySelector('.rt-digits').textContent=parts.time;
+  button.setAttribute('aria-pressed',String(clock));
+  button.setAttribute('aria-label',clock?'Current local time. Tap for recovery timer.':'Time since workout. Tap for current local time.');
+  const bottom=button.offsetTop+button.offsetHeight;
+  el.style.setProperty('--rt-crew-y',(bottom+(el.clientHeight-bottom)/2)+'px');
+}
+function recoveryFrame(ms){return Math.floor((((ms%10000)+10000)%10000)/10000*120);}
+function syncRecoveryCrew(el,crew,enabled){
+  let state=el._recoveryCrew;
+  if(!state)state=el._recoveryCrew={id:null,image:null,raf:0,ready:false,frame:-1};
+  state.enabled=enabled;
+  el.classList.toggle('rt-synced',!!(enabled&&state.ready&&state.id===crew));
+  if(!enabled){if(state.raf)cancelAnimationFrame(state.raf);state.raf=0;state.frame=-1;return;}
+  if(state.id!==crew){
+    state.id=crew;state.ready=false;state.frame=-1;
+    const img=new Image();state.image=img;
+    img.onload=()=>{if(state.image!==img)return;state.ready=true;el.classList.toggle('rt-synced',state.enabled);};
+    img.onerror=()=>{if(state.image!==img)return;state.ready=false;el.classList.remove('rt-synced');};
+    img.src=`assets/crew/synced/${crew}.webp`;
+  }
+  if(state.raf)return;
+  let canvas=el.querySelector('.rt-sync');
+  if(!canvas){canvas=document.createElement('canvas');canvas.className='rt-sync';canvas.width=720;canvas.height=80;canvas.setAttribute('aria-hidden','true');el.appendChild(canvas);}
+  const ctx=canvas.getContext('2d');
+  if(!ctx)return;
+  function draw(){
+    state.raf=0;
+    if(!state.enabled||document.hidden||!el.classList.contains('recovery')||!document.documentElement.classList.contains('bigtimer')){el.classList.remove('rt-synced');return;}
+    const now=Date.now(),anchor=Number(el.dataset.recoveryAnchor),ms=el.dataset.clockMode==='clock'?now:now-anchor;
+    const frame=recoveryFrame(ms);
+    if(state.ready&&frame!==state.frame){ctx.clearRect(0,0,720,80);ctx.drawImage(state.image,(frame%4)*720,Math.floor(frame/4)*80,720,80,0,0,720,80);state.frame=frame;canvas.dataset.frame=frame;}
+    // The digits and the motion sample the same clock on the same paint.
+    const second=Math.floor(ms/1000);if(state.second!==second){state.second=second;paintQuietClock(el,anchor,now);}
+    state.raf=requestAnimationFrame(draw);
+  }
+  state.raf=requestAnimationFrame(draw);
+}
 function tickRest(){
   const el=$('#hTimer'); if(!el) return;
   /* v3.3.149: the WIDER rule. This used to require isLive(), so tapping
@@ -460,15 +530,15 @@ function tickRest(){
   const whole=!ex&&!!start&&isLive()&&!document.documentElement.classList.contains('bigtimer');
   // Only an explicitly completed workout supplies a recovery anchor. Never
   // invent a timestamp for legacy records or change it on rotation/reload.
-  const completed=Number(t.completedAt);
-  const recovery=!!(t.doneAll&&Number.isFinite(completed)&&completed>0&&completed<=Date.now()&&
+  const completed=recoveryAnchor();
+  const recovery=!!(completed&&
     window.matchMedia&&window.matchMedia('(orientation:landscape)').matches);
   const show = recovery || whole || (!!lastSetAt && Math.floor((Date.now()-lastSetAt)/1000)<=1800);
   el.classList.toggle('recovery',recovery);
   el.classList.toggle('on',show);          // visibility is the timer's own, not the header's
   el.classList.toggle('done',show&&!isLive());
   el.classList.toggle('whole',show&&whole);
-  if(!show){ el.textContent=''; return; }
+  if(!show){ syncRecoveryCrew(el,null,false);el.textContent=''; return; }
   const s=Math.max(0,Math.floor((Date.now()-(recovery?completed:whole?start:lastSetAt))/1000));
   let detail='';
   if(ex){
@@ -518,8 +588,8 @@ function tickRest(){
   const roaming=document.documentElement.classList.contains('bigtimer')&&!document.hidden&&
     motion!=='still'&&motion!=='off'&&
     !(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)&&buddy.dataset.failedCrew!==crew;
-  const source=`assets/crew/${roaming?'roaming':'white'}/${crew}.webp`;
-  buddy.classList.toggle('rt-roaming',roaming);
+  const source=`assets/crew/${roaming&&!recovery?'roaming':'white'}/${crew}.webp`;
+  buddy.classList.toggle('rt-roaming',roaming&&!recovery);
   // Only change src on a real state change: the one-second clock tick must not
   // restart the 16-second loop. Fail safely to the existing selected still.
   if(buddy.dataset.source!==source){
@@ -527,6 +597,9 @@ function tickRest(){
     buddy.onerror=()=>{buddy.dataset.failedCrew=crew;buddy.onerror=null;buddy.classList.remove('rt-roaming');buddy.dataset.source=`assets/crew/white/${crew}.webp`;buddy.src=buddy.dataset.source;};
     buddy.src=source;
   }
+  el.dataset.recoveryAnchor=completed;
+  if(recovery)paintQuietClock(el,completed);
+  syncRecoveryCrew(el,crew,recovery&&roaming);
 }
 setInterval(tickRest,1000);
 document.addEventListener('visibilitychange',tickRest);
@@ -536,6 +609,7 @@ function tickBigDigits(){
   if(!document.documentElement.classList.contains('bigtimer'))return;
   const el=document.getElementById('hTimer'),clock=el&&el.querySelector('.rt-time');
   if(!clock)return;
+  if(el.classList.contains('recovery')){paintQuietClock(el,Number(el.dataset.recoveryAnchor));return;}
   const t=day(todayISO),completed=Number(t.completedAt);
   const anchor=t.doneAll&&Number.isFinite(completed)&&completed>0&&completed<=Date.now()?completed:lastSetAt;
   if(!anchor)return;

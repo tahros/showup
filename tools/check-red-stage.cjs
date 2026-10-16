@@ -71,6 +71,27 @@ assert(await p.locator('.rt-wordmark').isVisible());
 assert(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e).backgroundImage.includes('radial-gradient')));
 await p.emulateMedia({reducedMotion:'no-preference'});
 await p.setViewportSize({width:852,height:393});await p.evaluate(()=>{tickRest();tickBig();});
+assert.equal(await p.locator('.rt-caption').innerText(),'Time since workout');
+for(const id of await p.evaluate(()=>clubChoices().map(x=>x[0]))){
+ await p.evaluate(id=>{DB.settings.clubAvatar=id;DB.settings.companionName=id;DB.settings.companionFree=id;tickRest();},id);
+ await p.waitForFunction(id=>{const el=document.querySelector('#hTimer');return el._recoveryCrew?.id===id&&el._recoveryCrew?.ready&&el.classList.contains('rt-synced');},id);
+ await p.waitForFunction(()=>document.querySelector('.rt-sync').getContext('2d').getImageData(0,0,720,80).data.some(x=>x>0));
+ assert.deepEqual(await p.evaluate(()=>[0,5000,10000,15000].map(recoveryFrame)),[0,60,0,60]);
+}
+await p.evaluate(()=>{day(todayISO).completedAt=Date.now()-33884000;tickRest();tickBigDigits();});
+assert((await p.locator('.rt-digits').innerText()).startsWith('09:24:'));
+const recoveryStamp=await p.evaluate(()=>day(todayISO).completedAt);
+await p.locator('.rt-quiet').click();assert.equal(await p.locator('.rt-quiet').getAttribute('aria-pressed'),'true');
+assert(await p.evaluate(()=>document.querySelector('.rt-digits').textContent.startsWith(String(new Date().getHours()).padStart(2,'0')+':')));
+assert(!/AM|PM/.test(await p.locator('.rt-period').innerText()));
+await p.locator('.rt-quiet').press('Enter');assert.equal(await p.evaluate(()=>day(todayISO).completedAt),recoveryStamp);
+const geometry=await p.evaluate(()=>{const e=document.querySelector('#hTimer'),q=e.querySelector('.rt-quiet'),mark=e.querySelector('.rt-wordmark');return {y:parseFloat(e.style.getPropertyValue('--rt-crew-y')),ideal:(q.offsetTop+q.offsetHeight+e.clientHeight)/2,mark:mark.offsetTop,clock:q.offsetTop};});
+assert(Math.abs(geometry.y-geometry.ideal)<1);assert(geometry.mark<geometry.clock);
+await p.evaluate(()=>{DB.settings.mascotMotion='off';document.documentElement.dataset.mascotMotion='off';tickRest();});
+assert(!await p.locator('.rt-sync').isVisible());assert(!await p.locator('.rt-buddy').isVisible());
+await p.evaluate(()=>{DB.settings.mascotMotion='animated';document.documentElement.dataset.mascotMotion='animated';tickRest();});
+await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>tickRest());assert(!await p.locator('.rt-sync').isVisible());assert(await p.locator('.rt-buddy').isVisible());
+await p.emulateMedia({reducedMotion:'no-preference'});await p.evaluate(()=>{day(todayISO).completedAt=Date.now()-125000;tickRest();});
 await p.locator('.rt-buddy').evaluate(e=>e.decode());
 await p.screenshot({path:'../Crew-Final-Review/Recovery-Timer-Preview/Recovery-Timer-Live.png'});
 await p.setViewportSize({width:393,height:852});await p.evaluate(()=>{tickRest();tickBig();});

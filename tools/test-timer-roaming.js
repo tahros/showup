@@ -3,7 +3,7 @@ const root=process.argv[2]||'.';let source=fs.readFileSync(path.join(root,'js/de
 if(process.argv.includes('--probe-still'))source=source.replace('const roaming=','const roaming=false&&');
 const dom=new JSDOM('<html class="bigtimer"><body><div id="hTimer"></div></body></html>',{runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
 w.$=s=>w.document.querySelector(s);w.DB={settings:{clubAvatar:'pip'}};w.todayISO='2026-10-15';w.lastSetAt=Date.now()-1000;w.view='home';w.day=()=>({w:[{at:w.lastSetAt,ex:'Run'}]});w.isLive=()=>true;w.clubAvatar=()=>[w.DB.settings.clubAvatar];w.isCardio=()=>true;w.cardioLine=()=> '1 mi';w.restSessionLine=()=>'';let reduce=false;w.matchMedia=()=>({matches:reduce});
-w.eval(source.slice(source.indexOf('function tickRest(){'),source.indexOf('setInterval(tickRest,1000)')));
+w.eval(source.slice(source.indexOf('function recoveryAnchor('),source.indexOf('setInterval(tickRest,1000)')));
 for(const id of ['pip','bell','bag','headphones','band','bottle','roller','ball','plate','mat']){
  w.DB.settings.clubAvatar=id;w.tickRest();const el=w.document.querySelector('.rt-buddy');assert.equal(el.getAttribute('src'),`assets/crew/roaming/${id}.webp`);assert(el.classList.contains('rt-roaming'));
  const bytes=fs.readFileSync(path.join(root,'assets/crew/roaming',id+'.webp'));assert.equal(bytes.toString('ascii',8,12),'WEBP');assert(bytes.includes(Buffer.from('ANIM')));assert(bytes.includes(Buffer.from('ANMF')));
@@ -34,4 +34,13 @@ for(const invalid of [undefined,0,'invalid',Date.now()+60000]){
 }
 record.completedAt=completed;record.doneAll=false;w.tickRest();
 assert(!w.document.querySelector('#hTimer').classList.contains('recovery'));
-console.log('PASS recovery: recorded completion, over 30 minutes, rotation, rehydration, invalid legacy stamps and resume');dom.window.close();
+const local=(...args)=>+new Date(...args);
+assert.equal(w.recoveryParts(local(2024,0,31),local(2024,1,29)).period,'1 month');
+assert.equal(w.recoveryParts(local(2024,0,31),local(2025,2,3,9,24,44)).period,'1 year · 1 month · 3 days');
+assert.equal(w.recoveryParts(local(2024,0,31),local(2025,2,3,9,24,44)).time,'09:24:44');
+assert.deepEqual([0,5000,10000,15000].map(w.recoveryFrame),[0,60,0,60]);
+w.DB.days={'2024-01-31':{doneAll:true,completedAt:Date.UTC(2024,0,31)}};
+w.day=()=>({w:[]});w.isLive=()=>false;
+assert.equal(w.recoveryAnchor(),Date.UTC(2024,0,31));
+w.day=()=>({w:[{}],doneAll:false});assert.equal(w.recoveryAnchor(),0);
+console.log('PASS recovery: calendar spans, month-end clamp, cross-day anchor, five-second boundaries and resume');dom.window.close();
