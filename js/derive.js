@@ -472,7 +472,7 @@ function paintQuietClock(el,anchor,now=Date.now()){
   button.setAttribute('aria-pressed',String(clock));
   button.setAttribute('aria-label',clock?'Current local time. Tap for recovery timer.':'Time since workout. Tap for current local time.');
   const bottom=button.offsetTop+button.offsetHeight;
-  el.style.setProperty('--rt-crew-y',(bottom+(el.clientHeight-bottom)/2)+'px');
+  el.style.setProperty('--rt-crew-y',(bottom+(el.clientHeight-bottom)/2-10)+'px');
 }
 function recoveryFrame(ms){return Math.floor((((ms%14000)+14000)%14000)/14000*840);}
 function syncRecoveryCrew(el,crew,enabled){

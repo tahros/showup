@@ -104,11 +104,26 @@ assert(await p.evaluate(()=>document.querySelector('.rt-digits').textContent.sta
 assert(!/AM|PM/.test(await p.locator('.rt-period').innerText()));
 await p.locator('.rt-quiet').press('Enter');assert.equal(await p.evaluate(()=>day(todayISO).completedAt),recoveryStamp);
 const geometry=await p.evaluate(()=>{const e=document.querySelector('#hTimer'),q=e.querySelector('.rt-quiet'),mark=e.querySelector('.rt-wordmark');return {y:parseFloat(e.style.getPropertyValue('--rt-crew-y')),ideal:(q.offsetTop+q.offsetHeight+e.clientHeight)/2,mark:mark.offsetTop,clock:q.offsetTop};});
-assert(Math.abs(geometry.y-geometry.ideal)<1);assert(geometry.mark<geometry.clock);
+assert(Math.abs(geometry.y-(geometry.ideal-10))<1);assert(geometry.mark<geometry.clock);
+assert.equal(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e,'::after').animationName),'rtRecoveryPulse');
+assert.equal(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e,'::after').animationDuration),'8s');
+assert(await p.locator('.rt-quiet').evaluate(e=>getComputedStyle(e).zIndex==='1'));
+const pulse=await p.evaluate(async()=>{
+ const el=document.querySelector('#hTimer'),a=el.getAnimations({subtree:true}).find(a=>a.animationName==='rtRecoveryPulse');
+ const boxes=()=>['.rt-quiet','.rt-wordmark','.rt-sync'].map(s=>{const r=el.querySelector(s).getBoundingClientRect();return [r.x,r.y,r.width,r.height];});
+ a.pause();a.currentTime=0;await new Promise(requestAnimationFrame);
+ const low=+getComputedStyle(el,'::after').opacity,before=boxes();
+ a.currentTime=4000;await new Promise(requestAnimationFrame);
+ const high=+getComputedStyle(el,'::after').opacity,after=boxes();a.play();
+ return {low,high,before,after};
+});
+assert(Math.abs(pulse.low-.04)<.001&&Math.abs(pulse.high-.12)<.001);
+assert.deepEqual(pulse.before,pulse.after,'background pulse must not move or scale foreground content');
 await p.evaluate(()=>{DB.settings.mascotMotion='off';document.documentElement.dataset.mascotMotion='off';tickRest();});
 assert(!await p.locator('.rt-sync').isVisible());assert(!await p.locator('.rt-buddy').isVisible());
 await p.evaluate(()=>{DB.settings.mascotMotion='animated';document.documentElement.dataset.mascotMotion='animated';tickRest();});
 await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>tickRest());assert(!await p.locator('.rt-sync').isVisible());assert(await p.locator('.rt-buddy').isVisible());
+assert.equal(await p.locator('#hTimer').evaluate(e=>getComputedStyle(e,'::after').animationName),'none');
 await p.emulateMedia({reducedMotion:'no-preference'});await p.evaluate(()=>{day(todayISO).completedAt=Date.now()-125000;tickRest();});
 await p.locator('.rt-buddy').evaluate(e=>e.decode());
 await p.screenshot({path:'../Crew-Final-Review/Recovery-Timer-Preview/Recovery-Timer-Live.png'});

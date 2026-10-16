@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.340 — A gentle recovery pulse
+
+- Added a subtle eight-second breathing glow to the recovery background, behind the timer, wordmark and Crew. Reduced Motion keeps it static.
+- Raised the recovery Crew and its ground shadow by 10 CSS pixels, without moving the timer or wordmark.
+
 ## v4.6.339 — Grounded, neutral Crew shadows
 
 - Removed the reddish-purple tint from all ten recovery Crew shadows.
