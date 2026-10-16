@@ -2418,7 +2418,12 @@ function syncNav(deferSwitch){
     nav.classList.toggle('resting', restingToday()); }   // v3.3.468: Today's square is a green ring while resting
 }
 function render(opts){
-  applyFlow();
+  /* v4.6.347: applyFlow() moved into the update below (Sungjee, 2026-10-16). It
+     sets #view's data-flow-view -- the marker every tab's heading and list styles
+     key on -- and it ran HERE, before the tab switch's view transition took its
+     "old" snapshot. So the page you were leaving was re-styled as the page you
+     were going to ("BODY PART" became "Body part", the legend lost its dots, the
+     name shrank) and photographed that way: text visibly changed, then faded. */
   syncNav(true);
   if(typeof killCalReturn==='function') killCalReturn();   // v3.3.59: the contextual target dies with any view change
   if(typeof syncTopBtn==='function') syncTopBtn();        // v3.3.65: the general up button re-evaluates for the new view
@@ -2465,6 +2470,7 @@ function render(opts){
      read, written or measured here, and neither is anything fixed. */
   let viaVT=false;
   const both=()=>{
+    applyFlow();
     document.body.classList.toggle('rest-home',view==='today'&&!lift.plan&&restingToday());
     syncProgressSwitch();
     syncPageChrome();
