@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.341 — 2026-10-16
+- One icon set across the app. Every icon is now drawn on one grid in one solid style: shapes are filled with their details cut out (pencil, clipboard, bin, lock, calendar, share), and simple marks (arrows, ticks, crosses, chevrons) are lines drawn heavy enough to sit beside them. The ticks (8 versions), crosses (6) and pencils (4) are one each.
+- Controls written with text characters (← ‹ › → ↻ ↺ ↗ ↓ ↑ × ✓ + −) now show the set's icons; a × between numbers stays text.
+- New: Undo and Replay with square arrowheads, an open chain link for Match exercise, a no-entry sign for Avoid, a cleaner bin and CSV file, a thin dashed Lands here.
+- Icons on buttons sit 10% under their box; Share a further 10%.
+- Unchanged: the nav bar, the weather icons and the brand mark.
+
 ## v4.6.340 — A gentle recovery pulse
 
 - Added a subtle eight-second breathing glow to the recovery background, behind the timer, wordmark and Crew. Reduced Motion keeps it static.
