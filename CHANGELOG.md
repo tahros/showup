@@ -1,5 +1,8 @@
 # ShowUppp — changelog
 
+## v4.6.347 — 2026-10-16
+- Tab switches no longer change text before they fade. The marker each tab's heading and list styles key on was flipped to the new tab before the transition captured the page you were leaving, so that page was briefly re-styled as the next one ("BODY PART" became "Body part", the Stats legend lost its dots, your name shrank in Settings). It now flips with the new page.
+
 ## v4.6.346 — 2026-10-16
 - Tab switches are smooth. Going into or out of Progress, the Trends / History switch was shown before the transition captured the page you were leaving, so that page jumped by the switch's height and only then faded; the switch now arrives with its page. And the cross-fade uses one curve for both halves (the old page used to vanish in .16s while the new one took .42s, washing the screen out pale for a beat).
 
