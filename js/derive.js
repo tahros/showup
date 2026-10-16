@@ -522,7 +522,8 @@ function syncRecoveryCrew(el,crew,enabled){
       state.ready=item.ready;
       if(item.ready&&frame!==state.frame){
         const local=frame%60;ctx.clearRect(0,0,2160,240);
-        ctx.drawImage(item.image,(local%8)*480,Math.floor(local/8)*240,480,240,state.offsets[frame],0,480,240);
+        // Shrink the Crew and shadow around the tile center, not the travel lane.
+        ctx.drawImage(item.image,(local%8)*480,Math.floor(local/8)*240,480,240,state.offsets[frame]+48,24,384,192);
         state.frame=frame;canvas.dataset.frame=frame;
       }
       el.classList.toggle('rt-synced',state.ready);

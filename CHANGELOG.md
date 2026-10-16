@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.342 — Smaller recovery Crews
+
+- Reduced every Crew and its shadow by 20% on the blue recovery timer and clock, matching the approved preview. Preserved HD rendering, seven-second crossings, background pulse, and timer layout. The red workout timer is unchanged.
+
 ## v4.6.341 — 2026-10-16
 - One icon set across the app. Every icon is now drawn on one grid in one solid style: shapes are filled with their details cut out (pencil, clipboard, bin, lock, calendar, share), and simple marks (arrows, ticks, crosses, chevrons) are lines drawn heavy enough to sit beside them. The ticks (8 versions), crosses (6) and pencils (4) are one each.
 - Controls written with text characters (← ‹ › → ↻ ↺ ↗ ↓ ↑ × ✓ + −) now show the set's icons; a × between numbers stays text.

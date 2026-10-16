@@ -1094,7 +1094,7 @@
     html.bigtimer body > #hTimer.on.recovery :is(.rt-caption,.rt-period){display:block;font:400 clamp(12px,2.1vw,23px)/1.4 var(--mono);letter-spacing:.04em;color:#c6cde6;margin-bottom:1.1vw}
     html.bigtimer body > #hTimer.on.recovery :is(.rt-caption,.rt-period):empty{display:none}
     html.bigtimer body > #hTimer.on.recovery .rt-digits{display:block;font:400 clamp(36px,11.8vw,128px)/1.1 var(--mono);letter-spacing:-.065em;font-variant-numeric:tabular-nums;white-space:nowrap}
-    html.bigtimer body > #hTimer.on.recovery .rt-buddy{top:var(--rt-crew-y,78%);bottom:auto;transform:translateY(-50%)}
+    html.bigtimer body > #hTimer.on.recovery .rt-buddy{top:var(--rt-crew-y,78%);bottom:auto;transform:translateY(-50%) scale(.8)}
     html.bigtimer body > #hTimer.on.recovery.rt-synced .rt-buddy{display:none}
     html.bigtimer body > #hTimer.on.recovery.rt-synced .rt-sync{display:block;position:absolute;left:0;top:var(--rt-crew-y,78%);transform:translateY(-50%);width:100%;height:auto;pointer-events:none}
     html.bigtimer body > #hTimer.on.recovery .rt-wordmark{

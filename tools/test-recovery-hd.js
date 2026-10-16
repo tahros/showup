@@ -21,7 +21,7 @@ async function at(ms){now=1+ms;raf();await flush();raf();}
  assert.equal(canvas.width,2160);assert.equal(canvas.height,240);assert(classes.has('rt-synced'));
  assert.equal(canvas.dataset.frame,0);assert.equal(el._recoveryCrew.pages.size,2);
  await at(1000);assert.equal(canvas.dataset.frame,60);
- assert.deepEqual(draws.at(-1).slice(1),[0,0,480,240,60,0,480,240]);
+ assert.deepEqual(draws.at(-1).slice(1),[0,0,480,240,108,24,384,192]);
  for(const ms of [6999,7000,13999,14000,68000]){await at(ms);assert.equal(canvas.dataset.frame,sandbox.recoveryFrame(ms));assert(el._recoveryCrew.pages.size<=2);}
  fail=true;await at(4000);assert(!classes.has('rt-synced'),'failed page shows fallback');
  fail=false;await at(18000);assert(classes.has('rt-synced'),'failed page retries after cooldown');
