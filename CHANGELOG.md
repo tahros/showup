@@ -1,5 +1,8 @@
 # ShowUppp — changelog
 
+## v4.6.348 — 2026-10-17
+- Landscape set timer: one line above the clock -- "Barbell Bench Press · 135 lb × 8" -- instead of the exercise above and "Last · 135 lb × 8" below. When a plan sets the next set and there is no last one, it reads "… · Next 115 lb × 10".
+
 ## v4.6.347 — 2026-10-16
 - Tab switches no longer change text before they fade. The marker each tab's heading and list styles key on was flipped to the new tab before the transition captured the page you were leaving, so that page was briefly re-styled as the next one ("BODY PART" became "Body part", the Stats legend lost its dots, your name shrank in Settings). It now flips with the new page.
 
