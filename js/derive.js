@@ -577,10 +577,10 @@ function tickRest(){
     if(previous){
       const text=isCardio(previous)?cardioLine(previous):isHold(previous.su)?
         `${(previous.reps||[])[0]||0}″`:`${wTxt(previous.ex,previous.w).replace(/(kg|lb)$/,' $1')} × ${(previous.reps||[])[0]||0}`;
-      detail='Last · '+text;
+      detail=text;   /* v4.6.348: the weight and reps read as the last set on their own (Sungjee) */
     }else if(typeof plChoice==='function'){
       const next=plChoice(ex,unitOf(ex)).target;
-      if(next)detail='Next · '+plTargetText(next);
+      if(next)detail='Next '+plTargetText(next);
     }
   }
   function node(cls){
@@ -588,7 +588,10 @@ function tickRest(){
     if(!n){n=document.createElement('span');n.className=cls;el.appendChild(n);}
     return n;
   }
-  node('rt-ctx').textContent=ex||(whole?'Workout':'Between exercises');
+  /* v4.6.348: ONE LINE ABOVE THE CLOCK (Sungjee, 2026-10-17): the exercise and its
+     last set side by side -- "Barbell Bench Press · 135 lb × 8" -- rather than a
+     second line under the digits saying "Last · 135 lb × 8". */
+  node('rt-ctx').textContent=(ex||(whole?'Workout':'Between exercises'))+(detail?' · '+detail:'');
   const clock=node('rt-time');
   if(!clock.querySelector('.rt-colon')){
     clock.textContent='';
@@ -599,7 +602,7 @@ function tickRest(){
   }
   clock.querySelector('.rt-min').textContent=Math.floor(s/60);
   clock.querySelector('.rt-sec').textContent=String(s%60).padStart(2,'0');
-  node('rt-detail').textContent=detail;
+  node('rt-detail').textContent='';
   // Preserve session-scoped metadata for consumers, not the focused landscape UI.
   node('rt-sub').textContent=rows.length?restSessionLine(t):'';
   if(recovery&&!el.querySelector('.rt-wordmark')){

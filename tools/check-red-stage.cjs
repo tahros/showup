@@ -7,7 +7,7 @@ p.on('pageerror',e=>errors.push(e.message));await p.route('**/*',r=>r.request().
 await p.evaluate(()=>{document.querySelector('#onb')?.remove();DB={days:{},settings:{onboarded:true,unit:'lb',skin:'minimal',theme:'light'}};checkDate=()=>false;
 const at=Date.now()-84000;DB.days[todayISO]={w:[{ex:'Incline Barbell Bench Press',part:'Chest',w:toKg(165),reps:[8],at}],lastAt:at,doneEx:[],donePart:[]};
 lastSetAt=at;window.testAnchor=at;view='lift';lift.ex='Incline Barbell Bench Press';lift.part='Chest';lift.plan=null;lift.copy=false;SEED=deriveAll();applyTheme();render();tickRest();tickBig();});
-assert.equal(await p.locator('#hTimer .rt-ctx').innerText(),'Incline Barbell Bench Press');
+assert.equal(await p.locator('#hTimer .rt-ctx').innerText(),'Incline Barbell Bench Press · 165 lb × 8');
 await p.evaluate(()=>{const button=document.createElement('button');button.id='doneExBtn';document.body.appendChild(button);button.click();button.remove();tickRest();tickBig();});
 assert.equal(await p.locator('#hTimer .rt-ctx').innerText(),'Between exercises');assert(await p.evaluate(()=>lastSetAt===window.testAnchor));
 await p.evaluate(()=>{lift.ex='Incline Dumbbell Bench Press';lift.part='Chest';view='lift';render();tickRest();tickBig();});
