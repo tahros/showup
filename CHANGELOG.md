@@ -1,5 +1,8 @@
 # ShowUppp — changelog
 
+## v4.6.351 — Your crew: Pip at 1.25x
+- Pip in its wide tile at the top of Your crew is 1.25x larger (165x100, was 132x80).
+
 ## v4.6.350 — share image: crew at 2x
 - The crew beside your name in every share image's footer is twice the size (96, was 48), Pip included.
 - Spaced by its body, not its padded box, so every crew sits the same small gap from the name.
