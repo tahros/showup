@@ -581,6 +581,7 @@ async function forgetDevice(){
     Object.keys(localStorage).filter(k=>k.startsWith('showup:bak')).forEach(k=>localStorage.removeItem(k));
     sessionStorage.clear();
   }catch(e){}
+  try{ await bakStore.clear(); }catch(e){}
   try{ await durable.removeAll(); }catch(e){}   // v4.6.106: the slots and their backups too
   try{ location.reload(); }catch(e){}
 }
@@ -831,6 +832,49 @@ const store = {
     try{ localStorage.setItem(k,v); return true; }catch(e){ return false; }
   }
 };
+/* v4.6.349: the safety copies live in IndexedDB, never in localStorage. Each
+   one is a full copy of the record, and five day copies plus the pre-units and
+   pre-restore copies of a long history filled the ~5 MB localStorage quota --
+   after which the record itself could no longer save ("Not saved -- storage
+   unavailable"). localStorage now holds the record and small prefs only. */
+const bakStore={
+  _db:null,
+  open(){
+    if(this._db) return this._db;
+    return this._db=new Promise(res=>{
+      try{ const r=indexedDB.open('showup-bak',1);
+        r.onupgradeneeded=()=>r.result.createObjectStore('bak');
+        r.onsuccess=()=>res(r.result); r.onerror=r.onblocked=()=>res(null);
+      }catch(e){ res(null); }
+    });
+  },
+  async tx(mode,fn){
+    const db=await this.open(); if(!db) return null;
+    return new Promise(res=>{
+      try{ const t=db.transaction('bak',mode), q=fn(t.objectStore('bak'));
+        t.oncomplete=()=>res(q?q.result:undefined); t.onerror=t.onabort=()=>res(null);
+      }catch(e){ res(null); }
+    });
+  },
+  put(k,v){ return this.tx('readwrite',s=>s.put(v,k)); },
+  get(k){ return this.tx('readonly',s=>s.get(k)); },
+  keys(){ return this.tx('readonly',s=>s.getAllKeys()); },
+  clear(){ return this.tx('readwrite',s=>s.clear()); },
+  async keepDays(n){
+    const days=((await this.keys())||[]).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
+    for(const k of days.slice(0,-n)) await this.tx('readwrite',s=>s.delete(k));
+  }
+};
+/* Takes every safety copy out of localStorage. The removal is synchronous, so the
+   space is free when this returns; the copies land in IndexedDB a moment later.
+   force: the record could not save -- free the space even with nowhere to move them. */
+function lsFreeBackups(force){
+  if(!force&&typeof indexedDB==='undefined') return 0;
+  const moved=[];
+  try{ for(const k of Object.keys(localStorage)) if(k.startsWith('showup:bak:')){ moved.push([k.slice(11),localStorage.getItem(k)]); localStorage.removeItem(k); } }catch(e){}
+  if(moved.length) Promise.all(moved.map(([k,v])=>bakStore.put(k,v))).then(()=>bakStore.keepDays(5)).catch(()=>{});
+  return moved.length;
+}
 
 /* ================= v4.6.106: the durable record (iOS shell) =================
    Capacitor's own guidance: localStorage in a web view "must be considered
@@ -943,7 +987,10 @@ function dbWrite(){
   if(!allowEmptySave && storedDays>0 && daysWithWork(DB)===0){ return false; }
   const raw=dbSerialize();
   let ok=false;
-  try{ localStorage.setItem(KEY,raw); ok=true; }catch(e){}
+  try{ localStorage.setItem(KEY,raw); ok=true; }catch(e){
+    /* v4.6.349: full -- the record outranks every safety copy. Free them and retry. */
+    if(lsFreeBackups(true)){ try{ localStorage.setItem(KEY,raw); ok=true; }catch(_e){} }
+  }
   if(!ok){ store.set(KEY,raw).then(r=>{ if(r) storedDays=Math.max(storedDays,daysWithWork(DB)); }); }
   else storedDays=Math.max(storedDays,daysWithWork(DB));
   if(durable.available()) durable.write(raw).catch(()=>{});

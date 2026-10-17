@@ -365,7 +365,7 @@ function migrateMiles(){
    fix: Dumbbell Combination rows at 22 → 10 (admitted leftover habit). */
 function migrateUnits(){
   if(DB.settings.unitsFixed) return 0;
-  try{ localStorage.setItem('showup:bak:preunits', JSON.stringify(DB.days)); }catch(e){}
+  bakStore.put('preunits', JSON.stringify(DB.days));   // v4.6.349: IndexedDB, not localStorage
   const CUT='2026-07-13', LB=0.45359237;
   const snap=(x,g)=>Math.round(x/g)*g;
   const r1=x=>Math.round(x*10)/10;
@@ -396,15 +396,17 @@ function migrateUnits(){
   DB.settings.unitsFixed=APP_VERSION;
   return fixed;
 }
+/* v4.6.349: one copy a day, in IndexedDB (bakStore), last five kept. Older
+   builds kept these in localStorage, where they crowded out the record. */
 function dailyBackup(){
   try{
-    const k='showup:bak:'+todayISO;
-    if(localStorage.getItem(k)) return;
-    const raw=JSON.stringify({days:DB.days,settings:DB.settings,settingsAt:DB.settingsAt,settingsAtK:DB.settingsAtK||{}});
-    localStorage.setItem(k, raw);
-    Object.keys(localStorage).filter(x=>x.startsWith('showup:bak:')).sort().slice(0,-5)
-      .forEach(x=>localStorage.removeItem(x));            // keep the last 5 days
-    if(durable.available()) durable.writeBak(todayISO, raw).catch(()=>{});   // v4.6.106: mirrored, same five-day window
+    lsFreeBackups();
+    const raw=JSON.stringify({days:DB.days,settings:DB.settings,settingsAt:DB.settingsAt,settingsAtK:DB.settingsAtK||{}});   // taken now, before migrations
+    bakStore.get(todayISO).then(have=>{
+      if(have) return;
+      bakStore.put(todayISO, raw).then(()=>bakStore.keepDays(5));
+      if(durable.available()) durable.writeBak(todayISO, raw).catch(()=>{});   // v4.6.106: mirrored, same five-day window
+    }).catch(()=>{});
   }catch(e){}
 }
 function flushSave(){
