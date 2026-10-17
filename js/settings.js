@@ -958,8 +958,9 @@ function shareFrameDraw(src,band,meta){
   if(shareReady(wm))x.drawImage(wm,SHARE_M,rowMid-wh/2,100,wh);
   const name=(typeof firstName==='function'&&firstName())||'';x.textAlign='right';x.fillStyle=muted;x.font='400 30px '+SHARE_SANS;
   if(name)x.fillText(name,SHARE_W-SHARE_M,rowMid+10);
-  const nw=name?x.measureText(name).width+16:0,mx=SHARE_W-SHARE_M-nw-48;
-  if(!shareDrawCompanion(x,mx,rowMid-24,48)){const pip=sharePipImg();if(shareReady(pip)){const ph=48*pip.naturalHeight/pip.naturalWidth*1.5,pw=ph*pip.naturalWidth/pip.naturalHeight;x.drawImage(pip,SHARE_W-SHARE_M-nw-pw,rowMid-ph/2,pw,ph);}}
+  /* v4.6.350: the crew at 2x (96, was 48), its body -- not its padded box -- 4px off the name (Sungjee, 2026-10-17) */
+  const CS=96,nw=name?x.measureText(name).width+16:0,edge=SHARE_W-SHARE_M-nw,cf=crewFoot(clubAvatar()[0]);
+  if(!shareDrawCompanion(x,edge-CS*(cf[1]+cf[2]/2)-4,rowMid-CS/2,CS)){const pip=sharePipImg();if(shareReady(pip)){const ph=CS*pip.naturalHeight/pip.naturalWidth*1.5,pw=ph*pip.naturalWidth/pip.naturalHeight;const pf=crewFoot('pip');x.drawImage(pip,edge-pw*(pf[1]+pf[2]/2)-4,rowMid-ph/2,pw,ph);}}
   const bandBot=rule-40,bw=SHARE_W-SHARE_M*2,bh=bandBot-bandTop;
   /* the data, never enlarged, placed in the band per meta.valign */
   if(x1>=0){const cw=x1-x0+2,ch=y1-y0+1,k=Math.min(1,bw/cw,bh/ch),dw=cw*k,dh=ch*k;
