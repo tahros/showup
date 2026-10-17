@@ -588,7 +588,7 @@ p.pw-small{margin:10px 0 16px}.pw-workspace p:not(.pw-small){font:400 14px/1.6 v
 .club-pip{display:grid!important;place-items:center}.club-pip-img{width:112%;height:auto;max-width:none;position:relative;margin-top:4%}
 .club-pip.club-animate.club-visible .club-pip-img{animation:club-hop 5.8s ease-in-out infinite}
 .club-icon-grid [data-club-icon="pip"],.ad-grid [data-ad="pip"]{grid-column:1/-1}
-.club-icon-grid [data-club-icon="pip"] .club-avatar{width:132px;height:80px}
+.club-icon-grid [data-club-icon="pip"] .club-avatar{width:165px;height:100px}   /* v4.6.351: 1.25x (was 132x80, Sungjee 2026-10-17) */
 /* v4.6.315: your medals */
 .club-name-medal{display:inline-grid;place-items:center;margin-left:6px;vertical-align:middle}
 .club-medals{margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line)}
