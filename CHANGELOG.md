@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.350 — share image: crew at 2x
+- The crew beside your name in every share image's footer is twice the size (96, was 48), Pip included.
+- Spaced by its body, not its padded box, so every crew sits the same small gap from the name.
+
 ## v4.6.349 — saving never blocked by full storage
 - Fixed "Not saved — storage unavailable". The five daily safety copies (plus the pre-units and pre-restore copies) were full copies of the record in localStorage; a long history filled its ~5 MB quota and the record itself could no longer save.
 - Safety copies now live in IndexedDB. On launch any old copies are moved out of localStorage, and if the record ever can't save, the copies are dropped and the save retried.
