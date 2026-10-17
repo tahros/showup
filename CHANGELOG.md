@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.349 — saving never blocked by full storage
+- Fixed "Not saved — storage unavailable". The five daily safety copies (plus the pre-units and pre-restore copies) were full copies of the record in localStorage; a long history filled its ~5 MB quota and the record itself could no longer save.
+- Safety copies now live in IndexedDB. On launch any old copies are moved out of localStorage, and if the record ever can't save, the copies are dropped and the save retried.
+- A restore on a full device no longer fails with "Not a ShowUppp backup file".
+- New test: test-storage-quota.
+
 ## v4.6.348 — 2026-10-17
 - Landscape set timer: one line above the clock -- "Barbell Bench Press · 135 lb × 8" -- instead of the exercise above and "Last · 135 lb × 8" below. When a plan sets the next set and there is no last one, it reads "… · Next 115 lb × 10".
 
