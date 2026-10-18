@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.355 — reorder the lines of an exercise
+- In the plan editor, each line of an open exercise has the ≡ grip at its right end (the delete stays on the left). Hold and drag to reorder, or use the arrow keys on the grip. Every set and rep moves with its line, and lines that meet at the same load merge.
+- New test: test-line-reorder.
+
 ## v4.6.354 — choose where the week starts
 - On Plan → Dates, each day is now a chip (44px, bordered, with ⌄). Tap one and pick its session; the rest of the week follows your order. The log's guess stays the default, and a fresh visit starts from it again.
 - When one session lands on two days running, one quiet line says so ("Chest + Core two days running · Thu, Fri"). It never blocks or reorders anything.
