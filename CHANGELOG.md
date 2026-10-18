@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.354 — choose where the week starts
+- On Plan → Dates, each day is now a chip (44px, bordered, with ⌄). Tap one and pick its session; the rest of the week follows your order. The log's guess stays the default, and a fresh visit starts from it again.
+- When one session lands on two days running, one quiet line says so ("Chest + Core two days running · Thu, Fri"). It never blocks or reorders anything.
+- New test: test-start-pick.
+
 ## v4.6.353 — the red set timer wears the blue clock's layout
 - Landscape set timer now matches the blue clock: the ShowUppp wordmark at the top, the one-line caption at the same size and height, the same digit size and spacing, the font's own colon (still blinking with the seconds), and the crew at the blue clock's size and height. Only the colour differs.
 
