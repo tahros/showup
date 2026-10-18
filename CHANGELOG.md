@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.357 — Stop while it plans
+- Plan → Dates: while "Creating your draft" runs, a ✕ Stop sits beside it. Stop drops the request, writes nothing, keeps your days and their sessions, and says "Stopped". The old Cancel link sat under the nav bar where it could not be reached; it is gone.
+- New test: test-stop-generating.
+
 ## v4.6.356 — what you drag goes with your finger
 - Your order: the session you drag now lifts and follows your finger while the others slide aside to make its place. It used to stay put, dimmed, while only the drop target lit up.
 - No text selection or magnifier on a long press of a grip (iOS read it as selecting text).
