@@ -497,7 +497,7 @@ function pfEditLine(ex,i,k,g){
  const c=pfState().chip,open=c&&c.row===i&&c.line===k,line=g.line,unit=line.unit||U();
  const wText=open&&c.field==='w'?(c.fresh?c.fresh.w:line.nw?'':+Number(line.w||0).toFixed(4)):pfLoadText(line);
  const reps=line.reps.map((r,ri)=>pfChip(i,k,'r',ri,r,`Set ${ri+1}: ${r}${isHold(line.su)?' seconds':' reps'}`)).join('');
- return `<div class="pe-line pe-edit"><button type="button" class="pe-del" data-pw="pf-del-line" data-index="${i}" data-line="${k}" aria-label="Delete ${hesc(pfLoadText(line))} × ${hesc(line.reps.join(' '))}">${icon('trash',ICON_SZ.sm)}</button><span class="pe-w">${pfChip(i,k,'w',0,wText,`Weight, ${unit}`,typeof wStep==='function'?wStep(ex):'any')}</span><span class="pe-x" aria-hidden="true">×</span><span class="pe-r">${reps}<button type="button" class="pe-chip pe-add" data-pw="pf-add-rep" data-index="${i}" data-line="${k}" aria-label="Add a set">+</button></span></div>`;
+ return `<div class="pe-line pe-edit"><button type="button" class="pe-del" data-pw="pf-del-line" data-index="${i}" data-line="${k}" aria-label="Delete ${hesc(pfLoadText(line))} × ${hesc(line.reps.join(' '))}">${icon('trash',ICON_SZ.sm)}</button><span class="pe-w">${pfChip(i,k,'w',0,wText,`Weight, ${unit}`,typeof wStep==='function'?wStep(ex):'any')}</span><span class="pe-x" aria-hidden="true">×</span><span class="pe-r">${reps}<button type="button" class="pe-chip pe-add" data-pw="pf-add-rep" data-index="${i}" data-line="${k}" aria-label="Add a set">+</button></span><button type="button" class="pe-grip" data-pe-grip="${k}" data-index="${i}" aria-label="Reorder ${hesc(pfLoadText(line))} × ${hesc(line.reps.join(' '))}; drag or use arrow keys">${icon('grip',ICON_SZ.sm)}</button></div>`;
 }
 function pfStripHTML(text){return `<div class="pe-removed" role="status"><span>Removed <b>${hesc(text)}</b></span>${pwButton('undo','\u21BA Undo','pe-undo')}</div>`;}
 function pfRefs(groups,last){
@@ -1333,3 +1333,42 @@ document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;
  document.addEventListener('click',e=>{if(Date.now()-eat<450&&e.target.closest?.('.pf-strip')){e.stopPropagation();e.preventDefault();}},true);
  document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.pf-strip .pf-chip'))e.preventDefault();});
  window.addEventListener('blur',stop);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&d)stop();});})();
+
+/* v4.6.355: REORDER THE LINES OF AN EXERCISE (Sungjee, 2026-10-18). Each line being edited has
+   the exercises' own grip at its right end -- the delete stays on the left, so the two never
+   share a thumb. Hold and drag, or arrow keys on the grip. A line is a group of sets at one
+   load, and lines that meet at the same load merge, as the editor already does everywhere. */
+function pfMoveLines(i,order){const b=pwDay(pw().active),r=b&&b.rows[i];if(!r)return false;const gs=pfGroups(r);
+ if(order.length!==gs.length||order.every((k,x)=>k===x))return false;
+ pfChipClose(true);pfChange(b);r.lines=order.flatMap(k=>gs[k].indices.map(x=>r.lines[x]));if(!b.locks.includes(i))b.locks.push(i);pwPersist();return true;}
+(()=>{let drag=null;
+ for(const type of ['touchstart','touchmove','touchend','touchcancel'])document.addEventListener(type,e=>{if(e.target.closest?.('[data-pe-grip]'))e.stopPropagation();},{capture:true,passive:true});
+ const lines=d=>[...d.list.querySelectorAll(':scope>.pe-edit')];
+ function finish(cancel=false){if(!drag)return;const d=drag;drag=null;clearTimeout(d.hold);cancelAnimationFrame(d.frame);d.line.classList.remove('pe-lifting');try{d.list.releasePointerCapture(d.id);}catch(_){}
+  if(!d.line.isConnected||pw().active!==d.date)return;
+  const order=lines(d).map(l=>+l.querySelector('[data-pe-grip]').dataset.peGrip);
+  if(!cancel&&d.active&&pfMoveLines(d.index,order))pwRender();
+  else if(d.active)pwRender();}
+ function frame(){const d=drag;if(!d?.active)return;if(!d.line.isConnected){finish(true);return;}
+  const edge=80,delta=d.y<edge?-8:d.y>innerHeight-edge?8:0;if(delta)window.scrollBy(0,delta);
+  const other=lines(d).filter(l=>l!==d.line),top=l=>d.list.getBoundingClientRect().top+l.offsetTop;
+  const target=other.find(l=>d.y<top(l)+l.offsetHeight/2)||null,last=other.at(-1),ref=target||(last?last.nextSibling:null);
+  if(ref!==d.line&&d.line.nextSibling!==ref){
+   const before=new Map(other.map(l=>[l,top(l)]));d.list.insertBefore(d.line,ref);
+   if(!matchMedia('(prefers-reduced-motion: reduce)').matches)for(const l of other){const dy=before.get(l)-top(l);if(dy)l.animate?.([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:160,easing:'ease-out'});}}
+  d.frame=requestAnimationFrame(frame);}
+ document.addEventListener('pointerdown',e=>{const grip=e.target.closest?.('[data-pe-grip]');if(!grip||e.button!==0||drag)return;
+  const line=grip.closest('.pe-edit'),list=line&&line.parentNode;if(!list)return;
+  drag={line,list,index:+grip.dataset.index,k:+grip.dataset.peGrip,id:e.pointerId,y:e.clientY,date:pw().active,active:false};
+  try{list.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();
+  const d=drag;d.hold=setTimeout(()=>{if(drag!==d)return;d.active=true;d.line.classList.add('pe-lifting');navigator.vibrate?.(8);d.frame=requestAnimationFrame(frame);},e.pointerType==='touch'?180:0);});
+ document.addEventListener('pointermove',e=>{if(drag&&e.pointerId===drag.id){drag.y=e.clientY;e.preventDefault();}});
+ document.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.id)finish();});
+ document.addEventListener('pointercancel',e=>{if(drag&&e.pointerId===drag.id)finish(true);});
+ document.addEventListener('lostpointercapture',e=>{if(drag&&e.pointerId===drag.id)finish(true);});
+ window.addEventListener('blur',()=>finish(true));
+ document.addEventListener('keydown',e=>{if(drag&&e.key==='Escape'){e.preventDefault();finish(true);return;}
+  const grip=e.target.closest?.('[data-pe-grip]'),dir=e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0;if(!grip||!dir||drag)return;e.preventDefault();
+  const i=+grip.dataset.index,k=+grip.dataset.peGrip,r=pwDay(pw().active)?.rows[i];if(!r)return;const n=pfGroups(r).length,t=k+dir;if(t<0||t>=n)return;
+  const order=[...Array(n).keys()];[order[k],order[t]]=[order[t],order[k]];if(pfMoveLines(i,order)){pwRender();document.querySelector(`[data-index="${i}"][data-pe-grip="${t}"]`)?.focus({preventScroll:true});}});
+})();
