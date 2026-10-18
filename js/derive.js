@@ -607,7 +607,7 @@ function tickRest(){
   node('rt-detail').textContent='';
   // Preserve session-scoped metadata for consumers, not the focused landscape UI.
   node('rt-sub').textContent=rows.length?restSessionLine(t):'';
-  if(recovery&&!el.querySelector('.rt-wordmark')){
+  if(!el.querySelector('.rt-wordmark')){   /* v4.6.353: the red stage signs itself too, like the blue */
     const mark=document.createElement('img');mark.className='rt-wordmark';
     mark.src='assets/showuppp-wordmark-dark.svg';mark.alt='ShowUppp';el.appendChild(mark);
   }
@@ -655,6 +655,9 @@ function tickBigDigits(){
   const colon=clock.querySelector('.rt-colon');
   const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches);
   colon.style.opacity=reduced||elapsed%1000<500?'1':'.22';
+  /* v4.6.353: the crew stands where the blue clock's does -- midway between the digits and the floor */
+  const bottom=clock.offsetTop+clock.offsetHeight,y=(bottom+(el.clientHeight-bottom)/2-10)+'px';
+  if(el.style.getPropertyValue('--rt-crew-y')!==y)el.style.setProperty('--rt-crew-y',y);
 }
 setInterval(tickBigDigits,100);
 /* v3.3.426: KEEP THE SCREEN AWAKE WHILE THE BIG CLOCK IS SHOWING. Without
