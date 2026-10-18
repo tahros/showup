@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.356 — what you drag goes with your finger
+- Your order: the session you drag now lifts and follows your finger while the others slide aside to make its place. It used to stay put, dimmed, while only the drop target lit up.
+- No text selection or magnifier on a long press of a grip (iOS read it as selecting text).
+- Plan editor lines ride the finger the same way.
+
 ## v4.6.355 — reorder the lines of an exercise
 - In the plan editor, each line of an open exercise has the ≡ grip at its right end (the delete stays on the left). Hold and drag to reorder, or use the arrow keys on the grip. Every set and rep moves with its line, and lines that meet at the same load merge.
 - New test: test-line-reorder.
