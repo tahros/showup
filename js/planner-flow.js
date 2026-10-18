@@ -1253,14 +1253,36 @@ document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;
   if(d){pfMoveDay(g.dataset.pfDayGrip,d);document.querySelector(`[data-pf-day-grip="${d}"]`)?.focus();}
  });
 })();
-/* v4.6.203: sessions in Your split are reordered by their handle: drag, or the arrow keys */
+/* v4.6.203: sessions in Your split are reordered by their handle: drag, or the arrow keys.
+   v4.6.356: THE SESSION YOU CARRY GOES WITH YOUR FINGER (Sungjee, 2026-10-18). It used to stay
+   put, dimmed, while only the drop target lit up -- and iOS read the long press as a text
+   selection. Now it lifts, follows the finger, and the others slide aside to make its place. */
 (()=>{let d=null;
- const rowAt=e=>document.elementFromPoint(e.clientX,e.clientY)?.closest('.pf-ses'),clear=()=>document.querySelectorAll('.pf-ses.pf-drop').forEach(x=>x.classList.remove('pf-drop'));
  const move=(from,to)=>{const j=pfState(),r=j.prefs?.rotation;if(!r||from===to||!r.sessions[from]||!r.sessions[to])return;const [x]=r.sessions.splice(from,1);r.sessions.splice(to,0,x);j.rotSel=[];j.rotHeld=null;pfRotTouch(r);pwPersist();if(!pfSplitRefresh())pwRender();};
- const end=(e,cancel)=>{if(!d||(e?.pointerId!=null&&e.pointerId!==d.id))return;const from=d;d=null;from.row.classList.remove('pf-dragging');const t=!cancel&&e?rowAt(e):null;clear();try{from.grip.releasePointerCapture(from.id);}catch(_){}if(t)move(from.i,+t.dataset.pfRot);};
- document.addEventListener('pointerdown',e=>{const g=e.target.closest?.('[data-pf-rot-grip]');if(!g||e.button!==0||d||!pfOn())return;d={i:+g.dataset.pfRotGrip,id:e.pointerId,grip:g,row:g.closest('.pf-ses')};d.row.classList.add('pf-dragging');try{g.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
- document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;clear();const t=rowAt(e);if(t&&t!==d.row)t.classList.add('pf-drop');e.preventDefault();});
- document.addEventListener('pointerup',e=>end(e));document.addEventListener('pointercancel',e=>end(e,true));
+ const order=d=>[...d.list.children].filter(x=>x.matches('.pf-ses')).map(x=>+x.dataset.pfRot);
+ const scroller=el=>{for(let p=el.parentElement;p;p=p.parentElement){const o=getComputedStyle(p).overflowY;if((o==='auto'||o==='scroll')&&p.scrollHeight>p.clientHeight)return p;}return null;};
+ for(const type of ['touchstart','touchmove','touchend','touchcancel'])document.addEventListener(type,e=>{if(e.target.closest?.('[data-pf-rot-grip]'))e.stopPropagation();},{capture:true,passive:true});
+ const end=(cancel)=>{if(!d)return;const x=d;d=null;clearTimeout(x.hold);cancelAnimationFrame(x.frame);document.documentElement.classList.remove('pf-rot-carrying');x.row.classList.remove('pf-lifting');x.row.style.transform='';try{x.list.releasePointerCapture(x.id);}catch(_){}
+  if(!x.on||!x.row.isConnected)return;const o=order(x);
+  if(cancel||o.every((v,k)=>v===k)){if(!pfSplitRefresh())pwRender();return;}
+  const j=pfState(),r=j.prefs?.rotation;if(!r)return;r.sessions=o.map(k=>r.sessions[k]);j.rotSel=[];j.rotHeld=null;pfRotTouch(r);pwPersist();if(!pfSplitRefresh())pwRender();};
+ const frame=()=>{if(!d?.on)return;if(!d.row.isConnected){end(true);return;}
+  if(d.sc){const r=d.sc.getBoundingClientRect(),edge=60,v=d.y<r.top+edge?-8:d.y>r.bottom-edge?8:0;if(v)d.sc.scrollTop+=v;}
+  const rows=[...d.list.children].filter(x=>x.matches('.pf-ses')),other=rows.filter(x=>x!==d.row),base=()=>d.list.getBoundingClientRect().top,top=x=>base()+x.offsetTop;
+  const mid=d.y-d.grab+d.row.offsetHeight/2,target=other.find(x=>mid<top(x)+x.offsetHeight/2)||null,last=other.at(-1),ref=target||(last?last.nextSibling:null);
+  if(ref!==d.row&&d.row.nextSibling!==ref){const before=new Map(other.map(x=>[x,top(x)]));d.list.insertBefore(d.row,ref);
+   if(!matchMedia('(prefers-reduced-motion: reduce)').matches)for(const x of other){const dy=before.get(x)-top(x);if(dy)x.animate?.([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:170,easing:'ease-out'});}}
+  d.row.style.transform=`translateY(${d.y-d.grab-top(d.row)}px) scale(1.02)`;
+  d.frame=requestAnimationFrame(frame);};
+ document.addEventListener('pointerdown',e=>{const g=e.target.closest?.('[data-pf-rot-grip]');if(!g||e.button!==0||d||!pfOn())return;const row=g.closest('.pf-ses');if(!row)return;
+  d={i:+g.dataset.pfRotGrip,id:e.pointerId,grip:g,row,list:row.parentNode,y:e.clientY,grab:e.clientY-row.getBoundingClientRect().top,sc:scroller(row),on:false};
+  try{d.list.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();window.getSelection?.()?.removeAllRanges();
+  const x=d;x.hold=setTimeout(()=>{if(d!==x)return;x.on=true;document.documentElement.classList.add('pf-rot-carrying');x.row.classList.add('pf-lifting');navigator.vibrate?.(8);x.frame=requestAnimationFrame(frame);},e.pointerType==='touch'?150:0);});
+ document.addEventListener('pointermove',e=>{if(d&&e.pointerId===d.id){d.y=e.clientY;e.preventDefault();}});
+ document.addEventListener('pointerup',e=>{if(d&&e.pointerId===d.id)end(false);});
+ document.addEventListener('pointercancel',e=>{if(d&&e.pointerId===d.id)end(true);});
+ document.addEventListener('lostpointercapture',e=>{if(d&&e.pointerId===d.id)end(true);});
+ document.addEventListener('selectstart',e=>{if(d||e.target.closest?.('[data-pf-rot-grip]'))e.preventDefault();});
  document.addEventListener('keydown',e=>{const g=e.target.closest?.('[data-pf-rot-grip]');if(!g||!['ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const i=+g.dataset.pfRotGrip,to=i+(e.key==='ArrowUp'?-1:1);move(i,to);document.querySelector(`[data-pf-rot-grip="${to}"]`)?.focus();});
 })();
 /* v4.6.206: the picker sheet closes on Escape, and on a pull down from its top */
@@ -1344,7 +1366,7 @@ function pfMoveLines(i,order){const b=pwDay(pw().active),r=b&&b.rows[i];if(!r)re
 (()=>{let drag=null;
  for(const type of ['touchstart','touchmove','touchend','touchcancel'])document.addEventListener(type,e=>{if(e.target.closest?.('[data-pe-grip]'))e.stopPropagation();},{capture:true,passive:true});
  const lines=d=>[...d.list.querySelectorAll(':scope>.pe-edit')];
- function finish(cancel=false){if(!drag)return;const d=drag;drag=null;clearTimeout(d.hold);cancelAnimationFrame(d.frame);d.line.classList.remove('pe-lifting');try{d.list.releasePointerCapture(d.id);}catch(_){}
+ function finish(cancel=false){if(!drag)return;const d=drag;drag=null;clearTimeout(d.hold);cancelAnimationFrame(d.frame);d.line.classList.remove('pe-lifting');d.line.style.transform='';document.documentElement.classList.remove('pf-rot-carrying');try{d.list.releasePointerCapture(d.id);}catch(_){}
   if(!d.line.isConnected||pw().active!==d.date)return;
   const order=lines(d).map(l=>+l.querySelector('[data-pe-grip]').dataset.peGrip);
   if(!cancel&&d.active&&pfMoveLines(d.index,order))pwRender();
@@ -1352,16 +1374,17 @@ function pfMoveLines(i,order){const b=pwDay(pw().active),r=b&&b.rows[i];if(!r)re
  function frame(){const d=drag;if(!d?.active)return;if(!d.line.isConnected){finish(true);return;}
   const edge=80,delta=d.y<edge?-8:d.y>innerHeight-edge?8:0;if(delta)window.scrollBy(0,delta);
   const other=lines(d).filter(l=>l!==d.line),top=l=>d.list.getBoundingClientRect().top+l.offsetTop;
-  const target=other.find(l=>d.y<top(l)+l.offsetHeight/2)||null,last=other.at(-1),ref=target||(last?last.nextSibling:null);
+  const mid=d.y-d.grab+d.line.offsetHeight/2,target=other.find(l=>mid<top(l)+l.offsetHeight/2)||null,last=other.at(-1),ref=target||(last?last.nextSibling:null);
   if(ref!==d.line&&d.line.nextSibling!==ref){
    const before=new Map(other.map(l=>[l,top(l)]));d.list.insertBefore(d.line,ref);
    if(!matchMedia('(prefers-reduced-motion: reduce)').matches)for(const l of other){const dy=before.get(l)-top(l);if(dy)l.animate?.([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:160,easing:'ease-out'});}}
+  d.line.style.transform=`translateY(${d.y-d.grab-top(d.line)}px) scale(1.02)`;   /* v4.6.356: it rides the finger */
   d.frame=requestAnimationFrame(frame);}
  document.addEventListener('pointerdown',e=>{const grip=e.target.closest?.('[data-pe-grip]');if(!grip||e.button!==0||drag)return;
   const line=grip.closest('.pe-edit'),list=line&&line.parentNode;if(!list)return;
-  drag={line,list,index:+grip.dataset.index,k:+grip.dataset.peGrip,id:e.pointerId,y:e.clientY,date:pw().active,active:false};
+  drag={line,list,index:+grip.dataset.index,k:+grip.dataset.peGrip,id:e.pointerId,y:e.clientY,grab:e.clientY-line.getBoundingClientRect().top,date:pw().active,active:false};
   try{list.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();
-  const d=drag;d.hold=setTimeout(()=>{if(drag!==d)return;d.active=true;d.line.classList.add('pe-lifting');navigator.vibrate?.(8);d.frame=requestAnimationFrame(frame);},e.pointerType==='touch'?180:0);});
+  const d=drag;d.hold=setTimeout(()=>{if(drag!==d)return;d.active=true;d.line.classList.add('pe-lifting');document.documentElement.classList.add('pf-rot-carrying');navigator.vibrate?.(8);d.frame=requestAnimationFrame(frame);},e.pointerType==='touch'?180:0);});
  document.addEventListener('pointermove',e=>{if(drag&&e.pointerId===drag.id){drag.y=e.clientY;e.preventDefault();}});
  document.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.id)finish();});
  document.addEventListener('pointercancel',e=>{if(drag&&e.pointerId===drag.id)finish(true);});
