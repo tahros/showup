@@ -1,5 +1,8 @@
 # ShowUppp — changelog
 
+## v4.6.353 — the red set timer wears the blue clock's layout
+- Landscape set timer now matches the blue clock: the ShowUppp wordmark at the top, the one-line caption at the same size and height, the same digit size and spacing, the font's own colon (still blinking with the seconds), and the crew at the blue clock's size and height. Only the colour differs.
+
 ## v4.6.352 — Pip is back on rest days
 - Fixed Pip vanishing from the rest-day home on iPhone. The hello row is a column on a rest day, and WebKit treats a column item's aspect-ratio height as indefinite, so Pip's box (height:100%) fell to zero while keeping its space. The box is now pinned to its frame, which works in every engine.
 - Pip as crew keeps its own art: the old mascot lifecycle was swapping in the pre-crew PNG, so with motion Still or Reduce Motion the rest still never showed.
