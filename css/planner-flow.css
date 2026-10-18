@@ -536,9 +536,27 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-workspace .pf-up b{font:400 12px/1.5 var(--mono);color:var(--muted)}
 :root .pf-workspace .pf-split-note{margin-top:12px}
 @media(prefers-reduced-motion:reduce){:root .pf-workspace .pf-tile,:root .pf-workspace .pf-tile b,:root .pf-workspace .pf-rot-n,:root .pf-workspace .pf-rot-part{transition:none}:root .pf-workspace .pf-rot-edit{animation:none}}
-:root .pf-workspace .pf-split-line{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:4px}
-:root .pf-workspace .pf-split-line span{white-space:nowrap}
-:root .pf-workspace .pf-split-line b{font-weight:600;color:var(--chalk)}
+/* v4.6.354: the days are chips you tap to choose the session (Sungjee, 2026-10-18) */
+:root .pf-workspace .pf-split-line{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
+:root .pf-workspace .pf-sl-day{box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 12px 0 14px;margin:0;border-radius:14px;background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 15px/1.2 var(--body);color:var(--chalk);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+:root .pf-workspace .pf-sl-day span{white-space:nowrap}
+:root .pf-workspace .pf-sl-day b{font-weight:650}
+:root .pf-workspace .pf-sl-day .ic{opacity:.5;flex:none}
+:root .pf-workspace .pf-sl-day:active{transform:scale(.97)}
+:root .pf-workspace .pf-sl-day.on{background:var(--accent);border-color:var(--accent);color:#fff}
+:root .pf-workspace .pf-sl-day.on .ic{opacity:.9}
+:root .pf-workspace .pf-sl-pick{margin:-4px 0 16px;padding:6px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+:root .pf-workspace .pf-sl-pick-h{display:flex;align-items:center;justify-content:space-between;padding:8px 10px 6px;font-size:14px;color:var(--muted)}
+:root .pf-workspace .pf-sl-pick-h b{color:var(--chalk);font-weight:600}
+:root .pf-workspace .pf-sl-x{display:grid;place-items:center;width:32px;height:32px;padding:0;margin:0;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer}
+:root .pf-workspace .pf-sl-opt{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:0 10px;margin:0;border:0;border-radius:12px;background:transparent;font:400 15px var(--body);color:var(--chalk);text-align:left;cursor:pointer}
+:root .pf-workspace .pf-sl-opt i{font-style:normal;flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--line);font:500 12px var(--mono);color:var(--muted)}
+:root .pf-workspace .pf-sl-opt span{flex:1}
+:root .pf-workspace .pf-sl-opt.on{background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent-ink);font-weight:600}
+:root .pf-workspace .pf-sl-opt.on i{background:var(--accent);color:#fff}
+:root .pf-workspace .pf-sl-note{margin:4px 10px 8px;font-size:12px;color:var(--muted)}
+:root .pf-workspace .pf-sl-warn{display:flex;align-items:center;gap:7px;margin:-6px 0 14px;font-size:13px;color:var(--muted)}
+:root .pf-workspace .pf-sl-warn .ic{flex:none;opacity:.7}
 
 /* v4.6.204: Body parts you train */
 :root .pf-workspace .pf-mypart-chips{display:flex;flex-wrap:wrap;gap:8px}

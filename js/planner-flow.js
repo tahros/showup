@@ -87,7 +87,11 @@ function pfRotNext(sessions){const n=sessions.length;if(!n)return 0;const hist=[
  let best=0,top=0;for(let i=0;i<n;i++){let sc=0;hist.forEach((h,j)=>{sc+=sim(h,sessions[((i-j)%n+n)%n].parts)/(j+1);});if(sc>top+1e-9){top=sc;best=i;}}
  return top>0?(best+1)%n:0;}
 /* the session each of these dates takes: in order from Next up; a plan already saved on a day in between takes its turn too */
-function pfRotAssign(sessions,dates){const n=sessions.length,out={},ds=[...dates].sort(),last=ds[ds.length-1];if(!n||!last)return out;const sel=new Set(ds);let cur=pfRotNext(sessions);const d0=new Date(todayISO+'T12:00');
+/* v4.6.354: YOU CAN CHOOSE WHERE THE WEEK STARTS (Sungjee, 2026-10-18). Next up is the log's
+   guess; tap a day on the Dates step and pick its session, and pw().rotStart holds the session
+   the first day takes. The days after it still follow your order. */
+function pfRotStart(sessions){const st=pw().rotStart;return Number.isInteger(st)&&st>=0&&st<sessions.length?st:pfRotNext(sessions);}
+function pfRotAssign(sessions,dates,start){const n=sessions.length,out={},ds=[...dates].sort(),last=ds[ds.length-1];if(!n||!last)return out;const sel=new Set(ds);let cur=start==null?pfRotStart(sessions):start;const d0=new Date(todayISO+'T12:00');
  for(let k=0;k<370;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);const iso=d.toLocaleDateString('en-CA');if(iso>last)break;
   if(k===0&&(DB.days[iso]?.w||[]).some(x=>(x.reps||[]).length&&homePartOf(x.ex)!=='Run'))continue;   /* today is already in the log, and Next up has counted it */
   if(sel.has(iso)){out[iso]=cur;cur=(cur+1)%n;}else if(pwSaved(iso)?.items?.length)cur=(cur+1)%n;}
@@ -162,8 +166,19 @@ function pfStatusIcon(kind){
 function pfDateKinds(){const dates=pfDates(),drafts=dates.filter(pfCalendarDraft),saved=dates.filter(d=>!drafts.includes(d)&&d>=todayISO&&!!pwSaved(d)?.items?.length);return {dates,drafts,saved,fresh:dates.filter(d=>!saved.includes(d)&&!drafts.includes(d))};}
 function pfSelectSubset(dates){if(!dates.length)return false;pw().dates=[...dates];if(!dates.includes(pw().active))pw().active=dates[0];dates.forEach(d=>pwDay(d));return true;}
 /* v4.6.203: what your split has put on the empty days you picked, said on the Dates step */
-function pfSplitLine(){const r=pfOrderRot();if(!r)return '';const ds=pfDates().filter(d=>{const b=pw().book?.[d];return b&&b.splitFill&&!b.rows.length;});if(!ds.length)return '';
- return '<p class="pf-date-breakdown pf-split-line">'+ds.map(d=>{const b=pw().book[d],x=r.sessions.find(z=>z.parts.join()===b.parts.join());return '<span><b>'+hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}))+'</b> '+hesc((x&&x.name)||b.parts.map(partLabel).join(' + '))+'</span>';}).join('')+'</p>';}
+/* v4.6.354: each day is a chip you tap to choose its session; the rest of the week re-flows after it.
+   One quiet line says so when the same session lands on two days in a row. */
+function pfSplitLine(){const r=pfOrderRot();if(!r)return '';const s=pw(),ds=pfDates().filter(d=>{const b=s.book?.[d];return b&&b.splitFill&&!b.rows.length;});if(!ds.length)return '';
+ const name=x=>x.name||x.parts.map(partLabel).join(' + '),wd=(d,l)=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:l||'short'});
+ const ses=d=>r.sessions.find(z=>z.parts.join()===s.book[d].parts.join()),label=d=>{const x=ses(d);return x?name(x):s.book[d].parts.map(partLabel).join(' + ');};
+ const pick=ds.includes(s.startPick)?s.startPick:null;
+ let h='<div class="pf-split-line" role="group" aria-label="The session each day takes">'+ds.map(d=>'<button type="button" class="pf-sl-day'+(pick===d?' on':'')+'" data-pw="pf-start-day" data-date="'+d+'" aria-expanded="'+(pick===d)+'" aria-label="'+hesc(wd(d,'long')+': '+label(d)+'. Change')+'"><b>'+hesc(wd(d))+'</b><span>'+hesc(label(d))+'</span>'+icon('chevronD',12)+'</button>').join('')+'</div>';
+ if(pick){const cur=pfRotAssign(r.sessions,s.dates)[pick];
+  h+='<div class="pf-sl-pick"><div class="pf-sl-pick-h"><span>Start <b>'+hesc(wd(pick,'long'))+'</b> with</span><button type="button" class="pf-sl-x" data-pw="pf-start-close" aria-label="Close">'+icon('close',ICON_SZ.sm)+'</button></div>'+
+   r.sessions.map((x,i)=>'<button type="button" class="pf-sl-opt'+(i===cur?' on':'')+'" data-pw="pf-start-ses" data-index="'+i+'" aria-pressed="'+(i===cur)+'"><i>'+(i+1)+'</i><span>'+hesc(name(x))+'</span>'+(i===cur?icon('check',ICON_SZ.sm):'')+'</button>').join('')+
+   '<p class="pf-sl-note">The days after it follow your order.</p></div>';}
+ else{for(let i=1;i<ds.length;i++){const a=ds[i-1],b=ds[i];if(Math.round((Date.parse(b+'T12:00')-Date.parse(a+'T12:00'))/864e5)===1&&s.book[a].parts.join()===s.book[b].parts.join()){h+='<p class="pf-sl-warn">'+icon('alert',14)+'<span>'+hesc(label(a))+' two days running · '+hesc(wd(a))+', '+hesc(wd(b))+'</span></p>';break;}}}
+ return h;}
 function pfDateFooter(){
  const s=pw(),{dates,saved,fresh,drafts}=pfDateKinds(),n=dates.length;
  const plural=(n,one)=>n+' '+one+(n===1?'':'s');
@@ -1065,7 +1080,7 @@ pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
 function pfPickTrainDays(){const s=pw(),t=pfPrefs().trainDays;if(!t||!t.length||!s.active)return;const out=[],d0=new Date(s.active+'T12:00');
  for(let k=0;k<7;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);const iso=d.toLocaleDateString('en-CA');if(t.includes(d.getDay())&&!pfSkipDay(iso))out.push(iso);}
  if(!out.length)return;s.dates=out;s.active=out[0];s.month=out[0].slice(0,7)+'-01';out.forEach(x=>pwDay(x));}
-pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else{const had=s.dates.some(x=>x>=todayISO);pwFreshenDates();if(!had)pfPickTrainDays();}/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
+pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();delete s.rotStart;delete s.startPick;/* v4.6.354: a fresh visit starts from Next up again */j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else{const had=s.dates.some(x=>x>=todayISO);pwFreshenDates();if(!had)pfPickTrainDays();}/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
 pwApply=function(add=false){if(!pfOn())return pfLegacy.apply(add);const c=pw().candidate;if(!c)return;const generated=c.type==='generate',adjust=c.type==='adjust';if(c.type==='paste'&&c.index===undefined&&pfState().pasteAll){const one=Object.values(c.days)[0];c.days=Object.fromEntries(pfDates().map(d=>[d,pwCopy(one)]));}pfLegacy.apply(add);for(const d of Object.keys(c.days)){pwDay(d).target=null;}pfAnchor();pfMotion={kind:'arrive'};pfNavigate(generated?'days':'edit');};
 pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;
  /* v4.6.183: the day's focus muscles and its set target go to the writer as
@@ -1151,7 +1166,10 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  /* v4.6.200: UNSELECT ALL. Six days picked meant six taps to start over. One
     control clears the selection, exactly as tapping each day off would:
     saved plans and drafts are not touched, only which days are picked. */
- else if(a==='pf-unselect'){if(!s.dates.length)return;s.dates=[];s.active=null;pwPersist();pwRender();return;}
+ else if(a==='pf-unselect'){if(!s.dates.length)return;s.dates=[];s.active=null;delete s.rotStart;delete s.startPick;pwPersist();pwRender();return;}
+ else if(a==='pf-start-day'){s.startPick=s.startPick===d?null:d;pwRender();return;}
+ else if(a==='pf-start-close'){s.startPick=null;pwRender();return;}
+ else if(a==='pf-start-ses'){const r=pfOrderRot();if(!r||!s.startPick)return;const n=r.sessions.length,off=pfRotAssign(r.sessions,s.dates,0)[s.startPick];if(off==null)return;s.rotStart=((i-off)%n+n)%n;s.startPick=null;pwPersist();pwRender();return;}
  else if(a==='pf-resume-drafts'){if(!pfSelectSubset(pfDateKinds().drafts))return;pfAnchor();pfMotion={kind:'arrive'};pfNavigate('days');return;}
  else if(a==='pf-edit-selected'){if(!pfSelectSubset(pfDateKinds().saved))return;pfAnchor();pfMotion={kind:'arrive'};pfNavigate('days');return;}
  else if(a==='pf-generate'){if(!s.dates.length)return;if(el.dataset.subset==='fresh'&&!pfSelectSubset(pfDateKinds().fresh))return;j.anchorBefore=pwCopy(j.anchor);pwGenerate();return;}
