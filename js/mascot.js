@@ -378,7 +378,9 @@ for(const tone of ['white','chrome']){
       if(!el.isConnected){remove(el);visible.delete(el);intersection.unobserve(el);}
     }
     document.querySelectorAll('[data-mascot]').forEach(el=>{
-      const image=el.querySelector('img');
+      /* v4.6.352: Pip as crew owns its art (crew-motion.js). Swapping in the old mascot PNG
+         replaced the rest still -- and every still -- with the pre-crew render. */
+      const image=el.classList.contains('crew-pip')?null:el.querySelector('img');
       const tone=mascotTone(el.dataset.mascot,el.dataset.mascotTone);
       const path=isRetro()?retroStill(el.dataset.mascot,tone):'assets/mascot-'+tone+(el.closest('.showuppp-c')?'-body':'')+'.png';
       if(image&&image.getAttribute('src')!==path)image.src=path;
