@@ -223,7 +223,7 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 /* v4.6.355: the line grip, at the right end; lifting a line lifts its delete with it */
 .pe-line.pe-edit .pe-grip{position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent}
 .pe-line.pe-edit .pe-grip:focus-visible{outline:2px solid var(--accent);outline-offset:-4px;border-radius:10px}
-.pe-line.pe-edit.pe-lifting{z-index:3;transform:scale(1.02)}
+.pe-line.pe-edit.pe-lifting{z-index:3}
 .pe-line.pe-edit.pe-lifting::before{content:'';position:absolute;z-index:-1;inset:-5px -14px -5px calc(-10px - var(--pad));background:var(--surface);border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,.16),0 0 0 1px var(--line)}
 .pe-line.pe-edit.pe-lifting .pe-grip{color:var(--accent);cursor:grabbing}
 .pe-line.pe-edit .pe-w{display:flex;justify-content:flex-end;overflow:visible}
@@ -621,6 +621,13 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-workspace .pf-ses.can{cursor:pointer;border-style:dashed;border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 :root .pf-workspace .pf-ses.pf-drop{border-style:solid;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent)}
 :root .pf-workspace .pf-ses.pf-dragging{opacity:.55}
+/* v4.6.356: the carried session lifts and rides the finger; no text selection or callout on a long press */
+:root .pf-workspace .pf-ses.pf-lifting{position:relative;z-index:5;background:var(--surface);border-color:var(--accent);box-shadow:0 14px 32px rgba(0,0,0,.22),0 3px 10px rgba(0,0,0,.12);transition:none}
+:root .pf-workspace .pf-ses.pf-lifting .pf-rot-grip{color:var(--accent);cursor:grabbing}
+:root .pf-workspace .pf-rot-grip,:root .pf-workspace .pe-grip,.pe-line.pe-edit .pe-grip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* offsets are measured from the list itself */
+:root .pf-workspace .pf-rots,.pe-lines{position:relative}
+html.pf-rot-carrying,html.pf-rot-carrying *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
 :root .pf-workspace .pf-ses-in{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:30px;min-width:0}
 :root .pf-workspace .pf-ses-in em{font:400 12.5px var(--body);font-style:normal;color:var(--muted)}
 :root .pf-workspace .pf-ses .pf-rot-tag{gap:2px;height:30px;padding:0 2px 0 11px;border-radius:15px;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background-color var(--dur-move,.26s) ease,color var(--dur-move,.26s) ease,opacity var(--dur-quick,.16s) ease}
