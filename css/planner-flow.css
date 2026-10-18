@@ -220,6 +220,12 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-routine-page .pe-ex .pw-grip{left:calc(var(--bleed) - 8px)}
 .pe-open+.pe-ex{border-top-color:transparent}
 .pe-line.pe-edit{position:relative;min-height:32px;column-gap:0}
+/* v4.6.355: the line grip, at the right end; lifting a line lifts its delete with it */
+.pe-line.pe-edit .pe-grip{position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent}
+.pe-line.pe-edit .pe-grip:focus-visible{outline:2px solid var(--accent);outline-offset:-4px;border-radius:10px}
+.pe-line.pe-edit.pe-lifting{z-index:3;transform:scale(1.02)}
+.pe-line.pe-edit.pe-lifting::before{content:'';position:absolute;z-index:-1;inset:-5px -14px -5px calc(-10px - var(--pad));background:var(--surface);border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,.16),0 0 0 1px var(--line)}
+.pe-line.pe-edit.pe-lifting .pe-grip{color:var(--accent);cursor:grabbing}
 .pe-line.pe-edit .pe-w{display:flex;justify-content:flex-end;overflow:visible}
 .pe-line.pe-edit .pe-r{gap:4px;row-gap:6px}
 /* under chips, last time keeps the chips' slots: 34px centred, 4px apart */
