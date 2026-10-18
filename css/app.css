@@ -1104,6 +1104,20 @@
   @media (orientation:landscape) and (prefers-reduced-motion:reduce){
     html.bigtimer body > #hTimer.on.recovery::after{animation:none;opacity:.06;transform:none}
   }
+  /* v4.6.353: THE RED STAGE WEARS THE BLUE CLOCK'S LAYOUT (Sungjee, 2026-10-18). Same wordmark,
+     same one-line caption at the same height, same digit size and spacing, the font's own colon
+     (still blinking), and the crew at the blue clock's size and height. Only the colour differs. */
+  @media (orientation:landscape){
+    html.bigtimer body > #hTimer.on:not(.recovery){justify-content:flex-start;gap:0;padding-top:30vh}
+    html.bigtimer body > #hTimer.on:not(.recovery) .rt-ctx{font:400 clamp(12px,2.1vw,23px)/1.4 var(--mono);letter-spacing:.04em;color:#ffd6cc;opacity:1;margin:0 0 1.1vw}
+    html.bigtimer body > #hTimer.on:not(.recovery) .rt-time{font:400 clamp(36px,11.8vw,128px)/1.1 var(--mono);letter-spacing:-.065em;color:#fff8f6}
+    html.bigtimer body > #hTimer.on:not(.recovery) .rt-colon{color:inherit;width:auto;height:auto}
+    html.bigtimer body > #hTimer.on:not(.recovery) .rt-colon::before,
+    html.bigtimer body > #hTimer.on:not(.recovery) .rt-colon::after{display:none}
+    html.bigtimer body > #hTimer.on:not(.recovery) .rt-wordmark{display:block;position:absolute;z-index:1;top:7%;left:50%;transform:translateX(-50%);width:6vw;max-width:64px;min-width:36px;height:auto;opacity:.8}
+    html.bigtimer body > #hTimer.on:not(.recovery) .rt-buddy{top:var(--rt-crew-y,78%);bottom:auto;transform:translateY(-50%) scale(.8)}
+    html.bigtimer body > #hTimer.on:not(.recovery) .rt-buddy.rt-roaming{transform:translateY(-50%);height:min(8.889vw,19.2vh)}
+  }
   html[data-mascot-motion="still"].bigtimer body > #hTimer.on .rt-buddy{animation:none}
   html[data-mascot-motion="off"].bigtimer body > #hTimer.on .rt-buddy{display:none}
   .lastset.now{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
