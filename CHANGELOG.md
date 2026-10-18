@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.352 — Pip is back on rest days
+- Fixed Pip vanishing from the rest-day home on iPhone. The hello row is a column on a rest day, and WebKit treats a column item's aspect-ratio height as indefinite, so Pip's box (height:100%) fell to zero while keeping its space. The box is now pinned to its frame, which works in every engine.
+- Pip as crew keeps its own art: the old mascot lifecycle was swapping in the pre-crew PNG, so with motion Still or Reduce Motion the rest still never showed.
+- New test: test-pip-rest.
+
 ## v4.6.351 — Your crew: Pip at 1.25x
 - Pip in its wide tile at the top of Your crew is 1.25x larger (165x100, was 132x80).
 
