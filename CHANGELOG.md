@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.358 — your name no longer shrinks on the way out of Settings (iPhone)
+- Root cause: a click listener in Stats re-classed the page a tick after every tap (adding or removing the Stats headings style). On a tab switch that tick lands after the transition starts but before the iPhone photographs the page being left, so Settings was photographed with the Stats headings rule on it (your name drawn at 17px instead of 24px) and Stats with it already gone (its headings turned into small capitals). Chrome photographs first, which is why it never showed there. The class is now set with the page it belongs to, inside the transition.
+- New test: test-vt-capture -- taps every tab from every tab with an iPhone-length gap before the update, and fails if anything restyles the page being left.
+
 ## v4.6.357 — Stop while it plans
 - Plan → Dates: while "Creating your draft" runs, a ✕ Stop sits beside it. Stop drops the request, writes nothing, keeps your days and their sessions, and says "Stopped". The old Cancel link sat under the nav bar where it could not be reached; it is gone.
 - New test: test-stop-generating.
