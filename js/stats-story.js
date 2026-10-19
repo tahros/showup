@@ -152,7 +152,12 @@ const style=document.createElement('style');style.textContent=`
 @media(max-width:360px){#view.review-stats .crhead{padding-right:55px}#view.review-stats .review-mascot{width:65px}#view.review-stats .pmixlgd{gap:9px}}
 @media(prefers-reduced-motion:reduce){#view.review-stats .pmixplate.latest{animation:none}}
 `;document.head.append(style);
-document.addEventListener('click',()=>setTimeout(()=>document.getElementById('view')?.classList.toggle('review-stats',view==='stats'),0));
+/* v4.6.358: review-stats is set by the paint (app.js), never by a click. This line was a
+   global click listener that re-classed #view a tick after every tap. On a tab switch that tick
+   lands AFTER startViewTransition but BEFORE WebKit photographs the page being left -- so on
+   iPhone, Settings was photographed with the Stats headings rule on it (your name at 17px, not
+   24) and Stats with it already gone (its headings as small capitals). Chrome photographs
+   first, which is why it never showed here. */
 PMIX_MODE='weight';PMIX_FOCUS=null;
 
 
