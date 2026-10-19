@@ -1868,6 +1868,7 @@ function paint(opts){
      watching every assertion stay green. */
   if(v) v.classList.remove('stats-system','review-stats');
   ({today:renderToday,lift:renderLift,stats:renderStats,history:renderHistory,sync:renderSync})[view]();
+  if(v) v.classList.toggle('review-stats',view==='stats');   /* v4.6.358: with the page it belongs to, inside the transition's update */
   document.querySelectorAll('[data-zoom]').forEach(bindZoom);
   bindPmix();
   bindHeat();
