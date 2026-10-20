@@ -1,12 +1,12 @@
 :root{--plate-side:#2c2c2c;--plate-top:#404040;--plate-hole:#222}
-.plate-export-options{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:420px}
+.plate-export-options{display:flex;flex-wrap:wrap;justify-content:center;gap:5px 8px;max-width:420px}
 .plate-export-options .btn{width:auto;margin:0;min-height:44px}
 .plate-export-options [aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
-.plate-export-options [role="status"]{flex-basis:100%;text-align:center;color:#fff;font:12px var(--body)}
+.plate-export-options [role="status"]{flex-basis:100%;text-align:center;color:#fff;font:11px var(--body)}
 /* v4.6.166: with the format row (44) and its gap (14) above, and the status line when one shows */
 #repOv:has(.plate-export-options) #repImg,.plate-export-video{max-height:calc(100dvh - var(--sat) - var(--sab) - 24px - 62px - 58px - 22px);object-fit:contain}
 [data-theme="dark"]{--plate-side:#bbb;--plate-top:#ededed;--plate-hole:#929292}
-.plate-mini{height:48px;display:flex;align-items:center;gap:10px;font:11px var(--mono);color:var(--muted)}
+.plate-mini{height:48px;display:flex;align-items:center;gap:10px;font:10px var(--mono);color:var(--muted)}
 .plate-mini svg{width:40px;height:38px;flex:none;overflow:hidden}
 .plate-mini-mark{position:relative;display:block;flex:none;width:40px;height:38px}
 .plate-mini-mark::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.75;
@@ -18,13 +18,13 @@
 /* v4.5.4: the replay button used to sit under the caption as a full row, and
    its margin went with it when the button moved into the heading -- leaving a
    band of empty card below "21 sets · 6 exercises" with nothing in it. */
-.plate-card{padding-top:0!important;padding-bottom:14px;overflow:hidden;text-align:center}
+.plate-card{padding-top:0!important;padding-bottom:8px;overflow:hidden;text-align:center}
 .plate-card .plate-bank:empty{display:none;margin:0}
 /* v4.5.3: top-left, beside the date, and it says Replay. It sat under the
    card as a full row that read as a second action; the arrow already says
    "again", so "Tap to" was the instruction on a button, which every other
    button here manages without. */
-.plate-replay{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;min-height:32px;margin:0;padding:5px 12px;border:1px solid var(--line);border-radius:18px;background:var(--surface2);color:var(--chalk);cursor:pointer;font:500 11px var(--body);justify-self:start}
+.plate-replay{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;min-height:32px;margin:0;padding:3px 12px;border:1px solid var(--line);border-radius:18px;background:var(--surface2);color:var(--chalk);cursor:pointer;font:500 10px var(--body);justify-self:start}
 .plate-replay::after{content:"";position:absolute;inset:-6px -4px}
 .plate-replay:hover{filter:brightness(.96)}
 .plate-replay:active{transform:scale(.97)}
@@ -32,13 +32,13 @@
 .plate-scene{position:relative;height:255px;max-width:430px;margin:auto;overflow:hidden}
 .plate-canvas{display:block;width:100%;height:100%}
 .plate-scene .su-mascot{position:absolute;right:0;bottom:3px;width:94px;pointer-events:none}
-.plate-total{font:14px var(--mono);color:var(--muted)}
-.plate-total b{font:700 32px var(--body);color:var(--chalk);font-variant-numeric:tabular-nums}
-.plate-caption,.plate-bank{font:11px var(--mono);color:var(--muted);margin-top:10px}
+.plate-total{font:12px var(--mono);color:var(--muted)}
+.plate-total b{font:700 28px var(--body);color:var(--chalk);font-variant-numeric:tabular-nums}
+.plate-caption,.plate-bank{font:10px var(--mono);color:var(--muted);margin-top:6px}
 /* Matching flexible side cells keep the date centered independently of the
    different Replay and Share widths. */
-.plate-heading{display:grid;grid-template-columns:minmax(44px,1fr) auto minmax(44px,1fr);align-items:center;padding-top:12px;gap:4px}
-.plate-heading .plate-date{padding:0;margin:0;letter-spacing:1px;font-size:10px}
+.plate-heading{display:grid;grid-template-columns:minmax(44px,1fr) auto minmax(44px,1fr);align-items:center;padding-top:7px;gap:2px 4px}
+.plate-heading .plate-date{padding:0;margin:0;letter-spacing:1px;font-size:9px}
 .plate-share{width:44px;height:44px;border:0;border-radius:50%;background:var(--surface2);color:var(--muted);cursor:pointer}
 .plate-share{justify-self:end}
 .plate-share svg{width:18px;height:18px}
@@ -48,7 +48,7 @@
 /* a crew brings its own shadow; Pip's drawn one would float under it (Sungjee, 2026-10-15) */
 .plate-scene:has(.plate-comp) .plate-mascot-shadow{display:none}
 .plate-mascot-button:focus-visible,.plate-share:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:16px}
-.plate-legend{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font:10px var(--mono);color:var(--muted)}
+.plate-legend{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 12px;margin-top:7px;font:9px var(--mono);color:var(--muted)}
 .plate-legend span{display:inline-flex;gap:5px;align-items:center}
 .plate-legend i{width:6px;height:6px;border-radius:50%}
 .plate-bank:empty{display:none}

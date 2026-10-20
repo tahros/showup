@@ -90,7 +90,7 @@ check('period handles same day, same month, month changes and year changes',`(()
 check('range shows centered date and year on separate fixed lines',`document.querySelector('.pg-period-main').textContent==='Aug 19 – 22'&&document.querySelector('.pg-period-year').textContent==='2026'`);
 check('weights round only in presentation in both units and every load kind',`(()=>{const before=JSON.stringify(DB);for(const unit of ['lb','kg']){DB.settings.unit=unit;for(const kind of ['load','added','assisted','time']){const r={d:'2026-09-10',ordinal:2,load:kind==='assisted'?-70:70,count:kind==='time'?60:8,kind};const text=progressionRead(r);if(!text.includes(Math.round(toU(70))+' '+U())||/\\d+\\.\\d+ (?:lb|kg)/.test(text)||Math.abs(r.load)!==70)return false;}}DB.settings.unit='lb';return before===JSON.stringify(DB);})()`);
 const css=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
-assert.match(css,/\.pg-set text\{font:400 11px/,'rep glyphs use regular weight');
+assert.match(css,/\.pg-set text\{font:400 10px/,'rep glyphs use regular weight');
 assert.match(css,/\.pg-set\.pg-best text\{font-weight:400/,'best stays blue, not bold');
 assert.ok(!/\.pg-read\{[^}]*border-top/.test(css),'no orphan receipt divider');
 assert.match(css,/\.pg-history-row\{height:40px;display:flex;align-items:center;justify-content:space-between/,'Latest shares one stable metadata row');
@@ -305,15 +305,15 @@ check('choosing All still works and keeps a sane offset',`(function(){const p=do
      (()=>{const m=cssA.match(/pg-history-empty\{height:(\d+)px/);return m&&+m[1]>0&&+m[1]<40;})(),
      (cssA.match(/pg-history-empty\{height:\d+px/)||[])[0]);
   ok('the chip is free to grow -- a fixed height would swallow the padding',
-     /\.pg-read\{[^}]*min-height:52px/.test(cssA)&&!/\.pg-read\{[^}]*[^-]height:52px/.test(cssA));
-  ok('...and the slot follows it', /\.pg-read-slot\{min-height:52px/.test(cssA));
+     /\.pg-read\{[^}]*min-height:44px/.test(cssA)&&!/\.pg-read\{[^}]*[^-]height:44px/.test(cssA));
+  ok('...and the slot follows it', /\.pg-read-slot\{min-height:44px/.test(cssA));
   ok('both views gained vertical padding on the chip',
      (()=>{const base=cssA.match(/\.pg-read\{[^}]*padding:(\d+)px/),st=story.match(/review-stats \.pg-read\{[^}]*padding:(\d+)px/);
-       return base&&st&&+base[1]>=10&&+st[1]>=15;})(),
+       return base&&st&&+base[1]>=6&&+st[1]>=15;   /* v4.6.362: Train chip padding follows spacing Variation 2 (10 -> 6) */})(),
      `train ${(cssA.match(/\.pg-read\{[^}]*padding:(\d+)px/)||[])[1]}px · stats ${(story.match(/review-stats \.pg-read\{[^}]*padding:(\d+)px/)||[])[1]}px`);
-  ok('the Stats value came down from 23px, and Train kept its 16px',
+  ok('the Stats value came down from 23px, and Train follows type B (14px)',
      (()=>{const st=story.match(/review-stats \.pg-read-value\{font:600 (\d+)px/),tr=cssA.match(/\.pg-read-value\{font:500 (\d+)px/);
-       return st&&tr&&+st[1]<23&&+st[1]>=18&&+tr[1]===16;})(),
+       return st&&tr&&+st[1]<23&&+st[1]>=18&&+tr[1]===14;   /* v4.6.362: Train's value follows type B (16 -> 14) */})(),
      `stats ${(story.match(/review-stats \.pg-read-value\{font:600 (\d+)px/)||[])[1]}px · train ${(cssA.match(/\.pg-read-value\{font:500 (\d+)px/)||[])[1]}px`);
 }
 

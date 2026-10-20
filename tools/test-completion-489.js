@@ -102,7 +102,7 @@ const css=fs.readFileSync(path.join(dir,'css/app.css'),'utf8');
 check('completed card cannot stack nav; motion and safe-area guards present',()=>{
  assert(!/^\s*\.dayclosed\s*\{/m.test(css));assert(css.includes('.card.dayclosed{'));
  assert(!css.includes('#dayDone .ddtrail'));
- assert(css.includes('#dayDone .ddn{font-family:var(--disp);font-size:84px'));
+ assert(css.includes('#dayDone .ddn{font-family:var(--disp);font-size:74px'));
  assert(css.includes('env(safe-area-inset-bottom,0px)'));
 });
 dom.window.close();process.exit(failures?1:0);

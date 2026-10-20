@@ -134,9 +134,9 @@ check("...because the toolbar already said it once",
       `document.querySelector('.sc-toolbar>span').textContent.includes('kg')`, true);
 // runs still edit on tiles, so the tile's nested-unit style must survive
 const flatCss = cssSrc103.replace(/\n/g, "");
-console.log((/\.settile \.w small\{[^}]*font-size:10px[^}]*color:var\(--muted\)/.test(flatCss) ? "PASS" : "FAIL"),
+console.log((/\.settile \.w small\{[^}]*font-size:9px[^}]*color:var\(--muted\)/.test(flatCss) ? "PASS" : "FAIL"),
   "the run tile's nested unit keeps its muted, smaller style rule");
-if (!/\.settile \.w small\{[^}]*font-size:10px[^}]*color:var\(--muted\)/.test(flatCss)) fail++;
+if (!/\.settile \.w small\{[^}]*font-size:9px[^}]*color:var\(--muted\)/.test(flatCss)) fail++;
 // a bodyweight set has no unit to show
 run(`(function(){DB.days={}; day(todayISO).w.push({part:'Chest',ex:'Push Up',w:0,reps:[20],at:Date.now()});
   SEED=deriveAll(); lift.ex='Push Up'; lift.part='Chest'; lift.editToday=true; view='lift'; render();})()`);
@@ -204,7 +204,7 @@ const toasted = (appSrc104.match(/lift\.justSaved=true;save\(\);(?:loggerFeedbac
       return b>0&&m>0&&b<m&&m<1;})(),
     (rule.match(/scale\([^)]*\)/)||[])[0]+' < '+(maj.match(/scale\([^)]*\)/)||[])[0]+' < scale(1)');
   t('every notch is rasterised at the LARGEST size and scaled down, so text stays crisp',
-    /font-size:26px/.test(rule) && !/font-size/.test(on.replace('font-weight','')) );
+    /font-size:23px/.test(rule) && !/font-size/.test(on.replace('font-weight','')) );
   t('notches are not each promoted to their own compositor layer',
     !/will-change/.test(rule));
   t('the snap contract is untouched -- fixed width and centre alignment',

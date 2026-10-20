@@ -189,8 +189,8 @@ check("tapping outside closes and collapses",
                     && !document.querySelector('.tipi[aria-expanded="true"]');})()`, true);
 {
   const css152 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-  const bodyFace = /\.tipbubble\{[^}]*font-family:var\(--body\);font-size:15px/.test(css152);
-  console.log((bodyFace ? "PASS" : "FAIL"), "tip prose uses the body face at 15px, not mono");
+  const bodyFace = /\.tipbubble\{[^}]*font-family:var\(--body\);font-size:13px/.test(css152);
+  console.log((bodyFace ? "PASS" : "FAIL"), "tip prose uses the body face at 13px, not mono");
   if (!bodyFace) fail++;
   const hit44 = /\.ibtn\.tipi::after\{[^}]*inset:-11px/.test(css152);
   console.log((hit44 ? "PASS" : "FAIL"), "the 22px icon carries a 44px hit area");
@@ -248,9 +248,9 @@ if (!/align-items:baseline/.test(gridRule)) fail++;
 // value \u2014 the actual bug was two equal-specificity rules racing on
 // source order, and that's what has to stay fixed.
 const cssSrc105 = fs.readFileSync(path.join(dir, "css/app.css"), "utf8");
-console.log((/h2\.quiet:first-child\{margin-top:4px\}/.test(cssSrc105) ? "PASS" : "FAIL"),
-  "a genuinely higher-specificity rule pins h2.quiet:first-child to 4px");
-if (!/h2\.quiet:first-child\{margin-top:4px\}/.test(cssSrc105)) fail++;
+console.log((/h2\.quiet:first-child\{margin-top:2px\}/.test(cssSrc105) ? "PASS" : "FAIL"),
+  "a genuinely higher-specificity rule pins h2.quiet:first-child to 2px");
+if (!/h2\.quiet:first-child\{margin-top:2px\}/.test(cssSrc105)) fail++;
 
 // and confirm this is actually reachable: when no session is live, Rhythm's
 // heading IS #view's first child, so the new rule is the one that applies.

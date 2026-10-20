@@ -43,11 +43,11 @@
 /* pixel letters */
 :root[data-appearance="retro"] :is(h2,.stats-title,.mskick,.h-date,.hello .hi,h3,.pg-title,.crtotal b,.msnum,.plate-total b,.plate-date,.crstreak,.btn,.seg button,.chip,.heat-replay,.plate-replay,.today-focus-kicker){
   font-family:var(--pix)!important;letter-spacing:0!important;font-weight:400!important;text-transform:uppercase;-webkit-font-smoothing:none}
-:root[data-appearance="retro"] :is(h2,.stats-title,.mskick,.crstreak,.plate-date,.today-focus-kicker){font-size:12px!important;line-height:1.5!important}
-:root[data-appearance="retro"] :is(h3,.pg-title,.hello .hi,.h-date){font-size:16px!important;line-height:1.35!important}
+:root[data-appearance="retro"] :is(h2,.stats-title,.mskick,.crstreak,.plate-date,.today-focus-kicker){font-size:11px!important;line-height:1.26!important}
+:root[data-appearance="retro"] :is(h3,.pg-title,.hello .hi,.h-date){font-size:14px!important;line-height:1.15!important}
 :root[data-appearance="retro"] :is(.btn,.seg button,.chip,.heat-replay,.plate-replay){font-size:12px!important}
-:root[data-appearance="retro"] :is(.msnum,.crtotal b){font-size:40px!important;line-height:1!important}
-:root[data-appearance="retro"] .plate-total b{font-size:32px!important}
+:root[data-appearance="retro"] :is(.msnum,.crtotal b){font-size:35px!important;line-height:1!important}
+:root[data-appearance="retro"] .plate-total b{font-size:28px!important}
 /* buttons: the film's blue badge, pressed = 2px down */
 :root[data-appearance="retro"] .btn{border:2px solid var(--line)!important;box-shadow:0 2px 0 var(--line)!important}
 :root[data-appearance="retro"] .btn:not(.ghost){background:var(--accent)!important;color:#fff!important;border-color:var(--edge)!important;box-shadow:0 2px 0 var(--edge)!important}

@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.362 (2026-10-20) — Smaller type, tighter spacing
+
+- **Asked for:** smaller fonts (approved option B, 88%) and less vertical spread (approved spacing Variation 2).
+- **Across the app:** text is 88% of its old size; space above, below and between blocks is 60% of what it was; line height is 16% tighter. Horizontal spacing is unchanged.
+- **Kept on purpose:** every tap target stays at least 44px (taller ones shrink only to 44px; compact ones keep their size); text fields stay at 16px so iPhone does not zoom when you tap into them; the room kept clear of the floating header and nav is unchanged; calendars and heatmaps keep their cells, gaps and labels; share and story images keep their approved layouts.
+- **Also:** a little more room above "Logged today" on the live Today screen.
+- The edit was made by tools/retype.py (one run, refuses a second). Nine test files that pinned old pixel values now pin the new ones.
+
 ## v4.6.361 (2026-10-20) — Today, after the workout
 
 - **Asked for:** declutter Today on a finished day; built from the approved mock "Today after the workout".

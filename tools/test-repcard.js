@@ -164,7 +164,7 @@ const repquick = (css.match(/\.repquick>summary\{[^}]*\}/) || [""])[0];
 ok("the top share launcher is materially shorter than the old 62px card",
    /min-height:42px/.test(repquick), repquick);
 ok("...and uses compact title type",
-   /font-size:12px/.test(repquick), repquick);
+   /font-size:11px/.test(repquick), repquick);
 const ibtn = (css.match(/\.ibtn\{[^}]*\}/) || [""])[0];
 ok("the i is no longer a filled disc", !/background:var\(--chalk\)/.test(ibtn), ibtn.slice(0, 60));
 ok("...it uses the muted colour", /color:var\(--muted\)/.test(ibtn));

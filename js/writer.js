@@ -925,42 +925,42 @@ function writerScreenHTML(){
   if(o.scope==='week'){
     const span=writerDays(o); const last=span[span.length-1];
     const left=span.filter(x=>x>=d0).length;
-    body+=`<div class="lasthead" style="margin-top:16px"><span>DAYS</span><span class="ago mono">${planDayLabel(d0)} → ${planDayLabel(last)} · you usually train these</span></div>
+    body+=`<div class="lasthead" style="margin-top:10px"><span>DAYS</span><span class="ago mono">${planDayLabel(d0)} → ${planDayLabel(last)} · you usually train these</span></div>
       <div class="chips">${span.map(iso=>`<button class="chip${o.days.has(iso)?' on':''}" data-writeday="${iso}">${WEEKDAYS[new Date(iso+'T00:00').getDay()]}${span.length>7?' '+iso.slice(8).replace(/^0/,''):''}</button>`).join('')}</div>`;
-    if(left<=2&&!o.nextWeek) body+=`<div class="row spread card writenext"><span class="mono muted" style="font-size:12px">Show following days?<br><span style="color:var(--faint);font-size:11px">the week ends Sunday</span></span><button class="chip" data-writenext="1">Next week</button></div>`;
-    if(o.nextWeek) body+=`<div class="mono muted" style="font-size:11px;padding:8px 2px 0">Through ${planDayLabel(last)}. <button class="pedge" data-writenext="0" style="text-transform:none;letter-spacing:0">This week only</button></div>`;
+    if(left<=2&&!o.nextWeek) body+=`<div class="row spread card writenext"><span class="mono muted" style="font-size:11px">Show following days?<br><span style="color:var(--faint);font-size:10px">the week ends Sunday</span></span><button class="chip" data-writenext="1">Next week</button></div>`;
+    if(o.nextWeek) body+=`<div class="mono muted" style="font-size:10px;padding:5px 2px 0">Through ${planDayLabel(last)}. <button class="pedge" data-writenext="0" style="text-transform:none;letter-spacing:0">This week only</button></div>`;
     const focus=o.focus||new Set();
-    body+=`<div class="lasthead" style="margin-top:16px"><span>FOCUS</span><span class="ago mono">the rest still gets its turn</span></div>
+    body+=`<div class="lasthead" style="margin-top:10px"><span>FOCUS</span><span class="ago mono">the rest still gets its turn</span></div>
       <div class="chips">${[...myPartsSet()].map(p=>`<button class="chip${focus.has(p)?' on':''}" data-writefocus="${p}">${p}</button>`).join('')}</div>`;
   }else{
     const parts=[['auto','Writer’s call'],...[...myPartsSet()].map(p=>[p,p])];
     const d=o.scope==='tomorrow'?d1:todayISO;
-    if(o.scope==='today'&&d0!==todayISO) body+=`<div class="mono muted" style="font-size:11px;line-height:1.5;padding:8px 2px 0">Today is in the record already; the ledger would write ${planDayLabel(d1)}. Your call.</div>`;
-    if(o.scope==='tomorrow'&&d0===todayISO) body+=`<div class="mono muted" style="font-size:11px;line-height:1.5;padding:8px 2px 0">Nothing logged today yet. This writes ${planDayLabel(d1)} and opens it at midnight.</div>`;
+    if(o.scope==='today'&&d0!==todayISO) body+=`<div class="mono muted" style="font-size:10px;line-height:1.26;padding:5px 2px 0">Today is in the record already; the ledger would write ${planDayLabel(d1)}. Your call.</div>`;
+    if(o.scope==='tomorrow'&&d0===todayISO) body+=`<div class="mono muted" style="font-size:10px;line-height:1.26;padding:5px 2px 0">Nothing logged today yet. This writes ${planDayLabel(d1)} and opens it at midnight.</div>`;
     /* v3.3.444: the hint beside FOR no longer names the rotation's pick. The
        maker's copy, verbatim: it says what the row is for rather than what
        the app would have chosen -- the writer's call already carries that. */
-    body+=`<div class="lasthead" style="margin-top:16px"><span>FOR</span></div>
-      <div class="mono muted" style="font-size:11px;line-height:1.5;padding:0 2px 8px">pick body parts that you want to specifically focus on</div>
+    body+=`<div class="lasthead" style="margin-top:10px"><span>FOR</span></div>
+      <div class="mono muted" style="font-size:10px;line-height:1.26;padding:0 2px 5px">pick body parts that you want to specifically focus on</div>
       <div class="chips">${chips(parts,k=>o.part===k,'data-writefor')}</div>`;
     const thin=o.part!=='auto'&&((P.info[o.part]||{}).days||0)<4;
-    if(thin) body+=`<div class="mono muted" style="font-size:11px;line-height:1.5;padding:10px 2px 0">${(P.info[o.part]||{}).days||0} ${o.part} day${((P.info[o.part]||{}).days||0)===1?'':'s'} on record. Loads will read <b style="color:var(--chalk)">by feel</b> or ≈ until there is more to read — the writer never states a weight you have not lifted.</div>`;
+    if(thin) body+=`<div class="mono muted" style="font-size:10px;line-height:1.26;padding:6px 2px 0">${(P.info[o.part]||{}).days||0} ${o.part} day${((P.info[o.part]||{}).days||0)===1?'':'s'} on record. Loads will read <b style="color:var(--chalk)">by feel</b> or ≈ until there is more to read — the writer never states a weight you have not lifted.</div>`;
   }
   /* v3.3.444: "remembered" and the privacy paragraph are gone at the maker's
      word. The objective still IS remembered (data-writeobj writes
      DB.settings.objective, asserted in test-writer) -- the label was
      narrating a mechanism. The privacy line moves to the (i) tip, where
      explanations live; the ask screen asks. */
-  body+=`<div class="lasthead" style="margin-top:16px"><span>OBJECTIVE</span></div>
+  body+=`<div class="lasthead" style="margin-top:10px"><span>OBJECTIVE</span></div>
     <div class="chips">${chips(OBJECTIVES,k=>o.objective===k,'data-writeobj')}</div>
-    <textarea class="planta" id="writeNote" rows="2" style="margin-top:14px" autocorrect="off" autocapitalize="sentences" placeholder="Anything else. A sore knee, 45 minutes, no barbell today.">${hesc(o.note)}</textarea>`;
+    <textarea class="planta" id="writeNote" rows="2" style="margin-top:8px" autocorrect="off" autocapitalize="sentences" placeholder="Anything else. A sore knee, 45 minutes, no barbell today.">${hesc(o.note)}</textarea>`;
   /* v3.3.421: a rewrite says what it replaces, once, plainly. */
   if(o.scope==='week'&&o.rewrite&&o.days&&o.days.size){
     const ds=[...o.days].sort();
-    body+=`<div class="mono" style="font-size:11px;line-height:1.5;padding:6px 2px 0;color:var(--record)">Replaces the saved week \u2014 ${planDayLabel(ds[0])} \u2192 ${planDayLabel(ds[ds.length-1])}.</div>`;
+    body+=`<div class="mono" style="font-size:10px;line-height:1.26;padding:4px 2px 0;color:var(--record)">Replaces the saved week \u2014 ${planDayLabel(ds[0])} \u2192 ${planDayLabel(ds[ds.length-1])}.</div>`;
   }
   const label=o.busy?'Writing…':o.scope==='week'?`${o.rewrite?'Rewrite':'Write'} ${o.days?o.days.size:''} session${o.days&&o.days.size===1?'':'s'}`:`Write ${planDayLabel(o.scope==='tomorrow'?d1:todayISO)}`;
-  const err=o.err?`<div class="mono writeerr" style="font-size:12px;color:var(--record);padding:10px 2px 0">${hesc(o.err)}</div>`:'';
+  const err=o.err?`<div class="mono writeerr" style="font-size:11px;color:var(--record);padding:6px 2px 0">${hesc(o.err)}</div>`:'';
   return `<h2>Write a session</h2><div class="card writecard">${seg}${body}${err}
     <div class="planacts row" style="padding-left:0;padding-right:0">
       <button class="btn" data-writego ${o.busy||(o.scope==='week'&&!(o.days&&o.days.size))?'disabled':''} style="margin:0">${label}</button>
