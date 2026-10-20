@@ -1102,7 +1102,7 @@ function monthlyPaceSection(){
    day without one. The dates under the columns still tell you, and the month
    rules still land where the calendar turns -- but the gap is no longer a
    shape. That was the price of legibility, and he chose it. */
-const DRUN_COLW=PMIX_COLW, DRUN_H=PMIX_H, DRUN_TOP=PMIX_TOP, DRUN_BASE=PMIX_BASE;
+const DRUN_COLW=PMIX_COLW, DRUN_TOP=PMIX_TOP, DRUN_BASE=PMIX_BASE, DRUN_H=PMIX_BASE+20;   /* v4.6.366: dates lie flat now, so the chart needs 20px under the base, not 36 */
 /* v3.3.481: THE UNIT IS THE APP'S. v3.3.473 gave the card its own mi/km
    switch; by 476 that had become the caption, and it persisted a 'km' the
    maker never meant to keep -- the card read km while every other run figure
@@ -1204,31 +1204,21 @@ function dailyRunsSvg(rows,u,mode,ax){
     if(mode==='dist') s+=`<polygon class="drfill" points="${pts} ${cx(rows.length-1).toFixed(1)},${DRUN_BASE} ${cx(0).toFixed(1)},${DRUN_BASE}" fill="url(#drunFill)"></polygon>`;
     s+=`<polyline class="drline" points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
   }
-  /* dots, and the totals row. In DISTANCE every dot is labelled, as What you
-     did labels every day. In PACE only the newest and each new best are --
-     1,700 paces in one row is noise, and the ones that mean something are
-     "now" and "the day it got faster". */
-  /* v4.6.189: a year that keeps getting faster makes every run a new best, and
-     their labels piled onto each other. The newest is always labelled; an
-     earlier best only if it is three columns clear of the next label kept. */
-  const bestAt=new Set();
-  if(mode==='pace'){ let b=Infinity; const c=[]; rows.forEach((r,i)=>{ if(r.v<b){ b=r.v; c.push(i); } });
-    let last=rows.length-1; for(let k=c.length-1;k>=0;k--) if(last-c[k]>=3){ bestAt.add(c[k]); last=c[k]; } }
-  let best=Infinity;
+  /* the dots */
   rows.forEach((r,i)=>{
-    const newest=i===rows.length-1, isBest=bestAt.has(i);
-    if(mode==='pace'&&r.v<best) best=r.v;
+    const newest=i===rows.length-1;
     const out=ax.clip&&!inRange(r.v);
     s+=`<circle class="drdot${newest?' newest':''}${out?' out':''}" data-i="${i}" data-d="${r.d}" data-v="${drunFmt(r.v,mode)}" cx="${cx(i).toFixed(1)}" cy="${Y(r.v).toFixed(1)}" r="${newest?3.4:2.4}"
          fill="${newest&&!out?'var(--accent)':'var(--ground)'}" stroke="var(--accent)" stroke-width="${out?1:1.6}"${out?' stroke-dasharray="1.5 1.5"':''}></circle>`;
-    if(mode==='dist'||newest||isBest){
-      const away=rows.length-1-i;
-      const op=newest?1:Math.max(0.35,0.92-away*0.033);
-      s+=`<text x="${cx(i).toFixed(1)}" y="6.5" text-anchor="middle" font-family="var(--mono)" font-size="6.5" opacity="${op.toFixed(2)}"
-           ${newest?'font-weight="700" fill="var(--chalk)"':'fill="var(--muted)"'} data-lbl="total">${drunFmt(r.v,mode)}</text>`;
+    /* v4.6.366: no value over every dot -- the head reads the picked run (the
+       newest by default), so a row of 20 numbers said nothing the head did not.
+       Dates lie flat, one every fourth run counted back from the newest, so the
+       newest is always dated and no label is turned on its side. */
+    const away=rows.length-1-i;
+    if(away%4===0){
+      const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));
+      s+=`<text x="${cx(i).toFixed(1)}" y="${DRUN_BASE+14}" text-anchor="${i===rows.length-1&&rows.length>1?'end':'middle'}" dx="${i===rows.length-1&&rows.length>1?4:0}" font-family="var(--mono)" font-size="9" fill="${newest?'var(--chalk)':'var(--muted)'}"${newest?' font-weight="600"':''} data-drdate>${lab}</text>`;
     }
-    const lab=(+r.d.slice(5,7))+'/'+(+r.d.slice(8,10));
-    s+=`<text x="${cx(i).toFixed(1)}" y="${DRUN_BASE+6}" transform="rotate(-90 ${cx(i).toFixed(1)} ${DRUN_BASE+6})" text-anchor="end" font-family="var(--mono)" font-size="10" fill="var(--muted)">${lab}</text>`;
   });
   return s+'</svg>';
 }
@@ -1261,12 +1251,11 @@ function dailyRunsSection(){
   }
   return `<h2>Daily runs${hActs('dailyruns','One point per run day in the chosen year, oldest first; pick a year to see it on its own scale. Units follow Settings: kg uses km; lb uses miles. Drag to scroll; hold briefly, then drag to scrub (mouse: press and drag). The readout shows the selected date, total distance and pace over timed distance only. Switch dist/pace to change the line. Lower pace is faster; points at the rim still show their actual pace when scrubbed. The footer counts this month, or the whole year for a past one.','About Daily runs')}</h2>
     <div class="card drcard">
-      <div class="pmixhead">
-        <span class="drunit mono" data-drcap>${mode==='pace'?'min / '+u:u+' / run'}</span>
-        <span class="drread mono" data-drread hidden></span>
-        <button type="button" class="pmixmode" data-drunmode aria-label="Show ${mode==='dist'?'pace':'distance'} instead"><span class="${mode==='dist'?'on':''}">dist</span><span class="${mode==='pace'?'on':''}">pace</span></button>
-      </div>
       ${years.length>1?`<div class="dryears" role="group" aria-label="Year">${years.map(y=>`<button type="button" class="dry${y===year?' on':''}" data-drunyear="${y}" aria-pressed="${y===year}">${y}</button>`).join('')}</div>`:''}
+      <div class="drhead chart-head">
+        <div class="drread" data-drread aria-live="polite"></div>
+        <span class="chart-tools"><button type="button" class="chart-latest" data-drlatest disabled>Latest ↗</button><button type="button" class="pmixmode" data-drunmode aria-label="Show ${mode==='dist'?'pace':'distance'} instead"><span class="${mode==='dist'?'on':''}">dist</span><span class="${mode==='pace'?'on':''}">pace</span></button></span>
+      </div>
       <div class="drrow">
         <div class="draxis">${labs.join('')}</div>
         <div class="pmixwrap drwrap" id="drWrap" data-drun-mode="${mode}" data-drun-unit="${u}">${dailyRunsSvg(rows,u,mode,ax)}</div>

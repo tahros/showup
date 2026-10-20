@@ -321,8 +321,34 @@ const systemStyle=document.createElement('style');systemStyle.textContent=`
 #view.stats-system .progression-section{margin:0}
 #view.stats-system .progression-card{border-radius:var(--stats-radius)}
 #view.stats-system h2.stats-title{box-sizing:border-box;margin:var(--stats-section) var(--stats-edge) var(--stats-heading);padding:0;width:calc(100% - var(--stats-edge)*2)}
-#view.stats-system h2.stats-title:first-child{margin-top:2px}
-#view.stats-system h2.story-subhead{margin-top:22px}
+/* v4.6.366: ONE SECTION RHYTHM. :first-child meant "the page's first heading",
+   but a section that wraps its own heading (Your strength progress sits first
+   in .progression-section) matched it too and lost its 30px. Only the view's
+   own first heading is pulled up now. */
+#view.stats-system>h2.stats-title:first-child{margin-top:2px}
+/* v4.6.366: TWO HEADING LEVELS. A section (17px, ink, rule) owns its subsections
+   (13px, muted, no rule, small info) -- a subsection never reads as a peer of
+   the section it belongs to. */
+#view.stats-system h2.story-subhead{margin-top:24px;margin-bottom:8px;font-size:13px;font-weight:600;letter-spacing:.005em;color:var(--muted)}
+#view.stats-system h2.story-subhead::after{content:none}
+#view.stats-system h2.story-subhead .hacts{transform:scale(.82);transform-origin:left center}
+#view.stats-system .story-running+h2.story-subhead{margin-top:18px}
+/* v4.6.366: ONE CHART HEAD. A chart that can be scrubbed reads its pick in the
+   head -- the date on the left, Latest and the switch on the right, the numbers
+   on their own line below -- the same on every chart that has one. */
+.chart-tools{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.chart-latest{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:0 12px;min-height:36px;color:var(--chalk);font:500 12px var(--body);cursor:pointer;white-space:nowrap}
+.chart-latest:disabled{opacity:.35;cursor:default}
+.drcard .drhead{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"date tools" "vals vals";align-items:center;column-gap:12px;margin:14px 0 6px}
+.drcard .drread{display:contents}
+.drcard .drdate{grid-area:date;font:500 12px var(--body);color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drcard .chart-tools{grid-area:tools}
+.drcard .drvals{grid-area:vals;display:flex;gap:18px;align-items:baseline;white-space:nowrap;margin-top:10px;min-height:32px}
+.drcard .drv b{font:600 25px var(--body);font-variant-numeric:tabular-nums;color:var(--chalk);letter-spacing:-.01em}
+.drcard .drv small{font:400 11px var(--mono);color:var(--muted)}
+.drcard .drv+.drv b{font-size:16px;font-weight:500;color:var(--muted)}
+.drcard .drv-none{font:400 11px var(--body);color:var(--muted)}
+.drcard .draxis{padding-bottom:30px}
 #view.stats-system .stats-date{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.015em;text-transform:none;color:var(--muted);font-variant-numeric:tabular-nums}
 #view.stats-system .plate-date{white-space:nowrap;font-size:10px}
 #view.stats-system #review-day strong{font:500 12px var(--mono)}
@@ -377,7 +403,7 @@ function combineWork(){
  const receipt=history.querySelector('#review-day');if(receipt)receipt.hidden=true;
  installWorkPeriods(history);
  const wrap=history.querySelector('#pmixWrap'),selectedIndex=partMix(PMIX_DAYS,PMIX_MODE).findIndex(d=>d.d===reviewSelected);wrap.style.scrollBehavior='auto';wrap.scrollLeft=selectedIndex<0?wrap.scrollWidth:8+(selectedIndex+.5)*PMIX_COLW-wrap.clientWidth/2;
- const latest=document.createElement('button');latest.className='work-latest';latest.textContent='Latest ↗';latest.onclick=()=>{const date=Object.keys(DB.days).sort().reverse().find(d=>d<=todayISO&&plateMetrics(DB.days[d]).sets);if(date)reviewDay(date);const box=document.getElementById('pmixWrap');box.scrollLeft=box.scrollWidth;};history.querySelector('.pmixhead').append(latest);
+ const latest=document.createElement('button');latest.className='work-latest chart-latest';latest.type='button';latest.textContent='Latest ↗';latest.onclick=()=>{const date=Object.keys(DB.days).sort().reverse().find(d=>d<=todayISO&&plateMetrics(DB.days[d]).sets);if(date)reviewDay(date);const box=document.getElementById('pmixWrap');box.scrollLeft=box.scrollWidth;};history.querySelector('.pmixhead').append(latest);
  history.setAttribute('aria-label','Select a day to see its workout above');
 }
 function installWorkPeriods(history){
@@ -444,7 +470,7 @@ function comparisonCard(card,kind){
  memory.years=memory.years.filter(y=>available.includes(y));if(!memory.years.length)memory.years=[available[0]];
  memory.index=Math.min(memory.index,dates.length-1);
  const series=new Map();available.forEach(y=>{let total=0,last='';series.set(y,dates.map(([m,d])=>{const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(Math.min(d,new Date(y,m+1,0).getDate())).padStart(2,'0');if(iso!==last){const r=DB.days[iso];total+=kind==='distance'?(r?.w||[]).filter(s=>s.ex==='Run'&&s.completed!==false).reduce((n,s)=>n+toD(s.w),0):(plateMetrics(r).sets?1:0);}last=iso;return total;}));});
- card.classList.add('comparison-card');card.innerHTML='<div class="comparison-years"></div><div class="comparison-heading"><span class="comparison-date"></span><span class="comparison-tools"><button class="comparison-latest">Latest ↗</button><button type="button" class="comparison-share stats-share ico" aria-label="Share this comparison">'+ICO_SHARE+'</button></span></div><div class="comparison-values" aria-live="polite"></div><svg class="comparison-plot" viewBox="0 0 340 210" role="img" aria-label="Cumulative '+(kind==='distance'?'distance':'training days')+' by year"></svg><input class="comparison-scrub" type="range" min="0" max="'+(dates.length-1)+'" aria-label="Scrub comparison date"><p class="comparison-foot">'+(kind==='distance'?'Distance accumulated':'Training days accumulated')+' · same calendar date</p>';
+ card.classList.add('comparison-card');card.innerHTML='<div class="comparison-years"></div><div class="comparison-heading"><span class="comparison-date"></span><span class="comparison-tools"><button type="button" class="comparison-latest chart-latest">Latest ↗</button><button type="button" class="comparison-share stats-share ico" aria-label="Share this comparison">'+ICO_SHARE+'</button></span></div><div class="comparison-values" aria-live="polite"></div><svg class="comparison-plot" viewBox="0 0 340 210" role="img" aria-label="Cumulative '+(kind==='distance'?'distance':'training days')+' by year"></svg><input class="comparison-scrub" type="range" min="0" max="'+(dates.length-1)+'" aria-label="Scrub comparison date"><p class="comparison-foot">'+(kind==='distance'?'Distance accumulated':'Training days accumulated')+' · same calendar date</p>';
  const palette=['var(--accent)','#B36F47','#349484','#9875B8','#BE8C38'];
  const actions=document.createElement('div');actions.className='comparison-actions';
  const shareControl=card.querySelector('.comparison-share');shareControl.classList.remove('ico');shareControl.classList.add('btn','ghost');shareControl.insertAdjacentHTML('beforeend','<span>Share</span>');
@@ -651,7 +677,7 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 #view.stats-system .work-history .pmixhead{height:44px;min-height:44px;margin:10px 0;align-items:center}#view.stats-system .work-history .pmixlgd{gap:6px 12px;margin:0 0 7px}
 #view.stats-system .work-history .pmixlgdwrap{overflow:visible;mask-image:none;-webkit-mask-image:none}#view.stats-system .work-history .pmixlgd{width:auto;max-width:100%}#view.stats-system .work-history .pmixlgd>span{white-space:nowrap}
 #view.stats-system .work-history .pmixlgdwrap::after{display:none}
-.work-latest{border:0;background:none;color:var(--accent-ink);font:500 11px var(--body);min-height:36px}.work-history .review-scale{display:none}
+.work-history .review-scale{display:none}
 #view.stats-system .work-history #review-day{display:none}
 #view.stats-system .work-history .pmixnow{display:none}
 #view.stats-system .work-history .pmixbox{margin:0}
@@ -659,9 +685,9 @@ const compactStyle=document.createElement('style');compactStyle.textContent=`
 #view.stats-system .work-periods{position:absolute;left:44px;right:0;top:0;height:30px;overflow:hidden;pointer-events:none;background:var(--surface);z-index:1}
 #view.stats-system .work-periods span{position:absolute;white-space:nowrap;font:400 11px/14px var(--body);color:var(--muted)}   /* v4.5.5: the same size and face as the axis beside it */
 #view.stats-system .work-empty{min-height:240px;display:grid;place-content:center;gap:20px;text-align:center}
-.comparison-years{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.comparison-years button,.comparison-years summary,.comparison-latest{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:10px 12px;color:var(--chalk);font:500 12px var(--body);cursor:pointer}
+.comparison-years{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.comparison-years button,.comparison-years summary{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:10px 12px;color:var(--chalk);font:500 12px var(--body);cursor:pointer}
 .comparison-years button[data-year]{border-color:var(--year-color);color:var(--year-color)}.comparison-years button span{opacity:.6;margin-left:6px}.comparison-years details{position:relative}.comparison-years details>div{position:absolute;z-index:3;min-width:90px;padding:6px;background:var(--surface);box-shadow:0 6px 20px #0002;border-radius:12px}.comparison-years details button{display:block;width:100%}
-.comparison-heading{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px;font:500 12px var(--body)}.comparison-tools{display:flex;align-items:center;gap:8px}#view.stats-system .comparison-share{flex-basis:36px;width:36px;height:36px}#view.stats-system .comparison-share svg{width:16px;height:16px}   /* v4.5.17: a 36px share beside Latest, not the 44px plate one -- this row is the heading, not a toolbar */.comparison-latest:disabled{opacity:.35}.comparison-values{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}.comparison-values>div{flex:1;min-width:85px;border-left:3px solid var(--year-color);padding-left:10px}.comparison-values span{display:block;font:400 11px var(--mono);color:var(--muted)}.comparison-values strong{font:600 25px var(--body);font-variant-numeric:tabular-nums}.comparison-values small{font:400 11px var(--body);color:var(--muted)}.comparison-plot{width:100%;display:block;touch-action:pan-y}.comparison-scrub{width:100%;accent-color:var(--accent);min-height:40px}.comparison-foot{font:400 10px var(--body);color:var(--muted);margin:2px 0 0}
+.comparison-heading{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px;font:500 12px var(--body)}.comparison-tools{display:flex;align-items:center;gap:8px}#view.stats-system .comparison-share{flex-basis:36px;width:36px;height:36px}#view.stats-system .comparison-share svg{width:16px;height:16px}   /* v4.5.17: a 36px share beside Latest, not the 44px plate one -- this row is the heading, not a toolbar */.comparison-values{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}.comparison-values>div{flex:1;min-width:85px;border-left:3px solid var(--year-color);padding-left:10px}.comparison-values span{display:block;font:400 11px var(--mono);color:var(--muted)}.comparison-values strong{font:600 25px var(--body);font-variant-numeric:tabular-nums}.comparison-values small{font:400 11px var(--body);color:var(--muted)}.comparison-plot{width:100%;display:block;touch-action:pan-y}.comparison-scrub{width:100%;accent-color:var(--accent);min-height:40px}.comparison-foot{font:400 10px var(--body);color:var(--muted);margin:2px 0 0}
 .comparison-flip{display:block;width:100%;text-align:left;border:0;background:none;padding:0;margin:0;color:inherit;font:inherit;cursor:pointer;transform-origin:50% 50%;will-change:transform}
 .comparison-flip:disabled{cursor:default}
 .comparison-values strong i{font-style:normal}

@@ -4835,8 +4835,8 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 /* the "+ Year" fold is a pill like the year chips beside it -- no disclosure triangle */
 .comparison-years summary{list-style:none;display:inline-flex;align-items:center}
 .comparison-years summary::-webkit-details-marker{display:none}
-.comparison-latest{display:inline-flex;align-items:center;gap:2px}
-.comparison-latest .ic.ic-glyph{margin:0 0 0 .15em}
+.chart-latest{display:inline-flex;align-items:center;gap:2px}
+.chart-latest .ic.ic-glyph{margin:0 0 0 .15em}
 
 /* v4.6.359: TODAY WHILE A SESSION IS LIVE (js/today.js liveTodayHTML). One plan
    card with its progress and the single Next button, then a plain list of what
