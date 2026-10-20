@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.366 — Stats: one rhythm, two heading levels, one chart head
+- "Your strength progress" gets the same 30px above it as every section; the 2px pull-up now applies only to the page's own first heading.
+- Running subsections (October so far, Run by run, Distance over time) are a second heading level: 13px, muted, no rule, smaller info.
+- Daily runs reads its run in a head shared with This year vs last: date left, Latest ↗ and dist/pace right, the numbers on their own line. It shows the newest run until one is picked; Latest returns to it.
+- Daily runs: no value over every point; dates lie flat, one every fourth run from the newest.
+- All three Latest buttons on Stats share one pill style.
+
 ## v4.6.365 — the days ahead, the Stats controls, the chip names
 - Today, after a workout: the days after tomorrow under "N more plans" are rows like Tomorrow's -- date and sets over the parts, a chevron -- instead of the planner's raw folds (a bare ▶ triangle, stacked date and parts, a floating set count). Each opens to Edit, Paste and Copy over its plan.
 - Stats: "+ Year" and "Latest ↗" are one-line pills again. Since v4.6.341 a glyph turned icon could be forced onto its own line at a fixed 25-31px by the card's svg rules; it now always sits inline at the size of its letters, in every card. The "+ Year" fold lost its disclosure triangle.
