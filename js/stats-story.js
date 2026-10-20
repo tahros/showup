@@ -321,7 +321,7 @@ const systemStyle=document.createElement('style');systemStyle.textContent=`
 #view.stats-system .progression-section{margin:0}
 #view.stats-system .progression-card{border-radius:var(--stats-radius)}
 #view.stats-system h2.stats-title{box-sizing:border-box;margin:var(--stats-section) var(--stats-edge) var(--stats-heading);padding:0;width:calc(100% - var(--stats-edge)*2)}
-#view.stats-system h2.stats-title:first-child{margin-top:14px}
+#view.stats-system h2.stats-title:first-child{margin-top:2px}
 #view.stats-system h2.story-subhead{margin-top:22px}
 #view.stats-system .stats-date{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.015em;text-transform:none;color:var(--muted);font-variant-numeric:tabular-nums}
 #view.stats-system .plate-date{white-space:nowrap;font-size:10px}

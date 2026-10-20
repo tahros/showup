@@ -1077,7 +1077,7 @@ function reportCardSection(){
     <div class="repcard" id="repCard">
       <div class="repnav"><button class="repar" id="repPrev" aria-label="Previous card">‹</button><div class="repttl" id="repTtl">&nbsp;</div><button class="repar" id="repNext" aria-label="Next card">›</button></div>
       <div class="repthumbwrap"><img id="repThumb" alt="" class="repthumb"></div><div class="note repdots" id="repDots"></div>
-      <button class="btn" id="repShare">Share as image</button><button class="btn ghost" id="repAll" style="margin:5px 0 0">Save all ${n}</button>
+      <button class="btn" id="repShare">Share as image</button><button class="btn ghost" id="repAll" style="margin:6px 0 0">Save all ${n}</button>
     </div></details>`;
 }
 function repCardAt(){

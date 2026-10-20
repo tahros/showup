@@ -8,6 +8,6 @@ t('the warm-up keeps its own line; the working sets join',c.f(['BW +35 lb × 8 (
 t('a different load starts a new line',c.f(['95 lb × 10 (warm-up)','135 lb × 8','135 lb × 8','145 lb × 6']),['95 lb × 10 (warm-up)','135 lb × 8 8','145 lb × 6']);
 t('by feel joins too, and different reps stay in order',c.f(['by feel × 15','by feel × 15','by feel × 12']),['by feel × 15 15 12']);
 t('a line that is not sets is left alone',c.f(['Run — 1.99 mi · 20 min','','60 lb × 8']),['Run — 1.99 mi · 20 min','','60 lb × 8']);
-assert(/class="pf-conflict-actions">\$\{pwButton\('load-newer'/.test(src));assert(/\.pf-conflict-actions\{display:flex;flex-wrap:wrap;gap:6px 10px/.test(fs.readFileSync(__dirname+'/../css/planner-flow.css','utf8')));console.log('PASS the newer-plan buttons sit in a row with a gap');n++;
+assert(/class="pf-conflict-actions">\$\{pwButton\('load-newer'/.test(src));assert(/\.pf-conflict-actions\{display:flex;flex-wrap:wrap;gap:8px 10px/.test(fs.readFileSync(__dirname+'/../css/planner-flow.css','utf8')));console.log('PASS the newer-plan buttons sit in a row with a gap');n++;
 {const l=/ if\(j\.clear\)\{body=.*/.exec(src)[0];assert(/Remove the plan for /.test(l)&&/Your logged workouts stay\./.test(l)&&(l.match(/pwButton\(/g)||[]).length===2&&l.includes("${pwButton('pf-clear-cancel','Cancel')}${pwButton('pf-remove-day','Remove plan','primary')}")&&!/pf-empty-day/.test(l));console.log('PASS v4.6.211: clearing a day asks one question with one line: Cancel or Remove plan');n++;}
 console.log(n+' checks');process.exit(0);

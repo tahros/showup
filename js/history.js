@@ -51,8 +51,8 @@ function hsetEditor(d){
   const isRun=s?isCardio(s):isCardioEx(es.ex), C=cardioOf(es.ex);   // v4.6.108: every cardio activity
   const wv=s?(isRun?(s.w>0?cFromKm(es.ex,s.w):''):wDisp(s.w)):'';
   const rv=s&&!isRun?((s.reps||[])[es.ri]??''):'';
-  return `<div class="card editcard hsedit" style="margin-top:5px">
-      <div class="mono muted" style="font-size:10px;margin-bottom:5px">${es.wi==null?'ADD':'EDIT'} — ${es.ex}</div>
+  return `<div class="card editcard hsedit" style="margin-top:6px">
+      <div class="mono muted" style="font-size:10px;margin-bottom:6px">${es.wi==null?'ADD':'EDIT'} — ${es.ex}</div>
       <div class="row" style="gap:8px">
         ${isRun&&!C.dist?'':`<div class="fld"><label>${isRun?'Distance '+cUnit(es.ex):'Weight '+U()}</label>
           <input id="hsW" type="number" inputmode="decimal" step="${isRun?cStep(es.ex):wStep(es.ex)}" value="${wv}"></div>`}
@@ -61,7 +61,7 @@ function hsetEditor(d){
             <div class="fld"><label>Sec</label><input id="hsS" type="number" inputmode="numeric" value="${s?(s.secs||0):0}"></div>`
           :`<div class="fld"><label>Reps</label><input id="hsR" type="number" inputmode="numeric" value="${rv}"></div>`}
       </div>
-      <div class="row" style="gap:8px;margin-top:6px">
+      <div class="row" style="gap:8px;margin-top:8px">
         <button class="btn" id="hsSave" style="margin:0">Save</button>
         <button class="btn ghost" id="hsCancel" style="margin:0;flex:0 0 96px">Cancel</button>
       </div></div>`;
@@ -256,8 +256,8 @@ function renderHistory(){
       }
     }
   }
-  h+=`<div class="card" style="margin-top:7px">
-        <div class="row spread" style="margin-bottom:6px">
+  h+=`<div class="card" style="margin-top:10px">
+        <div class="row spread" style="margin-bottom:8px">
           <b style="font-family:var(--disp)">${new Date(hist.y,hist.m-1,1).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</b>
           <span class="mono muted" style="font-size:11px"><b style="color:var(--accent)">${mm.days}</b> days trained</span>
         </div>
@@ -280,27 +280,27 @@ function renderHistory(){
   if(hist.bf&&hist.bf.startsWith(key)){
     const B=hist.bf, isR=hist.bfPart==='Run', bfEx=isCardioEx(hist.bfEx)?hist.bfEx:'Run', bfC=cardioOf(bfEx);
     const parts=Object.keys(SEED0.catalog);
-    h+=`<div class="card bfcard" style="margin-top:7px">
+    h+=`<div class="card bfcard" style="margin-top:10px">
       <div class="lasthead"><span>LOG A PAST DAY</span><span class="ago">${B}</span></div>
-      <div class="chips" style="margin-bottom:5px">${parts.map(pt=>`<button class="chip ${hist.bfPart===pt?'on':''}" data-bfpart="${pt}">${partLabel(pt)}</button>`).join('')}</div>
+      <div class="chips" style="margin-bottom:6px">${parts.map(pt=>`<button class="chip ${hist.bfPart===pt?'on':''}" data-bfpart="${pt}">${partLabel(pt)}</button>`).join('')}</div>
       ${hist.bfPart?(isR
-        ?`<div class="chips" style="margin-bottom:5px">${Object.keys(CARDIO_EX).map(x=>`<button class="chip ${bfEx===x?'on':''}" data-bfex="${x}">${x}</button>`).join('')}</div>
+        ?`<div class="chips" style="margin-bottom:6px">${Object.keys(CARDIO_EX).map(x=>`<button class="chip ${bfEx===x?'on':''}" data-bfex="${x}">${x}</button>`).join('')}</div>
           <div class="row" style="gap:8px">
             ${bfC.dist?`<div class="fld"><label>Distance ${cUnit(bfEx)}</label><input id="bfKm" type="number" inputmode="decimal" step="${cStep(bfEx)}"></div>`:''}
             <div class="fld"><label>Min</label><input id="bfMin" type="number" inputmode="numeric"></div>
             <div class="fld"><label>Sec</label><input id="bfSec" type="number" inputmode="numeric"></div></div>`
-        :`<div class="fld text" style="margin-bottom:5px"><label>Exercise</label>
+        :`<div class="fld text" style="margin-bottom:6px"><label>Exercise</label>
             <input id="bfEx" type="text" list="bfExList" placeholder="e.g. Squat">
             <datalist id="bfExList">${(SEED0.catalog[hist.bfPart]||[]).map(x=>`<option value="${x}">`).join('')}</datalist></div>
           <div class="row" style="gap:8px">
             <div class="fld"><label>Weight ${U()}</label><input id="bfW" type="number" inputmode="decimal" step="0.5"></div>
             <div class="fld"><label>Reps (comma for sets)</label><input id="bfR" type="text" inputmode="numeric" placeholder="10,10,8"></div></div>`)
        :''}
-      <div class="row" style="gap:8px;margin-top:6px">
+      <div class="row" style="gap:8px;margin-top:8px">
         <button class="btn" id="bfAdd" style="margin:0" ${hist.bfPart?'':'disabled'}>Add to ${B.slice(5)}</button>
         <button class="btn ghost" id="bfClose" style="margin:0;flex:0 0 96px">Close</button></div></div>`;
   }
-  h+=`<div class="tot" style="margin-top:7px">
+  h+=`<div class="tot" style="margin-top:10px">
         <span>${mm.sets?fmt(mm.sets)+' sets':''}${mm.sets&&mm.km?' · ':''}${mm.km?dDisp(mm.km)+' '+DU():''}</span>
         <span>${mm.vol?vDisp(mm.vol)+' '+U()+' lifted':''}</span></div></div>`;
 
@@ -396,10 +396,10 @@ function renderHistory(){
       h+=`<div class="history-totals"><span></span><span><strong>${shownSets}</strong> sets<small>${P?'shown':'total'}</small></span></div></div></details>`;
     });
   }else if(mm.days){
-    h+=`<div class="note" style="margin-top:7px">Set-level detail for this month lives in the sheet —
+    h+=`<div class="note" style="margin-top:10px">Set-level detail for this month lives in the sheet —
         the app carries full sessions for roughly the last four months, plus anything logged here.</div>`;
   }else{
-    h+=`<div class="note" style="margin-top:7px">${P?`No ${P} logged this month.`:'No training logged this month.'}</div>`;
+    h+=`<div class="note" style="margin-top:10px">${P?`No ${P} logged this month.`:'No training logged this month.'}</div>`;
   }
   if(hist.edit&&!DB.days[hist.edit]){ hist.edit=null; hist.editSet=null; }   // v3.3.61: the day may have been emptied
   killCalReturn();                  // v3.3.59: a re-render invalidates the return ticket

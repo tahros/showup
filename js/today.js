@@ -590,7 +590,7 @@ function renderToday(){
       <div class="mskick">DAY</div>
       <div class="msnum" data-from="${msPrevRung(msN)}" data-to="${msN}">${fmt(msN)}</div>
       <div class="msline">${msLine(msN)}</div>
-      <div class="row" style="gap:8px;margin-top:8px">
+      <div class="row" style="gap:8px;margin-top:11px">
         <button class="btn ghost" id="msShare" style="flex:1;margin:0">Share as image</button>
         <button class="btn ghost" id="msDismiss" style="flex:1;margin:0">Carry on</button>
       </div>
@@ -666,7 +666,7 @@ function renderToday(){
          already stamped for tomorrow. */
       const _carry=!!(DB.plan&&DB.plan.d===todayISO&&(DB.plan.items||[]).length&&!_srcT);
       if(_carry){
-        h+=`<div class="row spread card tmwnext" style="margin-top:8px;padding:7px 14px">
+        h+=`<div class="row spread card tmwnext" style="margin-top:11px;padding:11px 14px">
               <span class="mono" style="font-size:11px">${_label?`Tomorrow \u00b7 ${hesc(_label)}`:'Tomorrow'}</span>${
               _carry?`<button class="chip" data-carrytmw>carry today's plan →</button>`:''}</div>`;
       }
@@ -683,11 +683,11 @@ function renderToday(){
       if(_next){
         h+=`<div class="card tnextplan"><div class="row spread">
               <div><div style="font-family:var(--disp);font-weight:700;font-size:18px">${_next.ex}</div>
-              <div class="mono muted" style="font-size:11px;margin-top:1px">next in your plan</div></div>
+              <div class="mono muted" style="font-size:11px;margin-top:2px">next in your plan</div></div>
               <button class="chip on" data-planex="${_next.ex}">Start →</button>
             </div></div>`;
       }else{
-        h+=`<div class="card"><div class="mono muted" style="text-align:center;padding:2px 0">
+        h+=`<div class="card"><div class="mono muted" style="text-align:center;padding:4px 0">
               Every exercise in your plan is logged.</div></div>`;
       }
     }
@@ -705,13 +705,13 @@ function renderToday(){
         : (i0.days===0 ? `not trained yet` : `${i0.since}d since · ${i0.days} day${i0.days===1?'':'s'} logged`);
       h+=`<div class="card"><div class="row spread">
             <div><div style="font-family:var(--disp);font-weight:700;font-size:18px">${P.pick}</div>
-            <div class="mono muted" style="font-size:11px;margin-top:1px">
+            <div class="mono muted" style="font-size:11px;margin-top:2px">
               ${sub}</div></div>
             <button class="chip on" data-go="${P.pick}">Start →</button>
           </div></div>`;
       if(P.addon){
         const ai=P.info[P.addon];
-        h+=`<div class="row spread card" style="margin-top:5px;padding:7px 14px">
+        h+=`<div class="row spread card" style="margin-top:6px;padding:11px 14px">
               <span class="mono muted" style="font-size:11px">Add on: <b style="color:var(--chalk)">${P.addon}</b> · ${ai.since}d since</span>
               <button class="chip" data-go="${P.addon}">+</button></div>`;
       }
@@ -720,7 +720,7 @@ function renderToday(){
     /* the run nudge and the door to other parts survive either branch: an
        add-on is not a claim about what to train, and the door is navigation. */
     if(P.run){
-      h+=`<div class="row spread card" style="margin-top:5px;padding:7px 14px">
+      h+=`<div class="row spread card" style="margin-top:6px;padding:11px 14px">
             <span class="mono muted" style="font-size:11px">Run · ${P.run.since}d since (you run most days)</span>
             <button class="chip" data-go="Run">Go</button></div>`;
     }
@@ -733,7 +733,7 @@ function renderToday(){
          part list IS that board, and Today keeps a door instead of a copy.
          One receipt survives on the door: the due count. */
       const nDue=rest.filter(p=>P.score(p)>=1).length;
-      h+=`<button class="btn ghost" id="goLift" style="margin-top:8px">Train other parts${nDue?` · ${nDue} due`:''} →</button>`;
+      h+=`<button class="btn ghost" id="goLift" style="margin-top:11px">Train other parts${nDue?` · ${nDue} due`:''} →</button>`;
     }
     $('#view').innerHTML=h; msCountUp(); dayCountUp(); return;
   }
@@ -796,7 +796,7 @@ function renderToday(){
     if(_nx) h+=`<h2>Train next</h2>
       <div class="card tnextplan"><div class="row spread">
         <div><div style="font-family:var(--disp);font-weight:700;font-size:18px">${_nx.ex}</div>
-        <div class="mono muted" style="font-size:11px;margin-top:1px">next in your plan</div></div>
+        <div class="mono muted" style="font-size:11px;margin-top:2px">next in your plan</div></div>
         <button class="chip on" data-planex="${_nx.ex}">Start →</button>
       </div></div>`;
   }
@@ -816,8 +816,8 @@ function renderToday(){
     sets.forEach(s=>{(byEx[s.ex]=byEx[s.ex]||[]).push(s);});
     const vol=sets.reduce((a,s)=>a+volOf(s),0);
     const km=sets.filter(s=>s.ex==='Run').reduce((a,s)=>a+s.w,0);
-    h+=`<div class="card" style="margin-bottom:5px">
-          <div class="row spread" style="margin-bottom:5px">
+    h+=`<div class="card" style="margin-bottom:6px">
+          <div class="row spread" style="margin-bottom:6px">
             <b style="font-size:14px">${part}</b>
             <span class="mono muted" style="font-size:11px">${vol?vDisp(vol)+' '+U():''}${km?dDisp(km)+' '+DU():''}</span>
           </div>`;
@@ -834,13 +834,13 @@ function renderToday(){
             <span class="tsets">${list.length} set${list.length>1?'s':''}</span>
           </button>`;
     }
-    if(partOpen(part)&&!(_closed&&planningWorkspace())) h+=`<button class="chip on ${isLive()?'livego':''}" data-go="${part}" style="margin-top:1px">Continue ${part} →</button>`;
+    if(partOpen(part)&&!(_closed&&planningWorkspace())) h+=`<button class="chip on ${isLive()?'livego':''}" data-go="${part}" style="margin-top:2px">Continue ${part} →</button>`;
     h+=`</div>`;
   }
 
   // still worth a nudge if the run isn't in yet
   if(!ranRaw && P.run && !(_closed&&planningWorkspace())){
-    h+=`<div class="row spread card" style="margin-top:5px;padding:7px 14px">
+    h+=`<div class="row spread card" style="margin-top:6px;padding:11px 14px">
           <span class="mono muted" style="font-size:11px">Cardio not logged yet · ${P.run.since}d since</span>
           <button class="chip" data-go="Run">Go</button></div>`;
   }
@@ -1164,5 +1164,5 @@ let tipRaf=0;addEventListener('scroll',()=>{if(tipCur&&!tipRaf)tipRaf=requestAni
 addEventListener('resize',()=>{if(tipCur)tipCur.dir=null;tipQueue();});
 document.addEventListener('focusin',()=>tipQueue());document.addEventListener('focusout',()=>tipQueue());
 new MutationObserver(()=>{const t=tipsState();if(t&&t.on)tipQueue();}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
-function tipsSettingsHTML(){return `<button class="btn ghost" data-tips-again style="margin:5px 0 0">Show tips again</button>`;}
+function tipsSettingsHTML(){return `<button class="btn ghost" data-tips-again style="margin:6px 0 0">Show tips again</button>`;}
 document.addEventListener('click',e=>{if(!e.target.closest('[data-tips-again]'))return;tipsStart();save(true);toast('Tips are back.');});

@@ -305,15 +305,15 @@ check('choosing All still works and keeps a sane offset',`(function(){const p=do
      (()=>{const m=cssA.match(/pg-history-empty\{height:(\d+)px/);return m&&+m[1]>0&&+m[1]<40;})(),
      (cssA.match(/pg-history-empty\{height:\d+px/)||[])[0]);
   ok('the chip is free to grow -- a fixed height would swallow the padding',
-     /\.pg-read\{[^}]*min-height:44px/.test(cssA)&&!/\.pg-read\{[^}]*[^-]height:44px/.test(cssA));
-  ok('...and the slot follows it', /\.pg-read-slot\{min-height:44px/.test(cssA));
+     /\.pg-read\{[^}]*min-height:52px/.test(cssA)&&!/\.pg-read\{[^}]*[^-]height:52px/.test(cssA));
+  ok('...and the slot follows it', /\.pg-read-slot\{min-height:52px/.test(cssA));
   ok('both views gained vertical padding on the chip',
      (()=>{const base=cssA.match(/\.pg-read\{[^}]*padding:(\d+)px/),st=story.match(/review-stats \.pg-read\{[^}]*padding:(\d+)px/);
-       return base&&st&&+base[1]>=6&&+st[1]>=15;   /* v4.6.362: Train chip padding follows spacing Variation 2 (10 -> 6) */})(),
+       return base&&st&&+base[1]>=10&&+st[1]>=15;})(),
      `train ${(cssA.match(/\.pg-read\{[^}]*padding:(\d+)px/)||[])[1]}px · stats ${(story.match(/review-stats \.pg-read\{[^}]*padding:(\d+)px/)||[])[1]}px`);
   ok('the Stats value came down from 23px, and Train follows type B (14px)',
      (()=>{const st=story.match(/review-stats \.pg-read-value\{font:600 (\d+)px/),tr=cssA.match(/\.pg-read-value\{font:500 (\d+)px/);
-       return st&&tr&&+st[1]<23&&+st[1]>=18&&+tr[1]===14;   /* v4.6.362: Train's value follows type B (16 -> 14) */})(),
+       return st&&tr&&+st[1]<23&&+st[1]>=18&&+tr[1]===14;   /* v4.6.364: Train's value follows type B (16 -> 14) */})(),
      `stats ${(story.match(/review-stats \.pg-read-value\{font:600 (\d+)px/)||[])[1]}px · train ${(cssA.match(/\.pg-read-value\{font:500 (\d+)px/)||[])[1]}px`);
 }
 

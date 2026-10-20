@@ -14,19 +14,19 @@ body.rest-home::before{content:"";position:fixed;top:0;left:0;right:0;height:cal
 @keyframes rest-header-breathe{0%,100%{opacity:.45;transform:scale(.96)}50%{opacity:1;transform:scale(1.07)}}
 @media(prefers-reduced-motion:reduce){body.rest-home::before{animation:none;opacity:.93;transform:none}}
 /* Rest uses the shared glass header; never expose sharp scrolling text behind it. */
-.rest-home .su-hello-row{flex-direction:column-reverse;gap:2px 4px;padding:10px 0 13px}
+.rest-home .su-hello-row{flex-direction:column-reverse;gap:4px;padding:16px 0 22px}
 .rest-home .su-hello-row .su-mascot{width:224px;max-width:100%}
 /* Compact: another 20% smaller (0.8 * 0.8), without moving the surrounding UI. */
 .rest-home .su-hello-row .su-mascot img,.rest-home .su-hello-row .su-mascot canvas{transform:scale(.64);transform-origin:center}
-.rest-home .hello{display:flex;flex-direction:column;align-items:center;gap:4px 6px;margin:0;text-align:center}
+.rest-home .hello{display:flex;flex-direction:column;align-items:center;gap:5px 6px;margin:0;text-align:center}
 .rest-home .hello .hi{font-size:24px;line-height:1.2}
 .rest-home .hello .hisub{font-size:11px;margin:0;color:var(--muted)}
 /* v4.6.343: a rest day is not a planning screen -- the tool row stays on a training
    day; the plans are still a tap away on their cards (Sungjee, 2026-10-16) */
 .rest-home .pw-home-tools{display:none}
-:root body.rest-home #restBtn{display:block;min-height:44px;width:auto;margin:7px auto 14px;padding:5px 18px;background:transparent;border-color:transparent;box-shadow:none;color:var(--muted);font-size:11px}
+:root body.rest-home #restBtn{display:block;min-height:44px;width:auto;margin:10px auto 19px;padding:8px 18px;background:transparent;border-color:transparent;box-shadow:none;color:var(--muted);font-size:11px}
 .pw-rest-later{border-top:1px solid var(--line)}
-.pw-rest-later>summary{display:flex;align-items:center;gap:10px;padding:9px 16px;min-height:44px;cursor:pointer;list-style:none;font-size:11px;color:var(--accent-ink)}
+.pw-rest-later>summary{display:flex;align-items:center;gap:10px;padding:15px 16px;min-height:48px;cursor:pointer;list-style:none;font-size:11px;color:var(--accent-ink)}
 .pw-rest-later>summary::-webkit-details-marker{display:none}
 .pw-rest-later>summary small{margin-left:auto;font-size:10px;color:var(--muted)}
 .rest-morph .su-hello-row .su-mascot{view-transition-name:rest-mascot}
@@ -49,8 +49,8 @@ body.rest-home::before{content:"";position:fixed;top:0;left:0;right:0;height:cal
 .su-mascot img,.su-mascot canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .su-mascot.su-ready img{visibility:hidden}
 .su-mascot:not(.su-ready) canvas{visibility:hidden}
-.su-first-day{margin:0 auto 4px}
-.su-live-companion{display:flex;justify-content:center;margin:-5px 0 2px}
+.su-first-day{margin:0 auto 5px}
+.su-live-companion{display:flex;justify-content:center;margin:-6px 0 3px}
 .su-live-companion .su-mascot{width:76px}
 .su-hello-row{display:flex;align-items:center;gap:8px}
 .su-hello-row .hello{flex:1;min-width:0}
@@ -60,12 +60,12 @@ body.rest-home::before{content:"";position:fixed;top:0;left:0;right:0;height:cal
    the mascot is a companion, not the headline. 94 makes the face legible
    without changing who is talking. */
 .su-hello-row .su-mascot{width:94px}
-.su-active-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;margin:0 0 8px}
-.su-active-row strong{display:block;font:600 21px/1.2 var(--disp);margin:0 0 4px}
+.su-active-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:70px;margin:0 0 11px}
+.su-active-row strong{display:block;font:600 21px/1.2 var(--disp);margin:0 0 5px}
 .su-active-row span.mono{font-size:10px}
 .su-active-row .su-mascot{width:104px}
-.card.dayclosed .su-mascot{margin:-5px auto -6px;width:94px}
-#dayDone .su-mascot{width:240px;max-width:100%;margin:0 auto 5px}
+.card.dayclosed .su-mascot{margin:-6px auto -8px;width:94px}
+#dayDone .su-mascot{width:240px;max-width:100%;margin:0 auto 6px}
 #dayDone .ddhero{width:240px;max-width:100%;position:relative;z-index:3}
 /* v4.6.99: THE INK ENTRANCE. While the flood is up the overlay has no surface
    of its own -- the ink is what you see, the mascot crosses above it, and the
@@ -107,17 +107,17 @@ body.rest-home::before{content:"";position:fixed;top:0;left:0;right:0;height:cal
 @keyframes ddcinema-copy{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(max-width:360px){#dayDone .ddhero{width:190px}}
 @media(prefers-reduced-motion:reduce){#dayDone .ddink{display:none}#dayDone.dd-copy .dddate,#dayDone.dd-copy .ddn,#dayDone.dd-copy .ddu,#dayDone.dd-copy .ddyou,#dayDone.dd-copy .ddsummary{animation:none}#dayDone[data-entrance],#dayDone[data-entrance] .ddhero,#dayDone[data-entrance] .dddate,#dayDone[data-entrance] .ddn,#dayDone[data-entrance] .ddu,#dayDone[data-entrance] .ddyou,#dayDone[data-entrance] .ddsummary{animation:none;transform:none;opacity:1}}
-#dayDone.su-celebration .ddbody{padding:7px 0 12px}
-#dayDone.su-celebration .ddyou{margin:11px 0 7px}
-.su-completion-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;width:100%;margin:7px auto 0}
+#dayDone.su-celebration .ddbody{padding:12px 0 20px}
+#dayDone.su-celebration .ddyou{margin:14px 0 10px}
+.su-completion-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 10px;width:100%;margin:10px auto 0}
 #dayDone.su-celebration .ddsummary{width:100%}
-.su-completion-metrics>div{display:flex;flex-direction:column;gap:3px 5px}
+.su-completion-metrics>div{display:flex;flex-direction:column;gap:4px 5px}
 .su-completion-metrics b{font:600 21px/1.2 var(--disp);color:var(--chalk);font-variant-numeric:tabular-nums}
-.su-completion-metrics span{font:400 10px/1.176 var(--mono);color:var(--muted)}
-.su-milestone{width:100%;margin:11px auto 0}
-.su-milestone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px 7px;width:126px;margin:auto}
+.su-completion-metrics span{font:400 10px/1.316 var(--mono);color:var(--muted)}
+.su-milestone{width:100%;margin:14px auto 0}
+.su-milestone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px 7px;width:126px;margin:auto}
 .su-milestone-grid i{aspect-ratio:1;border-radius:5px;background:var(--accent);animation:su-box-in .36s var(--settle) both}
-.su-milestone-note{font:400 11px/1.26 var(--mono);color:var(--muted);margin:0 0 7px}
+.su-milestone-note{font:400 11px/1.41 var(--mono);color:var(--muted);margin:0 0 10px}
 #dayDone .ddyou::after{display:none}
 /* Reflections belong to the 3D material. Static/reduced-motion PNGs are sampled
    from that same material, with no second CSS highlight or surrounding glow. */
@@ -143,11 +143,11 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 .showuppp-lockup .showuppp-character .su-mascot,#dayDone .ddbrand .showuppp-character .su-mascot{position:absolute;left:-40%;top:-5%;width:180%;max-width:none;margin:0}
 .showuppp-lettering{display:block;width:100%;height:auto;min-width:0}
 :root[data-theme="dark"] .showuppp-lettering{filter:brightness(0) invert(1)}
-.onblogo:has(.showuppp-lockup){margin:0 0 11px}
+.onblogo:has(.showuppp-lockup){margin:0 0 14px}
 .onblogo .showuppp-lockup{max-width:340px}
 .showuppp-word-only,:root[data-mascot-motion="off"] .showuppp-lockup{display:block;max-width:190px}
 :root[data-mascot-motion="off"] .showuppp-character{display:none}
-#dayDone .ddhero.ddbrand{width:320px;max-width:100%;margin:0 auto 7px}
+#dayDone .ddhero.ddbrand{width:320px;max-width:100%;margin:0 auto 10px}
 /* While the existing ink transition travels, only its flying mascot is visible. */
 #dayDone.dd-ink .showuppp-lettering{visibility:hidden}
 /* Brand introduces no extra animation loop. Existing hello/jump is stopped by
@@ -156,7 +156,7 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 @media(prefers-reduced-motion:reduce){#dayDone .ddbrand{animation:none;transform:none;opacity:1}}
 /* Approved smaller Lifted p trio: 124px x .9 x .9; mascot/Open gap unchanged. */
 #dayDone .ddhero.ddbrand{width:211.04px;animation:none;transform:none;opacity:1}
-.showuppp-c{position:relative;display:flex;gap:14px;align-items:center;justify-content:center;max-width:211.04px;min-height:50px}
+.showuppp-c{position:relative;display:flex;gap:14px;align-items:center;justify-content:center;max-width:211.04px;min-height:83px}
 .showuppp-c .showuppp-character{width:96.6px;height:59.892px;aspect-ratio:auto;flex:none;isolation:isolate}
 #dayDone .ddbrand .showuppp-c .su-mascot{width:184.615%;left:-42.308%;top:-43.83%;pointer-events:none}
 .showuppp-c .su-mascot img{transform-origin:50% 77%}
@@ -183,19 +183,19 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 /* Same visual weight for every crew (Sungjee, 2026-10-15): the art is scaled by --fit so each
    body covers the same area, then stood on the box's floor and centred. */
 .crew-fit .crew-art{width:calc(var(--fit)*100%);height:calc(var(--fit)*100%);top:calc(100% - (1 - var(--foot))*var(--fit)*100%);left:calc(50% - var(--mid)*var(--fit)*100%);bottom:auto;right:auto}
-.card.dayclosed .su-hello-comp{width:90px;height:90px;margin:-12px auto -4px}
+.card.dayclosed .su-hello-comp{width:90px;height:90px;margin:-16px auto -5px}
 /* One card height whoever is on it (Sungjee, 2026-10-15): Pip's art is wide and short, the crew's
    square, so Pip gets the difference above it and stands on the same floor over the number. */
-.card.dayclosed>.su-mascot{margin-top:10px}
+.card.dayclosed>.su-mascot{margin-top:14px}
 .crew-pip{pointer-events:auto}
 .club-avatar.crew-avatar .club-pip-img{width:100%;height:100%;margin:0;animation:none!important}
 .su-companion .club-avatar{width:100%;height:100%}
 .su-hello-comp{width:68px;height:68px;margin-right:6px;animation:compIn .7s .25s cubic-bezier(.3,1.6,.5,1) both}
 .rest-home .su-hello-comp{width:118px;height:118px}
 .su-comp-rest .club-sprite{animation-duration:11s!important;filter:saturate(.75)}
-.tipn .tip-comp{width:46px;height:46px;margin:-4px 0 -4px -4px;animation:tipWave 1.1s ease-in-out .35s both}
+.tipn .tip-comp{width:46px;height:46px;margin:-5px 0 -5px -4px;animation:tipWave 1.1s ease-in-out .35s both}
 #dayDone .dd-numrow{display:inline-flex;align-items:flex-end;justify-content:center}
-#dayDone .dd-numrow>.dd-companion{width:112px;height:112px;margin:0 -124px 8px 12px;animation:compHop 1.15s .55s cubic-bezier(.3,1.6,.5,1) both}
+#dayDone .dd-numrow>.dd-companion{width:112px;height:112px;margin:0 -124px 11px 12px;animation:compHop 1.15s .55s cubic-bezier(.3,1.6,.5,1) both}
 #dayDone .dd-wordonly .showuppp-lockup{margin:0 auto}
 @keyframes compIn{from{opacity:0;transform:translateY(12px) scale(.6)}to{opacity:1;transform:none}}
 @keyframes compHop{0%{opacity:0;transform:translate(30px,40px) scale(.4) rotate(12deg)}40%{opacity:1;transform:translate(0,-44px) scale(1.06) rotate(-6deg)}62%{transform:translate(0,4px) scale(1.12,.88)}78%{transform:translate(0,-8px) scale(.97,1.03)}100%{opacity:1;transform:none}}
@@ -203,12 +203,12 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 :root[data-mascot-motion="still"] .su-companion{animation:none}
 .su-comp-active .club-sprite{animation-duration:2.9s!important}
 /* v4.6.312: the companion in setup */
-#onb .ob-adopt .ad-in{padding-top:4px}
-#onb .ob-adopt .ad-pip{width:96px;margin-bottom:6px}
+#onb .ob-adopt .ad-in{padding-top:6px}
+#onb .ob-adopt .ad-pip{width:96px;margin-bottom:8px}
 #onb .ob-jump .ob-comp{width:120px;height:120px;opacity:0;animation:obJump .9s .25s cubic-bezier(.3,1.6,.5,1) forwards}
-#dayDone .dd-crew{display:flex;align-items:center;justify-content:center;gap:8px;max-width:290px;margin:-2px auto 6px;text-align:left;font:400 13px/1.15 var(--body);color:var(--muted);animation:compIn .6s 2.1s cubic-bezier(.3,1.6,.5,1) both}#dayDone .dd-crew b{color:inherit;font-weight:600}
+#dayDone .dd-crew{display:flex;align-items:center;justify-content:center;gap:8px;max-width:290px;margin:-3px auto 8px;text-align:left;font:400 13px/1.269 var(--body);color:var(--muted);animation:compIn .6s 2.1s cubic-bezier(.3,1.6,.5,1) both}#dayDone .dd-crew b{color:inherit;font-weight:600}
 #dayDone .dd-crew svg{flex:none}
 #dayDone .dd-companion{position:relative}
 #dayDone .dd-comp-pin{position:absolute;right:-6px;top:-4px;width:36px;height:36px;border-radius:50%;background:var(--ground);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18);animation:ddPin .7s 2.2s cubic-bezier(.3,1.6,.5,1) both}
 @keyframes ddPin{0%{opacity:0;transform:translateY(-60px) scale(1.8) rotate(-30deg)}70%{opacity:1;transform:translateY(2px) scale(.9) rotate(6deg)}100%{opacity:1;transform:none}}
-#dayDone .dd-num-medal{flex:none;align-self:flex-start;margin:-4px -28px 0 -12px;position:relative;z-index:1;width:40px;height:40px;border-radius:50%;background:var(--ground);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18);animation:ddPin .7s 1.9s cubic-bezier(.3,1.6,.5,1) both}
+#dayDone .dd-num-medal{flex:none;align-self:flex-start;margin:-5px -28px 0 -12px;position:relative;z-index:1;width:40px;height:40px;border-radius:50%;background:var(--ground);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18);animation:ddPin .7s 1.9s cubic-bezier(.3,1.6,.5,1) both}

@@ -140,12 +140,15 @@ and some of it changes the web build too. Landed and planned:
   keys, file names, the repo, and the ShowUp* plugin names. buildcheck guards
   the user-facing set. The App Store listing copy lives in the runbook doc.
 
-- v4.6.362 — type and spacing pass (done). Text x0.88, vertical spacing x0.6,
-  line height x0.84, via tools/retype.py (one run; it refuses a second). New CSS
-  should be written at the current scale -- copy sizes from neighbouring rules,
-  not from older code. Floors that still hold: tap targets 44px, text fields
-  16px (iOS zoom), header/nav clearance, calendar and heatmap geometry, and the
-  share/story layouts in js/stats-story.js.
+- v4.6.364 — type and spacing pass, version B (done; replaces v4.6.362's
+  tight spacing, which Sungjee rejected as too crowded). Text x0.88, vertical
+  margins and row gaps x0.8, line height x0.94; padding inside elements, min
+  heights and the top bar are unchanged. Applied by tools/retype.py (one run; it
+  refuses a second). New CSS should be written at the current scale -- copy
+  sizes from neighbouring rules, not from older code. Floors that still hold:
+  tap targets 44px, text fields 16px (iOS zoom), header/nav clearance, calendar
+  and heatmap geometry, and the share/story layouts in js/stats-story.js.
+  Section headings on Today sit 24px under what precedes them.
 
 If you touch `index.html`'s head, `sw.js`'s SHELL, `css/fonts.css`, or the
 sign-in/settings flow, say so here first — those are the files this track is

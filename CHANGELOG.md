@@ -1,5 +1,16 @@
 # ShowUppp — changelog
 
+## v4.6.364 (2026-10-20) — Smaller type, breathable spacing
+
+- **Asked for:** v4.6.362 felt crowded. Put the top bar and inner padding back, keep type B, and make it breathe (approved version B), with your notes on screens 1B–4B and 6B.
+- **Across the app:** text stays at 88% of its old size. Space between blocks is 80% of the original (v4.6.362 had 60%), line height is 6% tighter, and padding inside cards, buttons and rows is back to the original. The top bar is its original size.
+- **1B:** the parts on tomorrow's line ("Cardio + Back + Core") are a step larger.
+- **2B:** more room above "Logged today".
+- **3B:** "Tomorrow" and "Trained today" each sit 24px under what's above them. Inside Trained today, every part heading is the same height, every exercise row is 44px, and every divider has the same space around it.
+- **4B:** room between the All / Abs / Obliques chips and the list below, and exercise list rows (Never tried and the rest) use the compact rows from 4A.
+- **6B:** less space above "Your work, stacking up" on Stats.
+- Nine test files that pinned v4.6.362's pixel values now pin version B's.
+
 ## v4.6.363 — the big clock is for a phone turned sideways
 - On a desktop browser the blue "Since workout" clock took over the whole app after a finished workout, with no way out: it only asked whether the window was wider than tall. It now needs landscape, a touch screen and a phone's short side -- the same test as the portrait veil. Phones sideways are unchanged; desktops, laptops and tablets keep the app.
 - Rebuilt the OTA bundle, whose hashes were stale against the shipped files.

@@ -24,11 +24,11 @@ function renderSync(){
     ${typeof ownerEntryHTML==='function'?ownerEntryHTML():''}
     ${!session&&Object.keys(DB.days).some(d=>DB.days[d].w&&DB.days[d].w.length)?`
     <div class="card" style="border-color:var(--record)"><b>Not syncing.</b>
-      <div class="note" style="margin-top:2px">Workouts logged on this device stay on this device until you sign in below. If the app is ever deleted or reinstalled, unsynced data is lost.</div></div>`:''}
+      <div class="note" style="margin-top:3px">Workouts logged on this device stay on this device until you sign in below. If the app is ever deleted or reinstalled, unsynced data is lost.</div></div>`:''}
     <h2>Display</h2>
     <div class="card">
       <button class="btn ghost" id="unitBtn" style="margin:0">${isLb()?'lb · mi':'kg · km'}</button>
-      <span class="seg" style="display:flex;margin-top:5px">
+      <span class="seg" style="display:flex;margin-top:6px">
         <button data-thm="system" class="${DB.settings.theme==='system'?'sel':''}">System</button>
         <button data-thm="light" class="${DB.settings.theme==='light'?'sel':''}">Light</button>
         <button data-thm="dark" class="${DB.settings.theme!=='system'&&DB.settings.theme!=='light'?'sel':''}">Dark</button>
@@ -38,8 +38,8 @@ function renderSync(){
       <!-- v3.3.477: the tab bar's own appearance. "Match" rather than
            "System" because the row above already means the system, and one
            word must not mean two things two rows apart. -->
-      <div class="note" style="margin-top:6px">Tab bar</div>
-      <span class="seg" style="display:flex;margin-top:2px">
+      <div class="note" style="margin-top:8px">Tab bar</div>
+      <span class="seg" style="display:flex;margin-top:3px">
         <button data-barpick="match" class="${DB.settings.barTheme!=='dark'&&DB.settings.barTheme!=='light'?'sel':''}">Match</button>
         <button data-barpick="light" class="${DB.settings.barTheme==='light'?'sel':''}">Light</button>
         <button data-barpick="dark" class="${DB.settings.barTheme==='dark'?'sel':''}">Dark</button>
@@ -54,7 +54,7 @@ function renderSync(){
       <span class="seg" style="display:flex" role="group" aria-label="Workout feedback">
         ${['sound','touch'].map(key=>`<button type="button" data-logger-feedback="${key}" aria-pressed="${loggerPrefs[key]}">${key==='sound'?'Sound':'Touch'}: ${loggerPrefs[key]?'On':'Off'}</button>`).join('')}
       </span>
-      <div class="note" style="margin-top:5px">Pin click for the rep ruler. A soft clunk when you change weight or log a set. Saved on this device; touch feedback depends on your device.</div>
+      <div class="note" style="margin-top:6px">Pin click for the rep ruler. A soft clunk when you change weight or log a set. Saved on this device; touch feedback depends on your device.</div>
     </div>
     <!-- v4.6.326: Body-part colors removed; everyone uses Normal (Sungjee, 2026-10-15) -->
     <h2>Week starts on</h2>
@@ -82,9 +82,9 @@ function renderSync(){
         <button data-rem="off" class="${rp.on?'':'sel'}" aria-pressed="${!rp.on}">Off</button>
         <button data-rem="on" class="${rp.on?'sel':''}" aria-pressed="${rp.on}">On</button>
       </span>
-      ${rp.on?`<div class="fld text" style="margin-top:6px"><label>Planned-day note at</label>
+      ${rp.on?`<div class="fld text" style="margin-top:8px"><label>Planned-day note at</label>
         <input id="remMorning" type="time" value="${rp.morning}"></div>`:''}
-      <div class="note" style="margin-top:6px">At most one a day. On a planned day, your plan in the morning. On a usual training day with no plan, one line 30 minutes after you usually start, if nothing is logged. Nothing on rest days.</div>
+      <div class="note" style="margin-top:8px">At most one a day. On a planned day, your plan in the morning. On a usual training day with no plan, one line 30 minutes after you usually start, if nothing is logged. Nothing on rest days.</div>
     </div>`; })():''}
     ${typeof hlPlugin==='function'&&hlPlugin()?(()=>{ const hp=hlPrefs(); return `
     <!-- v4.6.132: Apple Health, iOS app only, write-only (js/health.js). -->
@@ -94,70 +94,70 @@ function renderSync(){
         <button data-hl="off" class="${hp.on?'':'sel'}" aria-pressed="${!hp.on}">Off</button>
         <button data-hl="on" class="${hp.on?'sel':''}" aria-pressed="${hp.on}">On</button>
       </span>
-      <div class="note" style="margin-top:6px">When you press Finish, the workout is saved to Apple Health: your lifting as strength training, and each run, ride, row, swim or walk as its own workout with its time and distance. From now on only; nothing earlier is sent. ShowUppp never reads your Health data.</div>
+      <div class="note" style="margin-top:8px">When you press Finish, the workout is saved to Apple Health: your lifting as strength training, and each run, ride, row, swim or walk as its own workout with its time and distance. From now on only; nothing earlier is sent. ShowUppp never reads your Health data.</div>
     </div>`; })():''}
     ${typeof membershipSettingsHTML==='function'?membershipSettingsHTML():''}
     <h2>Account & cloud sync</h2>
     <div class="card">
       ${session?`
-        <div class="row spread" style="margin-bottom:6px">
+        <div class="row spread" style="margin-bottom:8px">
           <span><b class="selectable">${session.user.email||'Signed in'}</b>
-            <div class="note" style="margin:1px 0 0">Devices sync on open and on return, day by day.</div>
-        <div class="note" style="margin:4px 0 0">Your full history — ${fmt(SEED.totals.sessions)} days · ${SEED.totals.km} km.</div></span>
+            <div class="note" style="margin:2px 0 0">Devices sync on open and on return, day by day.</div>
+        <div class="note" style="margin:5px 0 0">Your full history — ${fmt(SEED.totals.sessions)} days · ${SEED.totals.km} km.</div></span>
         </div>
         <div class="note">Last cloud sync: ${DB.settings.lastCloud?new Date(DB.settings.lastCloud).toLocaleString():'—'}</div>
-        <div class="row" style="gap:8px;margin-top:6px">
+        <div class="row" style="gap:8px;margin-top:8px">
           <button class="btn ghost" id="cloudPullBtn" style="margin:0">Pull ↓</button>
           <button class="btn ghost" id="signOutBtn" style="margin:0">Sign out</button>
         </div>
-        <button class="btn ghost danger" id="deleteAcctBtn" style="margin:8px 0 0">Delete account…</button>
-        <div class="note" style="margin-top:4px">Erases your account and everything synced to it. Sign out only removes this device.</div>`
+        <button class="btn ghost danger" id="deleteAcctBtn" style="margin:11px 0 0">Delete account…</button>
+        <div class="note" style="margin-top:5px">Erases your account and everything synced to it. Sign out only removes this device.</div>`
       :`
         ${cloudReady()?`
           ${typeof appleReady==='function'&&appleReady()?`<button class="btn apple-btn" id="appleBtn"><span class="apple-glyph" aria-hidden="true">&#xF8FF;</span>Continue with Apple</button>`:''}
           <button class="btn" id="googleBtn" style="margin:0">Continue with Google</button>
-          <div class="note" style="margin-top:5px">Your data stays on this device until you sign in. Signing in syncs it to your own database, private to your account.</div>`
+          <div class="note" style="margin-top:6px">Your data stays on this device until you sign in. Signing in syncs it to your own database, private to your account.</div>`
         :`
-          <div class="fld text" style="margin-bottom:5px"><label>Supabase project URL</label>
+          <div class="fld text" style="margin-bottom:6px"><label>Supabase project URL</label>
             <input id="cloudUrl" value="${DB.settings.cloud?.url||''}" placeholder="https://xxxx.supabase.co" autocapitalize="off"></div>
           <div class="fld text"><label>Anon public key</label>
             <input id="cloudAnon" value="${DB.settings.cloud?.anon||''}" placeholder="eyJhbGciOi…" autocapitalize="off"></div>
-          <button class="btn" id="cloudSave" style="margin-top:6px">Save & enable cloud</button>
-          <div class="note" style="margin-top:5px">One-time setup — see INSTALL.md — create the free database, run one SQL file, switch on Google sign-in.</div>`}
+          <button class="btn" id="cloudSave" style="margin-top:8px">Save & enable cloud</button>
+          <div class="note" style="margin-top:6px">One-time setup — see INSTALL.md — create the free database, run one SQL file, switch on Google sign-in.</div>`}
       `}
     </div>
     <!-- v4.6.117: App Store 5.1.1(i) wants the privacy policy reachable in the app.
          Absolute URLs: inside the iOS app a relative link would resolve to the
          app's own files, which do not carry these pages. -->
-    <div class="note legal-links" style="text-align:center;margin:6px 0 0"><a href="https://tahros.github.io/showup/privacy.html" target="_blank" rel="noopener">Privacy Policy</a> · <a href="https://tahros.github.io/showup/support.html" target="_blank" rel="noopener">Support</a></div>
+    <div class="note legal-links" style="text-align:center;margin:8px 0 0"><a href="https://tahros.github.io/showup/privacy.html" target="_blank" rel="noopener">Privacy Policy</a> · <a href="https://tahros.github.io/showup/support.html" target="_blank" rel="noopener">Support</a></div>
     <h2>You</h2>
     <div class="card">
-      <div class="fld text" style="margin-bottom:5px"><label>Name — what the app calls you</label>
+      <div class="fld text" style="margin-bottom:6px"><label>Name — what the app calls you</label>
         <input id="youName" value="${hesc(DB.settings.name||'')}" placeholder="—" autocapitalize="words" maxlength="40"></div>
-      <div class="note" style="margin:-1px 0 6px">${firstName()
+      <div class="note" style="margin:-2px 0 8px">${firstName()
         ? `Greets you as <b>${firstName()}</b> — the first word of whatever you type.`
         : `Only the first word is used — “Sungjee Kim” greets as Sungjee. Type exactly what you want to be called.`}</div>
       <div class="row" style="gap:8px;align-items:stretch">
         <div class="fld" style="flex:1"><label>Weight (${U()})</label>
           <input id="youBw" type="number" inputmode="decimal" step="0.1" value="${bwNow()>0?wDisp(bwNow()):''}" placeholder="—"></div>
         <div class="fld" style="flex:1"><label>Sex</label>
-          <span class="seg" style="display:flex;margin-top:2px">
+          <span class="seg" style="display:flex;margin-top:3px">
             <button data-sex="m" class="${DB.settings.sex==='m'?'sel':''}">M</button>
             <button data-sex="f" class="${DB.settings.sex==='f'?'sel':''}">F</button></span></div>
       </div>
       <div class="note">Enter a weight only when it <b>changes</b> — silence means unchanged, and the app reads back the weight in force on any given day.</div>
-      <button class="btn" id="youSave" style="margin-top:6px">Save</button>
+      <button class="btn" id="youSave" style="margin-top:8px">Save</button>
     </div>
     <h2>What you train</h2>
     <div class="card">
-      <div class="note" style="margin-bottom:6px">Shapes which parts appear in Train and which get
+      <div class="note" style="margin-bottom:8px">Shapes which parts appear in Train and which get
         suggested on Today. <b>Nothing is deleted</b> — a part you switch off keeps every set you
         ever logged, and switching it back on brings the history with it.</div>
       <div class="onbchips" id="myPartsChips">${Object.keys(SEED.catalog).filter(p=>p!=='Run').map(p=>{
         const on=myPartsSet().has(p), n=(trainingPlan().info[p]||{}).days||0;
         return `<button class="onbchip ${on?'sel':''}" data-myp="${p}">${partLabel(p)}${
           n?`<small> · ${n}d</small>`:''}</button>`;}).join('')}</div>
-      <div class="note" id="myPartsNote" style="margin-top:6px">${
+      <div class="note" id="myPartsNote" style="margin-top:8px">${
         (()=>{const off=Object.keys(SEED.catalog).filter(p=>p!=='Run'&&!myPartsSet().has(p));
           return off.length? `Hidden from Train: <b>${off.map(partLabel).join(', ')}</b>.`
                            : 'Every part is in your rotation.';})()}</div>
@@ -171,16 +171,16 @@ function renderSync(){
           <input id="smithW" type="number" inputmode="decimal" step="0.5" value="${wDisp(DB.settings.smithKg??20)}"></div>
       </div>
       <div class="note">Logged weight is the total including the bar, so per-side = (total − bar) ÷ 2. Set the Smith bar to 0 if you log Smith work as plates only.</div>
-      <button class="btn" id="barSave" style="margin-top:6px">Save</button>
+      <button class="btn" id="barSave" style="margin-top:8px">Save</button>
     </div>
     <h2>Same exercise, two names</h2>
     <div class="card">
-      <div class="note" style="margin-bottom:6px">If the same movement got logged under two names, fold one into the other. The app never does this on its own \u2014 only genuinely different movements should stay apart.</div>
+      <div class="note" style="margin-bottom:8px">If the same movement got logged under two names, fold one into the other. The app never does this on its own \u2014 only genuinely different movements should stay apart.</div>
       ${mergeUI()}
     </div>
     <h2>Your data</h2>
     <div class="card">
-      <div class="note" style="margin-bottom:6px">${fmt(Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).length)} days on this device — yours to take anywhere. Weights export in kg, distance in km (the stored truth), whatever the display unit.</div>
+      <div class="note" style="margin-bottom:8px">${fmt(Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).length)} days on this device — yours to take anywhere. Weights export in kg, distance in km (the stored truth), whatever the display unit.</div>
       <div class="row" style="gap:8px">
         <button class="btn ghost" id="expCsv" style="flex:1;margin:0">CSV ↓</button>
         <button class="btn ghost" id="expSheet" style="flex:1;margin:0">Copy for Sheets</button>
@@ -189,14 +189,14 @@ function renderSync(){
            days behind him and the only other way to see a new user's first
            screen is to log out or clear the device. This renders the flow over
            live data and writes NOTHING -- no sets, no settings, no stamp. -->
-      <button class="btn ghost" id="d1prev" style="margin-top:5px">Preview day one</button>
+      <button class="btn ghost" id="d1prev" style="margin-top:6px">Preview day one</button>
       <!-- v3.3.424: and the century, for the same reason -- the next one is
            dozens of days away and it cannot be judged from a description.
            It writes NOTHING: no stamp, no settings, no set. It shows the
            NEXT century you will actually reach, so what you are looking at is
            your own number, not a sample. -->
-      <button class="btn ghost" id="milePrev" style="margin-top:5px">Preview the ${fmt(Math.ceil((dayCount()+1)/100)*100)} day</button>
-      <div class="row" style="gap:8px;margin-top:5px">
+      <button class="btn ghost" id="milePrev" style="margin-top:6px">Preview the ${fmt(Math.ceil((dayCount()+1)/100)*100)} day</button>
+      <div class="row" style="gap:8px;margin-top:6px">
         <button class="btn ghost" id="expJson" style="flex:1;margin:0">Backup ↓</button>
         <button class="btn ghost" id="impJson" style="flex:1;margin:0">Restore…</button>
       </div>
@@ -204,7 +204,7 @@ function renderSync(){
       ${typeof impSettingsHTML==='function'?impSettingsHTML():''}
       ${typeof tipsSettingsHTML==='function'?tipsSettingsHTML():''}
     </div>
-    <div class="note assetcredits" style="text-align:center;margin-top:4px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · <a href="https://thenounproject.com/icon/share-2438501/" target="_blank" rel="noopener">Share</a> and <a href="https://thenounproject.com/icon/edit-1751206/" target="_blank" rel="noopener">Edit</a> by Timur Minvaleev · <a href="https://thenounproject.com/icon/ai-7262146/" target="_blank" rel="noopener">Sparkle</a> by Eliricon · <a href="https://thenounproject.com/icon/arrow-1342814/" target="_blank" rel="noopener">Chevron</a> by Barracuda · <a href="https://thenounproject.com/icon/expand-7584001/" target="_blank" rel="noopener">Expand</a> and <a href="https://thenounproject.com/icon/collapse-7584005/" target="_blank" rel="noopener">Collapse</a> by LAFS · Copy by maria icon · Pencil by Alvida Black · Noun Project</div>`;
+    <div class="note assetcredits" style="text-align:center;margin-top:5px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · <a href="https://thenounproject.com/icon/share-2438501/" target="_blank" rel="noopener">Share</a> and <a href="https://thenounproject.com/icon/edit-1751206/" target="_blank" rel="noopener">Edit</a> by Timur Minvaleev · <a href="https://thenounproject.com/icon/ai-7262146/" target="_blank" rel="noopener">Sparkle</a> by Eliricon · <a href="https://thenounproject.com/icon/arrow-1342814/" target="_blank" rel="noopener">Chevron</a> by Barracuda · <a href="https://thenounproject.com/icon/expand-7584001/" target="_blank" rel="noopener">Expand</a> and <a href="https://thenounproject.com/icon/collapse-7584005/" target="_blank" rel="noopener">Collapse</a> by LAFS · Copy by maria icon · Pencil by Alvida Black · Noun Project</div>`;
   clubArrangeSettings();
   void clubLoadMembership();
 }
@@ -464,9 +464,9 @@ function mergeUI(){
     .map(i=>`<option value="${i}" ${i===sel?'selected':''}>${canonName(i)}</option>`).join('');
   const n=_mg.from?canonSets(_mg.from):0;
   return `<select id="mgFrom" class="rzsel"><option value="">Fold this\u2026</option>${opt(_mg.from,_mg.to)}</select>
-    <select id="mgTo" class="rzsel" style="margin-top:5px"><option value="">\u2026into this</option>${opt(_mg.to,_mg.from)}</select>
-    ${_mg.from&&_mg.to?`<div class="note" style="margin-top:6px">${fmt(n)} set${n===1?'':'s'} will move to \u201c${canonName(_mg.to)}\u201d, and \u201c${canonName(_mg.from)}\u201d will become another name for it. There is no un-merge \u2014 you would have to re-log or restore a backup.</div>
-    <button class="btn ghost" id="mgGo" style="margin-top:6px">Fold \u201c${canonName(_mg.from)}\u201d in</button>`:''}`;
+    <select id="mgTo" class="rzsel" style="margin-top:6px"><option value="">\u2026into this</option>${opt(_mg.to,_mg.from)}</select>
+    ${_mg.from&&_mg.to?`<div class="note" style="margin-top:8px">${fmt(n)} set${n===1?'':'s'} will move to \u201c${canonName(_mg.to)}\u201d, and \u201c${canonName(_mg.from)}\u201d will become another name for it. There is no un-merge \u2014 you would have to re-log or restore a backup.</div>
+    <button class="btn ghost" id="mgGo" style="margin-top:8px">Fold \u201c${canonName(_mg.from)}\u201d in</button>`:''}`;
 }
 function canonSets(id){
   let n=0;
@@ -852,7 +852,7 @@ document.addEventListener('click',e=>{
 /* Settings: the latest import can be undone here too */
 function impSettingsHTML(){
   const l=(DB.settings.imports||[]).at(-1);
-  return `<button class="btn ghost" data-imp-open="settings" style="margin:5px 0 0">Bring past workouts</button>`+(l?`<p class="note" style="margin-top:4px">Last import: ${fmt(l.sets)} sets from ${hesc(l.src)}, ${hesc(impRange([l.first,l.last]))}. <button type="button" class="linkbtn" data-imp-undo="${hesc(l.id)}">Undo</button></p>`:'');
+  return `<button class="btn ghost" data-imp-open="settings" style="margin:6px 0 0">Bring past workouts</button>`+(l?`<p class="note" style="margin-top:5px">Last import: ${fmt(l.sets)} sets from ${hesc(l.src)}, ${hesc(impRange([l.first,l.last]))}. <button type="button" class="linkbtn" data-imp-undo="${hesc(l.id)}">Undo</button></p>`:'');
 }
 document.addEventListener('click',e=>{const u=e.target.closest&&e.target.closest('[data-imp-undo]');if(!u)return;const k=impUndo(u.dataset.impUndo);render();if(typeof renderSync==='function'&&view==='sync')renderSync();toast(`Import undone · ${fmt(k)} sets removed`);});
 
@@ -1017,28 +1017,28 @@ function adoptAuto(){return !navigator.webdriver&&!/jsdom/i.test(navigator.userA
 #adopt{position:fixed;inset:0;z-index:8700;overflow:auto;overscroll-behavior:contain;background:var(--ground);color:var(--chalk);display:flex;justify-content:center;padding:calc(env(safe-area-inset-top) + 40px) 22px calc(env(safe-area-inset-bottom) + 28px);animation:adFade .5s ease-out both}
 #adopt.ad-out{animation:adFade .5s ease-in reverse both}
 .ad-root .ad-in{width:100%;max-width:400px;text-align:center;position:relative}
-.ad-root .ad-later{all:unset;cursor:pointer;position:absolute;top:-24px;right:0;font:500 12px var(--body);color:var(--muted);padding:5px 4px}
-.ad-root .ad-pip{display:block;width:120px;margin:0 auto 8px;animation:adPip 1.1s .2s cubic-bezier(.3,1.6,.5,1) both}
+.ad-root .ad-later{all:unset;cursor:pointer;position:absolute;top:-24px;right:0;font:500 12px var(--body);color:var(--muted);padding:8px 4px}
+.ad-root .ad-pip{display:block;width:120px;margin:0 auto 11px;animation:adPip 1.1s .2s cubic-bezier(.3,1.6,.5,1) both}
 .ad-root.ad-pippick .ad-pip{display:none}
 .ad-root .ad-c[data-ad="pip"] .club-avatar{width:110px;height:84px}
 .ad-root.ad-naming .ad-pip{animation:adPipWave .9s ease-in-out both}
 .ad-root.ad-arrive .ad-pip{animation:adPipOff .7s .2s ease-in both}
-.ad-root .ad-t{font:700 23px/1.2 var(--body);letter-spacing:-.4px;margin:0 0 5px;text-transform:none;color:var(--chalk);opacity:1;display:block;animation:adRise .6s .7s ease-out both}
+.ad-root .ad-t{font:700 23px/1.2 var(--body);letter-spacing:-.4px;margin:0 0 6px;text-transform:none;color:var(--chalk);opacity:1;display:block;animation:adRise .6s .7s ease-out both}
 .ad-root .ad-t::after{display:none}
-.ad-root .ad-s{font:400 14px/1.218 var(--body);color:var(--muted);margin:0 0 13px;animation:adRise .6s 1.1s ease-out both}
-.ad-root .ad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;transition:opacity .4s,transform .4s}
-.ad-root .ad-c{border:0;border-radius:18px;background:var(--surface);color:var(--chalk);padding:6px 4px 5px;cursor:pointer;font:500 11px var(--body);animation:adPop .55s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(1.3s + var(--n)*70ms);transition:opacity .5s,transform .5s,filter .5s}
-.ad-root .ad-c .club-avatar{width:72px;height:72px;margin:0 auto 2px}
+.ad-root .ad-s{font:400 14px/1.363 var(--body);color:var(--muted);margin:0 0 18px;animation:adRise .6s 1.1s ease-out both}
+.ad-root .ad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 10px;transition:opacity .4s,transform .4s}
+.ad-root .ad-c{border:0;border-radius:18px;background:var(--surface);color:var(--chalk);padding:10px 4px 8px;cursor:pointer;font:500 11px var(--body);animation:adPop .55s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(1.3s + var(--n)*70ms);transition:opacity .5s,transform .5s,filter .5s}
+.ad-root .ad-c .club-avatar{width:72px;height:72px;margin:0 auto 3px}
 .ad-root.ad-picked .ad-dim{opacity:.18;filter:grayscale(1);transform:scale(.9)}
 .ad-root.ad-picked .ad-c:not(.ad-dim){transform:scale(1.12);box-shadow:0 0 0 2px var(--accent);z-index:1;position:relative}
 .ad-root.ad-naming .ad-grid,.ad-root.ad-naming .ad-t,.ad-root.ad-naming .ad-in>.ad-s{display:none}
 .ad-root .ad-name{animation:adRise .5s ease-out both}
-.ad-root .ad-hero{width:150px;height:150px;margin:4px auto 2px;animation:adHero .8s cubic-bezier(.3,1.6,.5,1) both}
+.ad-root .ad-hero{width:150px;height:150px;margin:5px auto 3px;animation:adHero .8s cubic-bezier(.3,1.6,.5,1) both}
 .ad-root .ad-hero .club-avatar{width:100%;height:100%}
-.ad-root .ad-lab{display:block;font:600 11px var(--body);letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:2px 0 5px}
-.ad-root #adName{width:100%;box-sizing:border-box;text-align:center;font:700 25px var(--body);color:var(--chalk);background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:7px 12px;margin:0 0 10px}
+.ad-root .ad-lab{display:block;font:600 11px var(--body);letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:3px 0 6px}
+.ad-root #adName{width:100%;box-sizing:border-box;text-align:center;font:700 25px var(--body);color:var(--chalk);background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:12px;margin:0 0 13px}
 .ad-root #adName:focus{outline:none;border-color:var(--accent)}
-.ad-root .ad-go{width:100%;min-height:44px;border-radius:16px;margin:0;font:700 15px var(--body)}
+.ad-root .ad-go{width:100%;min-height:56px;border-radius:16px;margin:0;font:700 15px var(--body)}
 .ad-root.ad-arrive .ad-hero{animation:adArrive 1.4s cubic-bezier(.3,1.6,.5,1) both}
 .ad-root.ad-arrive .ad-lab,.ad-root.ad-arrive #adName,.ad-root.ad-arrive .ad-go{opacity:0;transition:opacity .3s}
 @keyframes adFade{from{opacity:0}to{opacity:1}}

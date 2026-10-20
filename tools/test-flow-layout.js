@@ -17,16 +17,15 @@ let failed=0;
 const ok=(name,value)=>{console.log(value?'PASS':'FAIL',name);if(!value)failed++;};
 const tap=s=>{const el=w.document.querySelector(s);if(!el)throw Error('Missing control '+s);el.click();};
 // v3.3.528: compact only the expanded Refined Today plan, not the logger.
-// v4.6.362: values follow the approved type B (x0.88) and spacing Variation 2 (x0.6, 44px touch floor).
 const planRule=s=>css.match(new RegExp(':root\\[data-flow="refined"\\] #view\\[data-flow-view="today"\\] '+s+'\\{([^}]+)\\}'))?.[1]||'';
-ok('Expanded plan uses compact rows but retains a generous tap target',/padding:7px 0/.test(planRule('\\.planrow'))&&/min-height:44px/.test(planRule('\\.planrow')));
+ok('Expanded plan uses compact rows but retains a generous tap target',/padding:12px 0/.test(planRule('\\.planrow'))&&/min-height:64px/.test(planRule('\\.planrow')));
 ok('Plan names sit below action titles in the type hierarchy',/font-size:13px;font-weight:500/.test(planRule('\\.planrow \\.pn')));
-ok('Plan readout stays legible at the same numeric size',/font-size:11px;line-height:1.26/.test(planRule('\\.planrow :is\\(\\.pv,\\.px,\\.pr\\)')));
-ok('Shared load columns survive tighter vertical rhythm',/margin:4px 0 0/.test(planRule('\\.planrow \\.pl'))&&/grid-template-columns:minmax\(72px,var\(--planw\)\) 12px minmax\(0,1fr\);gap:2px 10px/.test(planRule('\\.planrow \\.pl')));
-ok('Week overview keeps compact comfortable rows',/padding:5px 0;min-height:44px/.test(planRule('\\.weekstack \\.planrow')));
+ok('Plan readout stays legible at the same numeric size',/font-size:11px;line-height:1.41/.test(planRule('\\.planrow :is\\(\\.pv,\\.px,\\.pr\\)')));
+ok('Shared load columns survive tighter vertical rhythm',/margin:5px 0 0/.test(planRule('\\.planrow \\.pl'))&&/grid-template-columns:minmax\(72px,var\(--planw\)\) 12px minmax\(0,1fr\);gap:2px 10px/.test(planRule('\\.planrow \\.pl')));
+ok('Week overview keeps compact comfortable rows',/padding:8px 0;min-height:56px/.test(planRule('\\.weekstack \\.planrow')));
 ok('Week names sit below focused Today in the hierarchy',/font-size:12px/.test(planRule('\\.weekstack \\.planrow \\.pn')));
 ok('Week inner card removes excess space without changing data type',/padding:0 12px/.test(planRule('\\.weekstack \\.daycard \\.plancard')));
-ok('Week set grid has a tighter top gap',/margin-top:2px/.test(planRule('\\.weekstack \\.planrow \\.pl')));
+ok('Week set grid has a tighter top gap',/margin-top:3px/.test(planRule('\\.weekstack \\.planrow \\.pl')));
 ok('Body-part rule uses the original soft divider',!css.includes('h2.flow-bodyhead::after{background:var(--edge)}')&&/h2::after\{[^}]*background:var\(--line\)/.test(css));
 ok('Refined part tiles align to the left',/\[data-flow="refined"\][^\n]*\.partcard\{align-items:flex-start;text-align:left/.test(css));
 ok('Last Time header and both groups align centrally',/\[data-flow="refined"\][^\n]*\.partlast>\.lasthead\{[^}]*align-items:center/.test(css)&&/\.partlast>\.lasthead>span\{display:inline-flex;align-items:center/.test(css));

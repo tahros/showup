@@ -267,24 +267,24 @@ function liftEditCardHTML(ex,isRun,es){
   if(!es||es.ex!==ex) return '';
   const focus=f=>lift.editField===f?' autofocus':'';
   return isRun&&isCardio(es)
-    ?`<div class="card editcard" style="margin-top:6px">
-        <div class="mono muted" style="font-size:10px;margin-bottom:5px">EDIT ${cardioOf(ex).noun.toUpperCase()}</div>
+    ?`<div class="card editcard" style="margin-top:8px">
+        <div class="mono muted" style="font-size:10px;margin-bottom:6px">EDIT ${cardioOf(ex).noun.toUpperCase()}</div>
         <div class="row" style="gap:8px">
           ${cardioOf(ex).dist?`<div class="fld"><label>Distance ${cUnit(ex)}</label><input id="edW" type="number" inputmode="${cShort(ex)?'numeric':'decimal'}" step="${cStep(ex)}" value="${es.w>0?cFromKm(ex,es.w):''}"></div>`:''}
           <div class="fld"><label>Min</label><input id="edM" type="number" inputmode="numeric" value="${es.mins||0}"></div>
           <div class="fld"><label>Sec</label><input id="edS" type="number" inputmode="numeric" value="${es.secs||0}"></div>
         </div>
-        <div class="row" style="gap:8px;margin-top:6px">
+        <div class="row" style="gap:8px;margin-top:8px">
           <button class="btn" id="editSave" style="margin:0">Save</button>
           <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
         </div></div>`
-    :`<div class="card editcard" style="margin-top:6px">
-        <div class="mono muted" style="font-size:10px;margin-bottom:5px">EDIT SET</div>
+    :`<div class="card editcard" style="margin-top:8px">
+        <div class="mono muted" style="font-size:10px;margin-bottom:6px">EDIT SET</div>
         <div class="row" style="gap:8px">
           <div class="fld"><label>Weight ${U()}</label><input id="edW" type="number" inputmode="decimal" step="${wStep(ex)}" value="${wDisp(es.w)}"${focus('w')}></div>
           <div class="fld"><label>Reps</label><input id="edR" type="text" inputmode="numeric" value="${es.reps.join(',')}"${focus('r')}></div>
         </div>
-        <div class="row" style="gap:8px;margin-top:6px">
+        <div class="row" style="gap:8px;margin-top:8px">
           <button class="btn" id="editSave" style="margin:0">Save</button>
           <button class="btn ghost" id="editCancel" style="margin:0;flex:0 0 96px">Cancel</button>
         </div></div>`;
@@ -465,8 +465,8 @@ function renderLift(){
         const cur=mine.reduce((a,s)=>a+(s.ex==='Run'?s.w:volOf(s)),0);
         const pct=Math.round(cur/usual*100);
         const disp=v=>isRunPart?`${dDisp(v)} ${DU()}`:`${vDisp(v)} ${U()}`;
-        h+=`<div class="card notecard" style="margin-top:6px;padding:7px 14px">
-              <div class="row spread" style="margin-bottom:5px">
+        h+=`<div class="card notecard" style="margin-top:8px;padding:12px 14px">
+              <div class="row spread" style="margin-bottom:6px">
                 <span class="mono muted" style="font-size:10px;letter-spacing:.05em;text-transform:uppercase">Today vs your usual ${lift.part} session</span>
                 <span class="mono" style="font-weight:700;color:${pct>=100?'var(--accent)':'var(--chalk)'}">${pct}%</span>
               </div>
@@ -484,7 +484,7 @@ function renderLift(){
          them doing neither job. Continue stays; a part sealed by an earlier
          build can still be reopened. */
       if(!partOpen(lift.part)&&dayMeta().donePart.includes(lift.part))
-        h+=`<button class="btn ghost" id="reopenPartBtn" style="margin-top:7px">${lift.part} completed ✓ — Reopen</button>`;
+        h+=`<button class="btn ghost" id="reopenPartBtn" style="margin-top:10px">${lift.part} completed ✓ — Reopen</button>`;
     }
 
     /* v3.3.151: LAST TIME at the part level — the session's SHAPE. The
@@ -570,7 +570,7 @@ function renderLift(){
             <span class="flow-exchev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span>
           </button>${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">${icon('trash',ICON_SZ.sm)}</button>`:''}
         </div>`;
-      return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:6px 10px 6px 14px'}">
+      return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,10)};${big?'':'padding:10px 10px 10px 14px'}">
             <button class="logmain" data-ex="${ex}">
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}${avoided?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</div>
             </button>
@@ -613,26 +613,26 @@ function renderLift(){
       fresh.forEach(x=>h+=row(x,false));
       if(refinedFlow()) h+=`</div>`;
     }
-    if(mf&&!goto.length&&!some.length&&!fresh.length&&!avoided.length) h+=`<p class="note" style="margin-top:8px">Nothing for ${MUSCLE_LABEL[mf]||mf} here yet.</p>`;
+    if(mf&&!goto.length&&!some.length&&!fresh.length&&!avoided.length) h+=`<p class="note" style="margin-top:11px">Nothing for ${MUSCLE_LABEL[mf]||mf} here yet.</p>`;
     if(lift.adding){
       h+=`<h2>Add an exercise to ${lift.part}</h2>
           <div class="card">
-            <div class="fld text" style="margin-bottom:6px"><label>Name</label>
+            <div class="fld text" style="margin-bottom:8px"><label>Name</label>
               <input id="newExName" type="text" placeholder="e.g. Incline Machine Press"></div>
-${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Muscle</label>
-            <div class="chips" style="margin-bottom:7px" role="group" aria-label="Muscle">${PART_MUSCLES[lift.part].map(m=>
+${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Muscle</label>
+            <div class="chips" style="margin-bottom:10px" role="group" aria-label="Muscle">${PART_MUSCLES[lift.part].map(m=>
               `<button type="button" class="chip ${(lift.newMuscle&&PART_MUSCLES[lift.part].includes(lift.newMuscle)?lift.newMuscle:exMuscleDefault(lift.part,mf))===m?'on':''}" data-newmuscle="${m}">${MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m}</button>`).join('')}</div>`:''}
-            <label class="mono muted" style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px">Equipment</label>
+            <label class="mono muted" style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Equipment</label>
             <div class="chips">${Object.entries(EQUIP_LABEL).map(([k,v])=>
               `<button class="chip ${(lift.newEquip||'barbell')===k?'on':''}" data-newequip="${k}">${v}</button>`).join('')}</div>
             <div class="note">Barbell and Smith get the bar + per-side plate math. Machine (stack) and Cable move a whole plate face at a time; Machine (plate-loaded) shows the plates per side and never counts the sled. Dumbbell shows "per hand". Bodyweight logs added weight only.</div>
-            <div class="row" style="gap:8px;margin-top:6px">
+            <div class="row" style="gap:8px;margin-top:8px">
               <button class="btn" id="saveEx" style="margin:0">Add to ${lift.part}</button>
               <button class="btn ghost" id="cancelEx" style="margin:0;flex:0 0 96px">Cancel</button>
             </div>
           </div>`;
     }else{
-      h+=`<button class="btn ghost" id="addEx" style="margin-top:8px">+ Add your own exercise</button>`;
+      h+=`<button class="btn ghost" id="addEx" style="margin-top:11px">+ Add your own exercise</button>`;
     }
     if(avoided.length){
       h+=`<h2 class="quiet">Avoided</h2>`;
@@ -656,7 +656,7 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
     const srcDate = lift.copy.d;
     let h=`<button class="back" data-cancelcopy="1">← ${ex}</button>
            <div class="exhead">${moving?`Move today's ${sets.length} sets to…`:`Suggest these ${sets.length} sets for…`}</div>
-           <div class="note" style="margin-bottom:7px">
+           <div class="note" style="margin-bottom:10px">
              ${sets.map(s=>`${wTxt(ex,s.w)}×${s.r}`).join('  ')}<br>
              ${moving
                ? `These are logged under ${ex} today. Picking a lift moves them there and removes them from ${ex}.`
@@ -744,7 +744,7 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
 
   if(isRun){
     h+=`<div class="zone prime"><div class="zonehead"><span>Log a ${C.noun}</span></div>
-        <div class="runrow" style="margin:6px 0">
+        <div class="runrow" style="margin:8px 0">
           ${C.dist?`<div class="fld"><label>Distance ${cUnit(ex)}</label><input id="rk" type="number" inputmode="${cShort(ex)?'numeric':'decimal'}" step="${cStep(ex)}" placeholder="${cShort(ex)?'0':'0.00'}"></div>`:''}
           <div class="fld"><label>Min</label><input id="rm" type="number" inputmode="numeric" placeholder="0"></div>
           <div class="fld"><label>Sec</label><input id="rs" type="number" inputmode="numeric" placeholder="0"></div>
@@ -832,7 +832,7 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
           <div class="chips eq-steps">${(()=>{const mine=stepMine(ex),auto=(W_TABLE[equipOf(ex)]||W_TABLE.machine)[isLb()?'lb':'kg'].s,opts=isLb()?[2.5,5,10,15,20,25]:[1,2,2.5,5,10];
             return `<button class="chip ${mine?'':'on'}" data-setstep="auto" data-setstepex="${ex}">Auto · ${fmt(auto)} ${U()}</button>`+opts.map(v=>`<button class="chip ${mine===v?'on':''}" data-setstep="${v}" data-setstepex="${ex}">${fmt(v)} ${U()}</button>`).join('');})()}</div>
           <div class="note">The weight step and equipment change how the weight moves for this exercise only, saved for next time. Everything already logged stays exactly as trained.</div>
-          <button class="btn ghost" data-eqcancel="1" style="margin-top:6px">Done</button></div>`;
+          <button class="btn ghost" data-eqcancel="1" style="margin-top:8px">Done</button></div>`;
       }else{
         h+=`<button class="eqline mono" data-editequip="${ex}">steps ${fmt(wStep(ex))} ${U()} · ${EQUIP_LABEL[equipOf(ex)]} <span class="eqpen">\u270e</span></button>`;
       }
@@ -853,7 +853,7 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
           </span></div>`;
     }
     h+=repRulerHTML(ex,lift.weight)+`
-        <button class="btn${isLive()?' livego':''}" id="addrep" style="margin:6px 0 0">Add set</button>
+        <button class="btn${isLive()?' livego':''}" id="addrep" style="margin:8px 0 0">Add set</button>
         ${plateMiniHTML()}
         </div>`;
     /* ---- v3.3.534: THE PLAN, NOT A GUESS -------------------------------
@@ -1004,11 +1004,11 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
           :`<div class="settile ${isPR?'pr':''}${lift.editSet===idx?' editing':''}" data-del="${idx}"><span class="w">${wLabel(ex,s.w)}${isBody(ex)?'':`<small>${U()}</small>`}</span><span class="x">${isHold(s.su)?'':'\u00d7'}</span><span class="w">${setNum(s.reps[0],s.su)}</span></div>`;
       });
       h+=`</div>
-        <div class="row" style="gap:8px;margin-top:6px">
-          <button class="btn ghost" id="clearToday" style="margin:0;flex:1;white-space:nowrap;padding:7px 6px">Clear today's ${todaySets.length}</button>
-          <button class="btn ghost" id="moveToday" style="margin:0;flex:1;white-space:nowrap;padding:7px 6px">Move to another lift →</button>
+        <div class="row" style="gap:8px;margin-top:8px">
+          <button class="btn ghost" id="clearToday" style="margin:0;flex:1;white-space:nowrap;padding:12px 6px">Clear today's ${todaySets.length}</button>
+          <button class="btn ghost" id="moveToday" style="margin:0;flex:1;white-space:nowrap;padding:12px 6px">Move to another lift →</button>
         </div>
-        ${undoStack.length?`<button class="btn ghost" id="undoBtn" style="margin-top:5px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}`;
+        ${undoStack.length?`<button class="btn ghost" id="undoBtn" style="margin-top:6px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}`;
       h+=liftEditCardHTML(ex,isRun,(lift.editSet!=null)?t.w[lift.editSet]:null);
     }
 
@@ -1046,14 +1046,14 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
        what that mode gets -- without this it had none, and the way back was
        hidden again by exactly the fix that was meant to surface it. */
     if((!editing||liftHasPlanTable)&&undoStack.length)
-      h+=`<button class="btn ghost" id="undoBtn" style="margin-top:7px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
+      h+=`<button class="btn ghost" id="undoBtn" style="margin-top:10px">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`;
     h+=runHist;   // v3.3.153: today first, then the history it joins at midnight
     /* v3.3.165: dual-home exercises offer their other home — quiet, at the
        bottom, confirmed before anything moves, forward-only by nature
        (rows already carry the part they were trained under). */
     if(DUAL[ex]){
       const home=homePartOf(ex), other=DUAL[ex].find(p=>p!==home)||DUAL[ex][0];
-      h+=`<div class="tot dualrow" style="margin-top:7px"><span class="mono muted" style="font-size:10px">Counts as ${home.toUpperCase()}</span>
+      h+=`<div class="tot dualrow" style="margin-top:10px"><span class="mono muted" style="font-size:10px">Counts as ${home.toUpperCase()}</span>
           <button class="ago" id="dualMove" data-dex="${ex}" data-dto="${other}">move to ${other}</button></div>`;
     }
     /* v4.6.174: INCLUDE / AVOID. Whether this exercise goes into plans and

@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
-"""retype.py DIR [--check] -- v4.6.362: one-time type and spacing pass.
+"""retype.py DIR -- v4.6.364: one-time type and spacing pass (version B).
 
-Sungjee approved text size B (88%) and spacing Variation 2 on 2026-10-20
-(sheets "Font-size-options" and "Spacing-Variation-2"). The previews applied
-the change in the browser by rewriting every rule's longhand values; this
-script makes the same edit in the source so the app ships what was approved:
+Sungjee approved text size B (88%) on 2026-10-20, then rejected the tight
+spacing of v4.6.362 ("too crowded") and approved the breathable version B:
 
   font-size, the size in a `font` shorthand ........ x 0.88
-  vertical padding / margin, row gap, min-height ... x 0.60 (60px and up kept: header/nav clearance)
-  line-height ...................................... x 0.84 (unitless floor 1.15)
-  min-height ....................................... x 0.60, never below 44px;
-                                                     one already under 44px is kept (a tap target)
+  vertical margin and row gap between blocks ....... x 0.80 (60px and up kept: header/nav clearance)
+  line-height ...................................... x 0.94 (unitless floor 1.2)
+  padding inside elements, min-height ............... unchanged
 
 Only plain px values change; var(), calc(), env() and percentages are left as
-they are, exactly as the preview left them. It runs over css/*.css (not
-fonts.css), the stylesheets scripts inject (not stats-story.js, whose rules
-lay out the share and story images) and style="..." attributes.
+they are. Left whole: the top bar, calendar and heatmap grids, and text fields
+of 16px or more (below 16px iOS zooms the page on focus). It runs over
+css/*.css (not fonts.css), the stylesheets scripts inject (not stats-story.js,
+whose rules lay out the share and story images) and style="..." attributes.
 It has run once; running it again would shrink everything again, so it
-refuses unless --force is given.
+refuses.
 """
 import re, sys, pathlib
 
-FONT, SPACE, LH, LH_FLOOR, TOUCH = 0.88, 0.60, 0.84, 1.15, 44
+FONT, SPACE, LH, LH_FLOOR, TOUCH = 0.88, 0.80, 0.94, 1.2, 44
 PX = re.compile(r'^-?\d+(?:\.\d+)?px$')
 
 def num(x):
@@ -115,11 +113,10 @@ def gap(v):
 
 RULES = {
     'font-size': single(FONT), 'font': font, 'line-height': lh,
-    'padding': box, 'margin': box,
-    'padding-top': single(SPACE), 'padding-bottom': single(SPACE),
+    'margin': box,
     'margin-top': single(SPACE), 'margin-bottom': single(SPACE),
-    'padding-block': block, 'margin-block': block,
-    'row-gap': single(SPACE), 'gap': gap, 'min-height': minh,
+    'margin-block': block,
+    'row-gap': single(SPACE), 'gap': gap,
 }
 DECL = re.compile(r'(?P<pre>(?:^|[{;\s"\']))(?P<prop>' + '|'.join(sorted(map(re.escape, RULES), key=len, reverse=True)) + r')\s*:\s*(?P<val>[^;{}"\'`]+?)(?=\s*(?:;|}|"|\'|`|$))', re.M)
 
@@ -127,7 +124,7 @@ DECL = re.compile(r'(?P<pre>(?:^|[{;\s"\']))(?P<prop>' + '|'.join(sorted(map(re.
 #  - a text field whose type is 16px or more stays there: below 16px iOS zooms the page on focus;
 #  - a calendar or heatmap grid is left whole: its cells, gaps and labels are measured against each other.
 FIELD = re.compile(r'input|textarea|select\b|\.planta|contenteditable')
-DAYGRID = re.compile(r'wdrail|heat|\.cal\b|calendar|attend|ledger|month|\.yr|\.sq\b|h-week|daygrid|squares')
+DAYGRID = re.compile(r'header|\.h-|hglass|brandrow|hbtns|wdrail|heat|\.cal\b|calendar|attend|ledger|month|\.yr|\.sq\b|h-week|daygrid|squares')
 
 def rewrite(text, sel=''):
     n = 0
@@ -170,8 +167,8 @@ def rewrite_styles(text):
 
 d = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith('--') else '.')
 stamp = d / 'css/app.css'
-if '/* v4.6.362 retype applied */' in stamp.read_text() and '--force' not in sys.argv:
-    sys.exit('retype: already applied (v4.6.362); refusing to shrink twice')
+if '/* v4.6.364 retype applied */' in stamp.read_text():
+    sys.exit('retype: already applied (v4.6.364); refusing to shrink twice')
 total = 0
 for f in sorted((d / 'css').glob('*.css')):
     if f.name == 'fonts.css':
@@ -206,5 +203,5 @@ for f in sorted((d / 'js').glob('*.js')) + [d / 'index.html']:
         print(f"{f.relative_to(d)}: {n}")
 if '--check' not in sys.argv:
     s = stamp.read_text()
-    stamp.write_text(s + "\n/* v4.6.362 retype applied */\n:root{font-size:88%}\n")
+    stamp.write_text(s + "\n/* v4.6.364 retype applied */\n:root{font-size:88%}\n")
 print(f"retype: {total} values")

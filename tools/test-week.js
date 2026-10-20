@@ -440,7 +440,7 @@ ok("Clear the week clears it whole and returns to today", run(`DB.week===null`) 
   ok("...and it truncates rather than wrapping",
      /\.dayhead \.dt \.dtl\{white-space:nowrap;overflow:hidden;text-overflow:ellipsis/.test(css));
   ok("the head is tighter than it was",
-     /\.dayhead\{[^}]*padding:5px\s14px/.test(css) && /\.daycard\.open \.dayhead\{padding-bottom:1px\}/.test(css));
+     /\.dayhead\{[^}]*padding:9px 14px/.test(css) && /\.daycard\.open \.dayhead\{padding-bottom:2px\}/.test(css));
 }
 
 process.exit(fail ? 1 : 0);
