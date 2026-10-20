@@ -1541,27 +1541,38 @@ function drunScrubAt(box,clientX){
 }
 function drunScrubShow(box,dot){
   const svg=box.querySelector('svg'); const card=box.closest('.drcard');
-  const head=card&&card.querySelector('[data-drread]'); const cap=card&&card.querySelector('[data-drcap]');
+  const head=card&&card.querySelector('[data-drread]'); const latest=card&&card.querySelector('[data-drlatest]');
   svg.querySelectorAll('circle.drdot.pick').forEach(c=>c.classList.remove('pick'));
   const g=svg.querySelector('.drguide'); if(g) g.remove();
-  if(!dot){ box.classList.remove('scrubbing'); if(head){ head.hidden=true; head.textContent=''; } if(cap) cap.hidden=false; return; }
-  box.classList.add('scrubbing'); dot.classList.add('pick');
-  /* the guide: a hairline through the picked column, base to top, like This year vs last's cursor */
-  const NS='http://www.w3.org/2000/svg'; const line=document.createElementNS(NS,'line');
-  line.setAttribute('class','drguide'); line.setAttribute('x1',dot.getAttribute('cx')); line.setAttribute('x2',dot.getAttribute('cx'));
-  line.setAttribute('y1',String(PMIX_TOP)); line.setAttribute('y2',String(PMIX_BASE));
-  line.setAttribute('stroke','var(--chalk)'); line.setAttribute('stroke-width','0.7'); line.setAttribute('opacity','.45');
-  svg.insertBefore(line, dot);
-  /* the head: date, distance AND pace -- both facts, whatever the line draws */
-  const d=dot.getAttribute('data-d');
+  /* v4.6.366: the head always reads a run, as This year vs last always reads a
+     date. Nothing picked reads the newest; Latest is how you get back to it. */
+  const shown=dot||svg.querySelector('circle.drdot.newest');
+  if(latest) latest.disabled=!dot||dot.classList.contains('newest');
+  if(!dot) box.classList.remove('scrubbing');
+  else{
+    box.classList.add('scrubbing'); dot.classList.add('pick');
+    /* the guide: a hairline through the picked column, base to top, like This year vs last's cursor */
+    const NS='http://www.w3.org/2000/svg'; const line=document.createElementNS(NS,'line');
+    line.setAttribute('class','drguide'); line.setAttribute('x1',dot.getAttribute('cx')); line.setAttribute('x2',dot.getAttribute('cx'));
+    line.setAttribute('y1',String(PMIX_TOP)); line.setAttribute('y2',String(PMIX_BASE));
+    line.setAttribute('stroke','var(--chalk)'); line.setAttribute('stroke-width','0.7'); line.setAttribute('opacity','.45');
+    svg.insertBefore(line, dot);
+  }
+  if(!head||!shown) return;
+  /* the head: date, distance AND pace -- both facts, whatever the line draws.
+     The one the line draws leads; each sits on its own line and never wraps. */
+  const d=shown.getAttribute('data-d');
   const day=new Date(d+'T00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
   /* v3.3.487: through runUnit(), the card's one source for its unit, so the
      readout can never drift from the axis and the footer beside it. */
   const r=runDays().find(x=>x.d===d); const u=runUnit();
-  const dist=r?`${(Math.round(toD(r.km)*100)/100).toFixed(2)} ${u}`:'';
-  const pace=(r&&r.timed>0&&r.sec>0)?`${paceStr(r.sec/toD(r.timed))} /${u}`:'';
-  if(head){ head.innerHTML=`<b>${day}</b>${dist?` \u00b7 ${dist}`:''} \u00b7 ${pace||'pace not recorded'}`; head.hidden=false; }
-  if(cap) cap.hidden=true;
+  const dist=r?(Math.round(toD(r.km)*100)/100).toFixed(2):'';
+  const pace=(r&&r.timed>0&&r.sec>0)?paceStr(r.sec/toD(r.timed)):'';
+  const D=dist?`<span class="drv"><b>${dist}</b> <small>${u}</small></span>`:'';
+  const P=pace?`<span class="drv"><b>${pace}</b> <small>/${u}</small></span>`:`<span class="drv drv-none">pace not recorded</span>`;
+  const paceLed=box.dataset.drunMode==='pace'&&pace;
+  head.innerHTML=`<span class="drdate">${day}</span> <span class="drvals${paceLed?' pace-led':''}">${paceLed?P+' '+D:D+' '+P}</span>`;
+  head.hidden=false;
 }
 /* v3.3.511: the gesture is generalised, not copied. Everything below -- the
    250ms hold, the slop that tells a scroll from a scrub, preventDefault only
@@ -1631,6 +1642,9 @@ function bindDrun(resetScroll=true){
   const box=document.getElementById('drWrap'); if(!box) return;
   if(resetScroll&&box.scrollWidth>box.clientWidth) box.scrollLeft=box.scrollWidth;
   bindDrunScrub(box);   // v3.3.486: hold to scrub, drag to scroll
+  drunScrubShow(box,null);   // v4.6.366: the head reads the newest run until one is picked
+  const lt=box.closest('.drcard')&&box.closest('.drcard').querySelector('[data-drlatest]');
+  if(lt) lt.onclick=()=>{ drunScrubShow(box,null); box.scrollTo?box.scrollTo({left:box.scrollWidth,behavior:'smooth'}):(box.scrollLeft=box.scrollWidth); };
   /* v3.3.475: the axis year follows the LEFT EDGE of the scroller. The year
      lives outside the chart so it holds still, which means something has to
      keep it true as the days move -- the year marks inside carry their year
