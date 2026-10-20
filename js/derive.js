@@ -538,6 +538,12 @@ function syncRecoveryCrew(el,crew,enabled){
   }
   state.raf=requestAnimationFrame(draw);
 }
+/* v4.6.362: THE BIG CLOCK IS FOR A PHONE TURNED SIDEWAYS (Sungjee, 2026-10-20). It asked only
+   "is the window wider than tall?" -- and a desktop browser window always is, so on a computer the
+   blue "Since workout" clock covered the whole app after any finished workout, with no way out
+   (a click only toggles it to the time of day). It now asks the question the portrait veil
+   already asks (css/app.css): landscape, a touch screen, and a phone's short side. */
+function phoneSideways(){return !!(window.matchMedia&&window.matchMedia('(orientation:landscape) and (pointer:coarse) and (max-height:500px)').matches);}
 function tickRest(){
   const el=$('#hTimer'); if(!el) return;
   /* v3.3.149: the WIDER rule. This used to require isLive(), so tapping
@@ -565,7 +571,7 @@ function tickRest(){
   // invent a timestamp for legacy records or change it on rotation/reload.
   const completed=recoveryAnchor();
   const recovery=!!(completed&&
-    window.matchMedia&&window.matchMedia('(orientation:landscape)').matches);
+    phoneSideways());
   const show = recovery || whole || (!!lastSetAt && Math.floor((Date.now()-lastSetAt)/1000)<=1800);
   el.classList.toggle('recovery',recovery);
   el.classList.toggle('on',show);          // visibility is the timer's own, not the header's
@@ -710,7 +716,7 @@ async function syncWakeLock(){
 let _bigHome=null;
 function tickBig(){
   const el=document.getElementById('hTimer'); if(!el) return;
-  const landscape = !!(window.matchMedia && window.matchMedia('(orientation:landscape)').matches);
+  const landscape = phoneSideways();
   const want = landscape && (isLive() || el.classList.contains('recovery')) && el.classList.contains('on');
   const isOut = el.parentElement===document.body;
   if(want && !isOut){
@@ -733,7 +739,7 @@ if(typeof window!=='undefined'){
 }
 function tickWake(){
   const el=document.getElementById('hTimer');
-  const landscape = window.matchMedia && window.matchMedia('(orientation:landscape)').matches;
+  const landscape = phoneSideways();
   const want = !!(el && el.classList.contains('on') && (isLive() || el.classList.contains('recovery')) && landscape);
   if(want!==_wakeWant){ _wakeWant=want; syncWakeLock(); }
 }
