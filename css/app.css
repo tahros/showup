@@ -4827,6 +4827,16 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 :is(button,a,[role=button],.pw-btn) .ic:not(.ic-brandmark){scale:.9}
 :is(button,a,[role=button],.pw-btn) .ic-share{scale:.81}
 .ic-glyph{flex:none;vertical-align:-.18em}
+/* v4.6.365: a glyph turned icon stays IN the line of text it replaced. Some cards style their svgs
+   display:block at a fixed size (the Stats system sizes every svg in #view), so "+ Year" and
+   "Latest ↗" broke into an icon stacked over the word, both blown up to 25-31px. The icon is the
+   size of its letters and sits on their line, whatever card it lands in. */
+.ic.ic-glyph{display:inline-block!important;width:1.1em!important;height:1.1em!important;margin:0 .2em 0 0;vertical-align:-.2em!important}
+/* the "+ Year" fold is a pill like the year chips beside it -- no disclosure triangle */
+.comparison-years summary{list-style:none;display:inline-flex;align-items:center}
+.comparison-years summary::-webkit-details-marker{display:none}
+.comparison-latest{display:inline-flex;align-items:center;gap:2px}
+.comparison-latest .ic.ic-glyph{margin:0 0 0 .15em}
 
 /* v4.6.359: TODAY WHILE A SESSION IS LIVE (js/today.js liveTodayHTML). One plan
    card with its progress and the single Next button, then a plain list of what
@@ -4893,6 +4903,15 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .pw-home.ld .ld-next{padding:18px 18px 0;gap:0}
 .pw-home.ld .ld-next>.lt-fold{padding-bottom:16px}
 .pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary{margin:0 -18px;padding:8px 18px;border-top:1px solid var(--line)}
+/* v4.6.365: the days after tomorrow -- the Tomorrow row's shape, a step smaller, hairlines between */
+.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary{align-items:center}
+.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary>small{margin-left:auto}
+.pw-home.ld .ld-later-list{margin:0 -18px;padding:0 18px}
+.pw-home.ld .ld-later-day{border-top:1px solid var(--line)}
+.pw-home.ld .ld-later-day>summary.pw-fold-summary{padding:14px 0;gap:12px;list-style:none}
+.pw-home.ld .ld-later-day>summary::-webkit-details-marker{display:none}
+.pw-home.ld .ld-later-day .lt-head b{font-size:15px}
+.pw-home.ld .ld-later-day .lt-fold-body{padding:0 0 16px}
 .pw-home.ld .ld-log{padding:4px 0 8px}
 .ld .ld-part{display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;min-height:40px;padding:12px 20px 0;margin:0}
 .ld .ld-part+.lt-row{border-top:0}
