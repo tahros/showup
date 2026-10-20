@@ -58,6 +58,11 @@ run(`(function(){
   lift={ex:null,part:'Chest',weight:0};
   view='lift'; render();})()`);
 
+/* v4.6.360 RESTATES: with a set logged today the playbook no longer sits between the live
+   exercise and the list; the part heading's "Last:" link opens it. Everything below still
+   holds once it is open -- the card's content and behaviour are unchanged. */
+ok("with a set today, the card waits behind the heading's link", run(`!document.querySelector('.partlast') && !!document.querySelector('.pt-last')`));
+run(`document.querySelector('.pt-last').click()`);
 const card = () => run(`document.querySelector('.partlast')`);
 const rowExs = () => JSON.parse(run(
   `JSON.stringify([...document.querySelectorAll('.partlast .plrow')].map(r=>r.dataset.ex))`));

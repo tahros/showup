@@ -4858,3 +4858,30 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .lt .lt-row b{display:flex;align-items:center;gap:10px;min-width:0;font-size:17px;font-weight:500}
 .lt .lt-row.on b::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--live)}
 .lt .lt-row .mono{flex:none;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* v4.6.360: TRAIN DURING A LIVE SET (approved mock "Train during a live set").
+   Part tiles: one style. A part being worked shows a red dot with "today"; the
+   selected live part keeps its pulsing red fill, now with white text (it was
+   red on red). The part's sets today sit in one card, red-outlined while open,
+   with the Continue button inside. */
+.vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.partcard.liveP:not(.sel){border-color:transparent;animation:none}
+.partcard.liveP .ps{display:inline-flex;align-items:center;gap:6px}
+.partcard.liveP .ps::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:currentColor}
+.partcard.liveP:not(.sel) .ps{color:var(--live);animation:none}
+.partcard.sel.liveP .ps{color:#FFFFFF;opacity:1;animation:none}
+:root[data-skin="minimal"] .partcard.liveP:not(.sel){border-color:transparent}
+.pt-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:22px}
+.pt-head h2{flex:1;min-width:0}
+.pt-head .pt-last{display:inline-flex;align-items:center;gap:2px;flex:none;padding:6px 0;border:0;background:none;color:var(--accent-ink);font:400 13px/1.3 var(--body);text-decoration:none;cursor:pointer;white-space:nowrap}
+.pt-head .pt-last .ic{width:14px;height:14px}
+.pt-card{display:flex;flex-direction:column;gap:4px;padding:8px;border-radius:18px;background:var(--surface);border:1.5px solid transparent}
+.pt-card.on{border-color:var(--live)}
+.pt-card .todayrow{margin:0;background:none;box-shadow:none;border:0}
+.pt-card .todayrow+.todayrow{border-top:1px solid var(--line);border-radius:0}
+.pt-card .todayrow:not(.fin) .logmain>b{display:inline-flex;align-items:center;gap:10px}
+.pt-card .todayrow:not(.fin) .logmain>b::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--live)}
+.pt-card .btnrow{margin:6px 0 0}
+.pt-card .btnrow .btn{width:100%;margin:0}
+.mtag{display:inline;margin:0;padding:0;border-radius:0;background:none;color:inherit;font:inherit;letter-spacing:0;text-transform:none;vertical-align:baseline}
+.mtag::after{content:" · "}

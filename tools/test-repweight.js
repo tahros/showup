@@ -822,8 +822,10 @@ run(`(function(){DB.days={}; DB.settings.unit='lb'; DB.settings.exW={};
 const nilRow = ex => `(function(){const b=[...document.querySelectorAll('.item.logrow')]
   .find(x=>x.querySelector('b') && x.querySelector('b').textContent==='${ex}');
   return b ? !!b.querySelector('.pr-nil') : '(absent)';})()`;
-check("an exercise with no weight logged shows a rule, not a blank",
-      nilRow('Pull Up'), true);
+/* v4.6.360 RESTATES (approved mock "Train during a live set"): the hairline read as an empty
+   placeholder on every bodyweight row. No weight logged now shows nothing. */
+check("an exercise with no weight logged shows no placeholder",
+      nilRow('Pull Up'), false);
 check("...and an exercise that has a weight shows no rule",
       nilRow('Bent-Over Row'), false);
 

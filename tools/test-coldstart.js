@@ -291,7 +291,8 @@ check("...and is NOT faded — it is what the grid is scanned for",
 /* the live flame is a different claim from "done" and must survive */
 run(`(function(){const td=dayMeta(); td.donePart=['Biceps','Triceps','Sixpack','Run'];
   lastSetAt=Date.now(); SEED=deriveAll(); render();})()`);
-check("an OPEN set still burns", `/\\ud83d\\udd25/.test(document.querySelector('.partgrid').textContent)`, true);
+/* v4.6.360 RESTATES: the flame emoji became a red dot drawn by CSS on .liveP -- the claim is the class, not the glyph */
+check("an OPEN set still burns", `!!document.querySelector('.partgrid .partcard.liveP') && !/\\ud83d\\udd25/.test(document.querySelector('.partgrid').textContent)`, true);
 
 process.exit(fail ? 1 : 0);
 })();

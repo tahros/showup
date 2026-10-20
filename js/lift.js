@@ -245,6 +245,13 @@ function planSectionHTML(){
   return h;
 }
 /* "Sep 2" -- the day a plan is for, as the seg and the pending line say it */
+/* v4.6.360: where the part's Continue goes, so its label can say so. Mirrors the
+   [data-go] router in app.js: the exercise screen you left, else the last one logged. */
+function continueExFor(part){
+  const b=liftBack();if(b&&b.part===part&&b.ex)return b.ex;
+  if(part==='Run'||!partOpen(part))return null;
+  return([...day(todayISO).w].reverse().find(s=>s.part===part&&s.ex)||{}).ex||null;
+}
 function planDayLabel(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 
 /* v4.6.65: THE EDITOR IS NOT PART OF THE CARD THAT RAISED IT.
@@ -368,7 +375,8 @@ function renderLift(){
        place rather than both: a second copy would be two plans free to drift,
        and this app has retired duplicate sections twice before on exactly that
        reasoning (v3.3.230, v3.3.307). */
-    h+=`<h2 class="flow-bodyhead">Body part</h2><div class="partgrid">`;
+    /* v4.6.360: the label is read aloud but not drawn -- the grid says what it is (approved mock "Train during a live set") */
+    h+=`<h2 class="flow-bodyhead vh">Body part</h2><div class="partgrid">`;
     parts.forEach(p=>{
       const i0=P.info[p]||{since:999};
       const virgin=SEED.totals.sessions===0&&!hasAnyDays();   // day zero: no verdicts yet
@@ -396,7 +404,7 @@ function renderLift(){
          glyph on the screen. Removing it is what buys the fourth column.
          The LIVE flame stays: a set open right now is not a state you read
          past, it is the one card that should interrupt you. */
-      const sub = open ? '🔥 today'
+      const sub = open ? 'today'   /* v4.6.360: the red dot (CSS) marks live; no emoji */
                 : finished ? 'today'
                 : virgin ? 'new'
                 : p==='Run' ? 'each time'
@@ -418,8 +426,15 @@ function renderLift(){
     // today's sets, filtered to the selected part. The whole section —
     // header included — appears with the first set and not before (v3.3.87).
     const mine=t.w.filter(s=>s.part===lift.part);
+    /* v4.6.360: ONE CARD FOR THE PART YOU ARE IN (approved mock "Train during a live
+       set", Sungjee 2026-10-20). Today's exercises for this part sit in one card,
+       red-outlined while the part is open, with the Continue button inside it and
+       naming where it goes. "Last time" folds into a link on the heading line
+       instead of a card of its own, and no delete button sits beside a set in
+       progress: sets are removed from the exercise screen. */
+    const _lp=mine.length&&lift.part!=='Run'?lastPartSession(lift.part):null;
     if(mine.length){
-      h+=`<h2>${partLabel(lift.part)} · today</h2>`;
+      h+=`<div class="pt-head"><h2>${partLabel(lift.part)} · today</h2>${_lp?`<button type="button" class="pt-last${lift.ptLast?' open':''}" data-ptlast aria-expanded="${!!lift.ptLast}">Last: ${wd2(_lp.d)}, ${agoStr(_lp.d)}${icon('chevron',ICON_SZ.sm)}</button>`:''}</div><div class="pt-card${partOpen(lift.part)?' on':''}">`;
       const byEx={};
       mine.forEach(s=>{(byEx[s.ex]=byEx[s.ex]||[]).push(s);});
       for(const [ex,list] of Object.entries(byEx)){
@@ -435,9 +450,11 @@ function renderLift(){
                 <b>${ex}</b><div class="sub">${sub}</div>
               </button>
               <span class="tvol mono">${v?vDisp(v)+' '+U():''}</span>
-              <button class="xbtn" data-dropex="${ex}" aria-label="Remove ${ex} from today">${icon('trash',ICON_SZ.sm)}</button>
             </div>`;
       }
+      if(partOpen(lift.part)){const _cx=continueExFor(lift.part);
+        h+=`<div class="btnrow"><button class="btn ${isLive()?'livego':''}" data-go="${lift.part}">${_cx?`Continue ${hesc(_cx)}`:'Continue'} →</button></div>`;}
+      h+=`</div>`;
       h+=`${undoStack.length?`<button class="btn ghost" id="undoBtn">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}
 `;
       const usual=avgSessionVol(lift.part);
@@ -466,9 +483,7 @@ function renderLift(){
          its own screen) and the DAY (closed below); the part sat between
          them doing neither job. Continue stays; a part sealed by an earlier
          build can still be reopened. */
-      if(partOpen(lift.part)) h+=`<div class="btnrow">
-            <button class="btn ${isLive()?'livego':''}" data-go="${lift.part}">Continue →</button></div>`;
-      else if(dayMeta().donePart.includes(lift.part))
+      if(!partOpen(lift.part)&&dayMeta().donePart.includes(lift.part))
         h+=`<button class="btn ghost" id="reopenPartBtn" style="margin-top:12px">${lift.part} completed ✓ — Reopen</button>`;
     }
 
@@ -478,7 +493,10 @@ function renderLift(){
        Same grammar, one level up: exgrp blocks in the order they were done,
        each row tappable into its lift, done-today rows checked off — a
        playbook you never had to author, read from the record. */
-    if(lift.part!=='Run'){
+    /* v4.6.360: with sets today, the heading's "Last:" link carries this card and opens it on
+       demand, so the playbook (tap a row to reuse its weight, ticks for what is repeated) is one
+       tap away mid-session instead of a card between the live exercise and the list. */
+    if(lift.part!=='Run'&&(!mine.length||lift.ptLast)){
       const lp=lastPartSession(lift.part);
       if(lp){
         /* v3.3.273: the SCOPE PILL. The maker could not tell that the sections
@@ -495,8 +513,8 @@ function renderLift(){
            chevron — so a folded card is a one-line fact, not a hole. The
            choice persists in settings until changed; a preference is not a
            per-render whim. */
-        const plFolded=flowLastFolded();
-        h+=`<div class="lastcard partlast${plFolded?' plfolded':''}"><div class="lasthead"><span><b class="scopepill">${lift.part}</b> last time</span><span class="lastacts"><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button><button class="plfold" data-plfold aria-expanded="${!plFolded}" aria-label="${plFolded?'Show':'Hide'} last time">${refinedFlow()?`<span class="pfchev${plFolded?'':' open'}">${icon('chevron',ICON_SZ.sm)}</span>`:icon('chevron',ICON_SZ.sm,plFolded?0:90)}</button></span></div>`;
+        const plFolded=mine.length?false:flowLastFolded();
+        h+=`<div class="lastcard partlast${plFolded?' plfolded':''}"><div class="lasthead"><span><b class="scopepill">${partLabel(lift.part)}</b> last time</span><span class="lastacts"><button class="ago linkdate" data-histd="${lp.d}">${wd2(lp.d)} · ${agoStr(lp.d)}</button><button class="plfold" data-plfold aria-expanded="${!plFolded}" aria-label="${plFolded?'Show':'Hide'} last time">${refinedFlow()?`<span class="pfchev${plFolded?'':' open'}">${icon('chevron',ICON_SZ.sm)}</span>`:icon('chevron',ICON_SZ.sm,plFolded?0:90)}</button></span></div>`;
         if(refinedFlow()) h+=`<div class="planfold${plFolded?' shut':''}" data-flow-lastbody${plFolded?' inert':''}><div class="planfold-in">`;
         if(!plFolded||refinedFlow()){
           h+=`<div class="inlinehelp">Tap an exercise to use its previous weight. A checkmark means you completed it today.</div>`;
@@ -531,7 +549,8 @@ function renderLift(){
     const mf=multi&&lift.mf&&lift.mf.part===lift.part&&partMs.includes(lift.mf.m)?lift.mf.m:'';
     const mOf=ex=>exMuscle(ex,lift.part);
     if(mf) list=list.filter(x=>mOf(x.ex)===mf);
-    const mtag=ex=>multi&&MUSCLE_SHORT[mOf(ex)]?`<span class="mtag">${MUSCLE_SHORT[mOf(ex)]}</span>`:'';
+    /* v4.6.360: the muscle is a word on the gray line, and only while every muscle is listed: under a filter it says what the filter already says */
+    const mtag=ex=>multi&&!mf&&MUSCLE_SHORT[mOf(ex)]?`<span class="mtag">${MUSCLE_SHORT[mOf(ex)]}</span>`:'';
     if(multi) h+=`<div class="mf-row" role="group" aria-label="Show one muscle of ${lift.part}">${[['','All'],...partMs.map(m=>[m,MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m])].map(([m,l])=>`<button type="button" class="mf-chip${m===mf?' on':''}" data-mf="${m}" aria-pressed="${m===mf}">${l}</button>`).join('')}</div>`;
     const row=({ex,last,freq,avoided},big)=>{
       const when=mtag(ex)+xhTag(ex)+(last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged');
@@ -547,7 +566,7 @@ function renderLift(){
       if(refinedFlow()) return `<div class="item logrow ${big?'goto':''}${_enter?' enter':''}" style="--i:${Math.min(_ei++,6)}">
           <button class="logmain" data-ex="${ex}">
             <span class="flow-exname"><b>${ex}</b><span class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}${avoided?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</span></span>
-            <span class="pr-cell"><span class="pr-top">${cardioTrainTxt(ex)??(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span></span>
+            <span class="pr-cell"><span class="pr-top">${cardioTrainTxt(ex)??(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'')(nextWFor(ex))}</span></span>
             <span class="flow-exchev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span>
           </button>${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">${icon('trash',ICON_SZ.sm)}</button>`:''}
         </div>`;
@@ -556,7 +575,7 @@ function renderLift(){
               <b>${ex}</b><div class="sub">${meta}${mine?` · yours · ${eq.toLowerCase()}`:''}${avoided?`<span class="xp-tag">${XP_ICON}avoided</span>`:''}</div>
             </button>
             <span class="pr-cell">
-              <span class="pr-top">${cardioTrainTxt(ex)??(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'<i class="pr-nil" aria-label="no weight logged"></i>')(nextWFor(ex))}</span>
+              <span class="pr-top">${cardioTrainTxt(ex)??(w=>w?(ex==='Run'?dDisp(w)+' '+DU():trainListWeight(w)+' '+U()):'')(nextWFor(ex))}</span>
             </span>
             ${(mine&&!last)?`<button class="xbtn" data-delex="${ex}" aria-label="Delete ${ex}">${icon('trash',ICON_SZ.sm)}</button>`:''}
           </div>`;
@@ -577,13 +596,13 @@ function renderLift(){
     const some=list.filter(x=>x.tier==='sometimes').sort((a,b)=>(b.last||'').localeCompare(a.last||''));
     const fresh=list.filter(x=>x.tier==='new').sort((a,b)=>a.ex.localeCompare(b.ex));
     if(goto.length){
-      h+=`<h2 class="gotohead">${refinedFlow()?'':`<b class="scopepill">${lift.part}</b> `}go-to</h2>`;
+      h+=`<h2 class="gotohead">${refinedFlow()?'':`<b class="scopepill">${partLabel(lift.part)}</b> `}go-to</h2>`;
       if(refinedFlow()) h+=`<div class="flow-exgroup flow-goto">`;
       goto.forEach(x=>h+=row(x,true));
       if(refinedFlow()) h+=`</div>`;
     }
     if(some.length){
-      h+=`<h2 class="quiet">Sometimes</h2>`;
+      if(goto.length) h+=`<h2 class="quiet">Sometimes</h2>`;   // v4.6.360: a label only separates; with nothing above it says nothing
       if(refinedFlow()) h+=`<div class="flow-exgroup">`;
       some.forEach(x=>h+=row(x,false));
       if(refinedFlow()) h+=`</div>`;
@@ -1991,3 +2010,7 @@ function liftScrollToCharts(){
   };
   requestAnimationFrame(go);
 }
+
+/* v4.6.360: the part heading's "Last:" link opens and closes last time's playbook mid-session.
+   Lives on the transient lift object, so it resets whenever you leave the part. */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-ptlast]');if(!b)return;lift.ptLast=!lift.ptLast;render();});

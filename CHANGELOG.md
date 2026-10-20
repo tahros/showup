@@ -1,5 +1,15 @@
 # ShowUppp — changelog
 
+## v4.6.360 (2026-10-20) — Train, decluttered while you lift
+
+- **Asked for:** declutter the Train tab during a live set; built from the approved mock "Train during a live set", with your changes (red pulsing tile for the part you're in, red outline and a clear Continue).
+- **Body part tiles:** one style. A part trained today shows a red dot and "today", with no 🔥 and no outline; the part you're in keeps its pulsing red fill, now with white "today" (it was red on red). The "Body part" label is read by screen readers but not drawn.
+- **The part you're in:** today's exercises sit in one card, red-outlined while the part is open, with **Continue <exercise> →** inside it naming where it goes. The trash button beside a set in progress is gone; sets are removed from the exercise screen.
+- **Last time:** now a link on the heading line ("Last: Sat, 3 days ago"). Tapping it opens last session's playbook (tap a row to reuse its weight, ticks for what you've repeated); before your first set the card shows as before.
+- **Fixed:** "SIXPACK last time" and the go-to pill now use the display name, Core.
+- **Exercise list:** no "—" for exercises without a weight; the muscle is a word on the gray line ("Abs · 3d ago") and only when the filter is All; "Sometimes" is labelled only when Go-to sits above it.
+- Tested in tools/test-trainlive.js; test-partlast, test-coldstart and test-repweight restated for the new behaviour.
+
 ## v4.6.359 (2026-10-20) — Today, one stack while you train
 
 - **Asked for:** Today mid-run looked cluttered and unorganized; build the approved mock "Today during a live run".
