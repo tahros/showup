@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.365 — the days ahead, the Stats controls, the chip names
+- Today, after a workout: the days after tomorrow under "N more plans" are rows like Tomorrow's -- date and sets over the parts, a chevron -- instead of the planner's raw folds (a bare ▶ triangle, stacked date and parts, a floating set count). Each opens to Edit, Paste and Copy over its plan.
+- Stats: "+ Year" and "Latest ↗" are one-line pills again. Since v4.6.341 a glyph turned icon could be forced onto its own line at a fixed 25-31px by the card's svg rules; it now always sits inline at the size of its letters, in every card. The "+ Year" fold lost its disclosure triangle.
+- Strength progress chips say Core and Cardio, not Sixpack and Run.
+- New test: test-later-rows.
+
 ## v4.6.364 (2026-10-20) — Smaller type, breathable spacing
 
 - **Asked for:** v4.6.362 felt crowded. Put the top bar and inner padding back, keep type B, and make it breathe (approved version B), with your notes on screens 1B–4B and 6B.
