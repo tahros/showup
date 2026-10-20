@@ -80,7 +80,8 @@ ok('stale drafts cannot overwrite a newer plan',String.raw`(()=>{try{pwSave();re
 run(String.raw`pwRender();`);ok('conflict has explicit non-destructive resolution',String.raw`!!document.querySelector('[data-pw="replace-newer"]')&&!!document.querySelector('[data-pw="load-newer"]')`);click('load-newer');
 ok('conflict resolution does not save',String.raw`beforeConflict===JSON.stringify(DB.week)&&pw().step==='edit'`);
 run(String.raw`day(todayISO).w=[{part:'Chest',ex:'Barbell Bench Press',w:70,reps:[8],at:1}];day(todayISO).doneAll=true;dayMeta();lift.plan=null;view='today';SEED=deriveAll();render();var closedRecord=JSON.stringify(DB.days);`);
-ok('completed Today offers Plan ahead',String.raw`dayClosed()&&/Plan ahead/.test(document.getElementById('view').textContent)`);
+/* v4.6.361 RESTATES: the finished day heads the next plan "Tomorrow" (or "Next plan") and keeps the Plan tool */
+ok('completed Today offers Plan ahead',String.raw`dayClosed()&&/Tomorrow|Next plan/.test(document.getElementById('view').textContent)&&!!document.querySelector('.ld [data-pw="open"]')`);
 ok('completed Today retains actual trained record',String.raw`/Barbell Bench Press/.test(document.getElementById('view').textContent)&&!!document.querySelector('[data-replayday]')`);
 run(String.raw`pwOpen('2026-09-11');pwGo('edit');pwPersist();`);ok('planning tomorrow does not reopen completed today',String.raw`dayClosed()&&JSON.stringify(DB.days)===closedRecord`);
 ok('editor title is direct',`document.querySelector('.pw-editor-head h1').textContent==='Edit your plan'`);
@@ -95,7 +96,8 @@ run(`pwApplyOrder([2,1,0]);pwRender();`);ok('duplicate exercise rows keep separa
 run(`pwState=null;pwOwner=null;pwRender();`);ok('reordered draft persists across recreation',`pwDay(pw().active).rows[0].lines[0].reps[0]===6&&pwDay(pw().active).locks[0]===2`);
 run(`pw().book[pw().active]=savedDraft;pwGo('review');`);ok('old review state resolves to the editor with direct Save',`pw().step==='edit'&&!!document.querySelector('.pw-save-dock [data-pw="save"]')&&!document.querySelector('[data-pw="review"]')`);
 run(`lift.plan=null;view='today';render();`);
-ok('Today omits Coming up while retaining Dates and saved plans',`!document.querySelector('.pw-coming,[data-pw="upcoming"]')&&document.querySelector('.pw-home-heading [data-pw]')&&Object.keys(DB.week.days).length>0`);
+/* v4.6.361 RESTATES: on a finished day the dates are reached through the Plan tool in the next plan's card */
+ok('Today omits Coming up while retaining Dates and saved plans',`!document.querySelector('.pw-coming,[data-pw="upcoming"]')&&(document.querySelector('.pw-home-heading [data-pw]')||document.querySelector('.ld [data-pw="open"]'))&&Object.keys(DB.week.days).length>0`);
 /* v4.6.164: Settings no longer offers the Planning interface switch; the Previous planner is still exercised through its key */
 run(String.raw`view='sync';render();`);ok('Settings no longer offers the Planning interface switch (v4.6.164)',!run(String.raw`!!document.querySelector('[data-pw="mode"]')`));run(String.raw`localStorage.setItem(PW_MODE_KEY,'previous');lift.plan=null;view='today';render();`);
 ok('Previous restores old Write door without changing records',String.raw`!planningWorkspace()&&!!document.querySelector('[data-planwrite]')&&JSON.stringify(DB.days)===closedRecord`);

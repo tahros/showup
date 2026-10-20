@@ -505,6 +505,42 @@ function liveTodayHTML(t){
   }
   return h+`</div></section>`;
 }
+/* v4.6.361: A FINISHED DAY, PLAINLY (approved mock "Today after the workout",
+   Sungjee 2026-10-20). Under the day card: the next plan as one card whose arrow
+   opens it with its tools (Plan, Edit, Paste, Copy) inside, the other planned
+   days folded under it; then what was trained as ONE card -- each part a small
+   heading with its total, each exercise a plain row. No outlined boxes, no
+   ticks (on a finished day every row is done), no separate parts line. */
+function closedTodayHTML(t){
+  const setsOf=p=>(p?.items||[]).map(planItemShape).reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
+  const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
+  let h='<section class="pw-home lt ld">';
+  if(future.length){
+    const d=future[0],plan=pwSaved(d),n=setsOf(plan),open=pwFoldOpen('next:'+d);
+    const parts=pwParts(pwRead(planText(plan))).map(partLabel).join(' + ')||'Your workout';
+    h+=`<h2 class="lt-h">${d===tomorrowISO()?'Tomorrow':'Next plan'}</h2><div class="card lt-plan ld-next"><details class="lt-fold" data-pw-fold="next:${d}" ${open?'open':''}><summary class="pw-fold-summary" aria-expanded="${open}"><span class="lt-head"><small>${hesc(pwDate(d))}${n?` · ${n} ${n===1?'set':'sets'}`:''}</small><b>${hesc(parts)}</b></span>${icon('chevron',ICON_SZ.sm)}</summary><div class="lt-fold-body">`;
+    h+=`<div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}${pwAction('plan-copy','Copy','copy','',`data-date="${d}"`)}</div>${planCardHTML(plan,false)}</div></details>`;
+    const rest=future.slice(1);
+    if(rest.length)h+=`<details class="pw-later pw-later-visible" data-pw-fold="later" ${pwFoldOpen('later',false)?'open':''}><summary class="pw-later-heading pw-fold-summary" aria-expanded="${pwFoldOpen('later',false)}"><span>${rest.length} more ${rest.length===1?'plan':'plans'}</span><small>${hesc(pwWeekdays(rest))}</small></summary><div class="pw-later-list">${rest.map(pwLaterDayHTML).join('')}</div></details>`;
+    h+='</div>';
+  }else{
+    h+=`<h2 class="lt-h">Next plan</h2><div class="card lt-plan"><p class="lt-done">Nothing planned yet.</p><div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${tomorrowISO()}"`)}</div></div>`;
+  }
+  const byPart=new Map();t.w.forEach(s=>{if(!byPart.has(s.part))byPart.set(s.part,[]);byPart.get(s.part).push(s);});
+  h+=`<h2 class="lt-h">Trained today</h2><div class="card lt-log ld-log">`;
+  for(const [part,sets] of byPart){
+    const vol=sets.reduce((a,s)=>a+volOf(s),0),km=sets.filter(s=>s.ex==='Run').reduce((a,s)=>a+s.w,0);
+    const lifts=sets.filter(s=>!isCardio(s)),reps=lifts.every(s=>!isHold(s.su))?lifts.reduce((a,s)=>a+(s.reps||[]).reduce((x,y)=>x+y,0),0):0;
+    const total=km?`${dDisp(km)} ${DU()}`:vol?`${vDisp(vol)} ${U()}`:reps?`${fmt(reps)} reps`:'';
+    h+=`<div class="ld-part"><b>${hesc(partLabel(part))}</b>${total?`<span class="mono">${total}</span>`:''}</div>`;
+    const byEx=new Map();sets.forEach(s=>{if(!byEx.has(s.ex))byEx.set(s.ex,[]);byEx.get(s.ex).push(s);});
+    for(const [ex,list] of byEx){
+      const what=list.every(isCardio)?list.map(cardioLine).filter(Boolean).join(', '):`${list.length} ${list.length===1?'set':'sets'}`;
+      h+=`<button type="button" class="lt-row" data-ex="${hesc(ex)}" data-part="${hesc(part)}"><b>${hesc(ex)}</b><span class="mono">${hesc(what)}</span></button>`;
+    }
+  }
+  return h+'</div></section>';
+}
 function renderToday(){
   /* v4.6.311: someone who set up before companions existed meets theirs here, once */
   if(typeof adoptDue==='function'&&adoptAuto()&&!window._adoptT)window._adoptT=setTimeout(()=>{window._adoptT=0;if(adoptDue())adoptOpen();},1400);
@@ -738,6 +774,7 @@ function renderToday(){
         </button>`;
   };
   if(_closed) h+=_closedCard();
+  if(_closed&&planningWorkspace()){h+=closedTodayHTML(t);$('#view').innerHTML=h;msCountUp();dayCountUp();return;}
   if(!_closed&&isLive()&&planningWorkspace()&&planNow()?.items?.length){
     h+=liveTodayHTML(t);$('#view').innerHTML=h;msCountUp();dayCountUp();return;
   }

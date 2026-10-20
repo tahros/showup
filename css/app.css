@@ -4885,3 +4885,20 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .pt-card .btnrow .btn{width:100%;margin:0}
 .mtag{display:inline;margin:0;padding:0;border-radius:0;background:none;color:inherit;font:inherit;letter-spacing:0;text-transform:none;vertical-align:baseline}
 .mtag::after{content:" · "}
+
+/* v4.6.361: TODAY AFTER THE WORKOUT (js/today.js closedTodayHTML). Shares the live
+   stack's card and row styles; a part is a small heading with its total, rows
+   sit beneath without boxes or ticks. */
+.pw-home.ld .lt-h{margin:22px 4px 10px}
+.pw-home.ld .ld-next{padding:18px 18px 0;gap:0}
+.pw-home.ld .ld-next>.lt-fold{padding-bottom:16px}
+.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary{margin:0 -18px;padding:8px 18px;border-top:1px solid var(--line)}
+.pw-home.ld .ld-log{padding:6px 0 10px}
+.ld .ld-part{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 20px 4px}
+.ld .ld-part+.lt-row{border-top:0}
+.ld .lt-row+.ld-part{margin-top:6px;padding-top:18px;border-top:1px solid var(--line)}
+.ld .ld-part b{font:600 16px/1.3 var(--body);color:var(--chalk)}
+.ld .ld-part .mono{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ld .lt-row{min-height:44px;padding-block:6px}
+.ld .lt-row b{font-size:16px;font-weight:400}
+.ld .lt-row+.lt-row{border-top:0}

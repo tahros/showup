@@ -76,7 +76,10 @@ check("...and extra sets cap at the plan", `document.querySelector('#view .lt-co
 
 // closed day: the stack is not used
 run(`(function(){day(todayISO).doneAll=true; render();})()`);
-check("closed day keeps its own layout", `!document.querySelector('#view .lt')`, true);
+check("closed day keeps its own layout (v4.6.361: the finished-day card, no Next)", `!document.querySelector('#view .lt-next') && !!document.querySelector('#view .ld')`, true);
+check("finished day: what was trained is one card, a heading per part", `[...document.querySelectorAll('#view .ld-log .ld-part b')].map(b=>b.textContent).join(',')`, "Shoulder,Cardio");
+check("...each exercise one plain row, no ticks", `document.querySelectorAll('#view .ld-log .lt-row').length===3 && !/\u2713/.test(document.querySelector('#view .ld-log').textContent)`, true);
+check("...and no separate parts line", `!document.querySelector('#view .todaypartsline')`, true);
 run(`(function(){day(todayISO).doneAll=false; render();})()`);
 
 // no plan for today: the stack is not used

@@ -62,13 +62,16 @@ ok('any disclosure carrying data-pw-fold is remembered, not just this one',
    /const key=d\.getAttribute\('data-pw-fold'\);/.test(src) &&
    /\(st\.folds=st\.folds\|\|\{\}\)\[key\]=open/.test(src));
 run(`DB.week={days:{'2026-09-12':JSON.parse(JSON.stringify(DB.plan))}};DB.days[todayISO]={w:[{part:'Legs',ex:'Squat',w:90,reps:[8],at:1}],doneAll:true};view='today';lift.plan=null;render();`);
-const tomorrow=`document.querySelector('details[data-pw-fold="future:2026-09-12"]')`;
-ok('tomorrow reuses the saved-plan disclosure',`!!${tomorrow}&&!${tomorrow}.open&&${tomorrow}.querySelector('summary').textContent.includes('Tomorrow')`);
+/* v4.6.361 RESTATES: a finished day shows the next plan as one card headed "Tomorrow" (approved mock
+   "Today after the workout"); the disclosure is the card itself, remembered under next:<date>. */
+const tomorrow=`document.querySelector('details[data-pw-fold="next:2026-09-12"]')`;
+ok('tomorrow reuses the saved-plan disclosure',`!!${tomorrow}&&!${tomorrow}.open&&/Tomorrow/.test(document.querySelector('.ld .lt-h').textContent)`);
 run(`${tomorrow}.querySelector('summary').dispatchEvent(new window.MouseEvent('click',{bubbles:true,cancelable:true}))`);
 ok('tomorrow opens and displays saved exercises and sets',`${tomorrow}.open&&${tomorrow}.textContent.includes('Squat')&&${tomorrow}.textContent.includes('6 6 6 6')`);
 run(`render();`);
-// v4.6.332: Edit lives in the one tool row (Plan · Edit · Paste · Copy), not inside the card.
-ok('tomorrow expansion survives render and Edit targets tomorrow',`${tomorrow}.open&&!!document.querySelector('#view [data-pw="open-date"][data-date="2026-09-12"]')&&!${tomorrow}.querySelector('[data-pw="open-date"]')`);
+// v4.6.332: Edit lives in the one tool row (Plan · Edit · Paste · Copy).
+// v4.6.361 RESTATES: on a finished day that row sits inside the next plan's card, behind its arrow.
+ok('tomorrow expansion survives render and Edit targets tomorrow',`${tomorrow}.open&&!!${tomorrow}.querySelector('.pw-home-tools [data-pw="open-date"][data-date="2026-09-12"]')`);
 run(`${tomorrow}.querySelector('summary').dispatchEvent(new window.MouseEvent('click',{bubbles:true,cancelable:true}))`);
 ok('tomorrow collapses again',`!${tomorrow}.open`);
 process.exit(fails?1:0);

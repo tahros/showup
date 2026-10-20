@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.361 (2026-10-20) — Today, after the workout
+
+- **Asked for:** declutter Today on a finished day; built from the approved mock "Today after the workout".
+- **The day card stays on top.** Under it, the next plan is one card ("Tomorrow", or "Next plan" when it is later): date, planned sets and parts. Its arrow opens the plan with Plan, Edit, Paste and Copy inside; the other planned days fold under it ("4 more plans").
+- **Trained today is one card:** each part a small heading with its total (distance, weight, or reps for bodyweight work), each exercise a plain row with its set count. Tapping a row opens it.
+- **Removed from that screen:** the outlined box and ✓ around every exercise, the separate "SHOULDER · CORE" line, and the tool row above the plan. Parts read by their display names (Core, not Sixpack).
+- **Not changed:** the header overlap you saw while scrolling is the page passing under the fixed header, not a drawing fault.
+- Tested in tools/test-livetoday.js; test-planfold and test-planner restated for the new placement of the plan tools.
+
 ## v4.6.360 (2026-10-20) — Train, decluttered while you lift
 
 - **Asked for:** declutter the Train tab during a live set; built from the approved mock "Train during a live set", with your changes (red pulsing tile for the part you're in, red outline and a clear Continue).
