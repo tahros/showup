@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.363 — the big clock is for a phone turned sideways
+- On a desktop browser the blue "Since workout" clock took over the whole app after a finished workout, with no way out: it only asked whether the window was wider than tall. It now needs landscape, a touch screen and a phone's short side -- the same test as the portrait veil. Phones sideways are unchanged; desktops, laptops and tablets keep the app.
+- Rebuilt the OTA bundle, whose hashes were stale against the shipped files.
+- New test: test-desktop-timer.
+
 ## v4.6.362 (2026-10-20) — Smaller type, tighter spacing
 
 - **Asked for:** smaller fonts (approved option B, 88%) and less vertical spread (approved spacing Variation 2).
