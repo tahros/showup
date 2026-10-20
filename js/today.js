@@ -469,6 +469,42 @@ function focusedTodayHTML(){
   template.content.querySelectorAll('details').forEach(d=>{const s=d.querySelector(':scope > summary');if(s){s.classList.add('pw-fold-summary');s.setAttribute('aria-expanded',String(d.open));}});
   return template.innerHTML;
 }
+/* v4.6.359: ONE STACK, ONE ACTION, WHILE A SESSION IS LIVE (Sungjee, 2026-10-20:
+   "this very screen looks very cluttered and not organized"). Mid-run, Today said
+   "a run is live" three times (the red bar, a red-outlined card, Continue Run),
+   offered two buttons for "what next" (blue Start, red Continue), and kept the
+   plan's four editing tools on screen while nobody edits a plan. Approved mock
+   "Today during a live run": the red bar stays the live signal; one plan card
+   carries the day, its progress in sets, and the single Next button; what is
+   logged is a plain list. The tools and the other planned days live inside the
+   card's fold, one tap away, not deleted. Only with a plan for today and a
+   session open -- every other state keeps its own layout. */
+function liveTodayHTML(t){
+  const now=planNow(),items=(now.items||[]).map(planItemShape);
+  const parts=pwParts(pwRead(planText(now))).map(partLabel).join(' + ')||'Your workout';
+  const planned=it=>(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0);
+  const total=items.reduce((n,it)=>n+planned(it),0);
+  const done=Math.min(total,items.reduce((n,it)=>n+Math.min(planned(it),t.w.filter(s=>s.ex===it.ex).length),0));
+  /* a run in the plan counts as done once one is logged: planLoggedToday() asks for reps, which cardio rows never carry */
+  const next=(now.items||[]).find(i=>!t.w.some(s=>s.ex===i.ex))||null;
+  const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
+  const open=pwFoldOpen('live:'+todayISO);
+  let h=`<section class="pw-home lt"><div class="card lt-plan"><details class="lt-fold" data-pw-fold="live:${todayISO}" ${open?'open':''}><summary class="pw-fold-summary" aria-expanded="${open}"><span class="lt-head"><small>Today · ${hesc(pwDate(todayISO))}</small><b>${hesc(parts)}</b></span>${icon('chevron',ICON_SZ.sm)}</summary><div class="lt-fold-body">`;
+  h+=`<div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('open-date','Edit','edit','',`data-date="${todayISO}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}${pwAction('plan-copy','Copy','copy','',`data-date="${todayISO}"`)}</div>${planCardHTML(now,true)}`;
+  if(future.length)h+=`<details class="pw-later pw-later-visible" data-pw-fold="later" ${pwFoldOpen('later',false)?'open':''}><summary class="pw-later-heading pw-fold-summary" aria-expanded="${pwFoldOpen('later',false)}"><span>${future.length} more ${future.length===1?'plan':'plans'}</span><small>${hesc(pwWeekdays(future))}</small></summary><div class="pw-later-list">${future.map(pwLaterDayHTML).join('')}</div></details>`;
+  h+=`</div></details>`;
+  if(total){const pc=Math.round(done/total*100);h+=`<div class="lt-progress" role="img" aria-label="${done} of ${total} sets done"><i style="width:${pc}%"></i></div><div class="lt-count mono">${done} of ${total} ${total===1?'set':'sets'}</div>`;}
+  h+=next?`<button type="button" class="lt-next tnextplan" data-planex="${hesc(next.ex)}"><span><small>Next</small><b>${hesc(next.ex)}</b></span>${icon('chevron',ICON_SZ.md)}</button>`
+         :`<p class="lt-done">Every exercise in your plan is logged.</p>`;
+  h+=`</div><h2 class="lt-h">Logged today</h2><div class="card lt-log">`;
+  const byEx=new Map();t.w.forEach(s=>{if(!byEx.has(s.ex))byEx.set(s.ex,[]);byEx.get(s.ex).push(s);});
+  for(const [ex,list] of byEx){
+    const live=exOpen(ex),part=list[list.length-1].part;
+    const what=list.every(isCardio)?list.map(cardioLine).filter(Boolean).join(', '):`${list.length} ${list.length===1?'set':'sets'}`;
+    h+=`<button type="button" class="lt-row${live?' on':''}" data-ex="${hesc(ex)}" data-part="${hesc(part)}"><b>${hesc(ex)}</b><span class="mono">${hesc(what)}</span></button>`;
+  }
+  return h+`</div></section>`;
+}
 function renderToday(){
   /* v4.6.311: someone who set up before companions existed meets theirs here, once */
   if(typeof adoptDue==='function'&&adoptAuto()&&!window._adoptT)window._adoptT=setTimeout(()=>{window._adoptT=0;if(adoptDue())adoptOpen();},1400);
@@ -702,6 +738,9 @@ function renderToday(){
         </button>`;
   };
   if(_closed) h+=_closedCard();
+  if(!_closed&&isLive()&&planningWorkspace()&&planNow()?.items?.length){
+    h+=liveTodayHTML(t);$('#view').innerHTML=h;msCountUp();dayCountUp();return;
+  }
   h+=todayHeroHTML();
   /* v3.3.374: MID-SESSION IS WHEN "what's next" ACTUALLY MATTERS, and until
      now Today answered it only BEFORE the first set -- the moment the first

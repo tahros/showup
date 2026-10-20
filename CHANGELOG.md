@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.359 (2026-10-20) — Today, one stack while you train
+
+- **Asked for:** Today mid-run looked cluttered and unorganized; build the approved mock "Today during a live run".
+- **While a session is live and today has a plan,** Today is one stack: the red bar stays the only live signal; one plan card shows the day, its parts, progress in planned sets ("1 of 17 sets") and a single **Next** button; below it, **Logged today** lists each exercise once, with a red dot while it is still open.
+- **Removed from that screen:** the separate Train next card, the "You're in." block, the part cards with Continue buttons, the cardio nudge and Add another part. Tapping a logged row or the red bar still returns to it.
+- **Moved, not deleted:** Plan, Edit, Paste and Copy, the full plan and the other planned days now open from the plan card's arrow.
+- **Fixed on the way:** a run in the plan now counts as done once a run is logged, so Next moves past it (cardio rows carry no reps, which the old check needed).
+- **Unchanged:** before the first set, rest days, closed days and live sessions without a plan keep their layouts. Tested in tools/test-livetoday.js.
+
 ## v4.6.358 — your name no longer shrinks on the way out of Settings (iPhone)
 - Root cause: a click listener in Stats re-classed the page a tick after every tap (adding or removing the Stats headings style). On a tab switch that tick lands after the transition starts but before the iPhone photographs the page being left, so Settings was photographed with the Stats headings rule on it (your name drawn at 17px instead of 24px) and Stats with it already gone (its headings turned into small capitals). Chrome photographs first, which is why it never showed there. The class is now set with the page it belongs to, inside the transition.
 - New test: test-vt-capture -- taps every tab from every tab with an iPhone-length gap before the update, and fails if anything restyles the page being left.
