@@ -311,7 +311,7 @@ function renderProgression(card){
     const parts=[...new Set(meta.map(m=>m.part))];
     const shelf=document.createElement('div');shelf.className='pg-library';
     const buttons=list=>list.map(m=>'<button data-pg-action="exercise" value="'+pgEscape(m.name)+'" aria-pressed="'+(m.name===ex)+'"><strong>'+pgEscape(m.name)+'</strong><small>'+pgEscape(pgShortDate(m.date))+'</small></button>').join('');
-    shelf.innerHTML='<div class="pg-parts" aria-label="Filter exercise history by body part">'+['All',...parts].map(p=>'<button data-pg-part="'+pgEscape(p)+'" aria-pressed="'+((card._pgPart||'All')===p)+'">'+pgEscape(p)+'</button>').join('')+'</div><div class="pg-exercise-shelf">'+buttons(meta.filter(m=>!card._pgPart||card._pgPart==='All'||m.part===card._pgPart).slice(0,4))+'</div>';
+    shelf.innerHTML='<div class="pg-parts" aria-label="Filter exercise history by body part">'+['All',...parts].map(p=>'<button data-pg-part="'+pgEscape(p)+'" aria-pressed="'+((card._pgPart||'All')===p)+'">'+pgEscape(p==='All'||typeof partLabel!=='function'?p:partLabel(p))+'</button>').join('')+'</div><div class="pg-exercise-shelf">'+buttons(meta.filter(m=>!card._pgPart||card._pgPart==='All'||m.part===card._pgPart).slice(0,4))+'</div>';
     card.querySelector('.pg-toolbar').before(shelf);
     /* v4.5.22: THE PART RAIL KEEPS ITS PLACE. Tapping a chip re-renders the card,
        which rebuilds this shelf from scratch -- and a brand new overflow-x element
