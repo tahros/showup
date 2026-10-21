@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.369 — Set the run goal by tapping
+- Plan › the day's cardio row: the pencil opens a goal editor instead of a text box. Activity chips; By feel / Distance / Time / Both; steppers (¼ mi or ½ km, 5 min); the pace, speed or 500 m split; one-tap picks from your history (Last, Usual, Step up ≈ +10%). Edit as text stays.
+- The row reads "3.5 mi · 31 min · 8'51\" /mi". The plan still stores one line of text, so everything that reads plans is unchanged.
+- Fix: a new plan's cardio line always said "by feel" -- it looked for fields a logged run never has. It now starts from your last real cardio entry.
+- New test: test-cardio-goal.js; test-split.js follows the new pencil.
+
 ## v4.6.368 — Text size
 - Settings › Appearance › Text size: five steps half a pixel apart (0, +0.5, +1, +1.5, +2 px added to every text size), with a live sample row. Default is +1; Smaller is the size before this release.
 - iPhone: "Match iPhone text size" (on by default) follows iOS Settings › Display & Brightness › Text Size.
