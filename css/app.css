@@ -4996,3 +4996,17 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 #onb .ob-ex{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font:400 14px var(--body);color:var(--chalk)}
 #onb .ob-ex b{font:500 13px var(--mono);font-size:13px;color:var(--muted);white-space:nowrap}
 #onb .ob-plan .ob-why{margin-top:12px}
+/* v4.6.371 (revised): the fresh path is the planner's Preferences, one section a screen */
+#onb .ob-pref .card{margin:22px 0 0;padding:18px}
+#onb .ob-pref .pf-seg{margin:0}
+#onb .ob-order .card.pf-split{padding:14px 12px}
+#onb .ob-order .pf-ses{grid-template-columns:auto 1fr 30px}
+#onb .ob-order .ob-dayn{width:auto;min-width:44px;height:30px;padding:0 8px;border-radius:15px;font:600 12px var(--mono);font-size:12px}
+#onb .ob-order .pf-rot-tags em{font-size:11px}
+#onb .ob-order .pf-pal-chip:disabled{opacity:.45}
+#onb .ob-go:disabled{opacity:.4}
+#onb .ob-order .pf-ses{grid-template-columns:24px 1fr 30px}
+#onb .ob-ses-h{display:flex;align-items:baseline;gap:8px;margin:2px 0 6px;width:100%}
+#onb .ob-ses-h b{font:600 13px var(--body);color:var(--chalk)}
+#onb .ob-ses-h i{font:500 11px var(--mono);font-size:11px;font-style:normal;color:var(--accent-ink)}
+#onb .ob-order .pf-pal{position:static;margin:10px 0 4px;border-radius:14px}
