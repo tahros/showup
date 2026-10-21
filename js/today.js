@@ -145,10 +145,23 @@ function onbDayOrder(){return onbF.weekStart==='monday'?[1,2,3,4,5,6,0]:[0,1,2,3
 function onbDaysSorted(){const o=onbDayOrder();return o.filter(d=>onbF.days.includes(d));}
 function onbDayLab(i){const ds=onbDaysSorted();return ds.length?PF_DOW[ds[i%ds.length]]:'';}
 function onbSuggest(){const n=onbF.days.length;return n<=3?'full':n===4?'ul':'ppl';}
+/* v4.6.374: a session's title is what is in it. A set that is one of the
+   splits keeps that split's name (Push, Upper, Full body); anything else reads
+   its body parts ("Chest + Back"), with Cardio in front when it is there. */
+function onbSesNamed(parts){
+  const lifts=parts.filter(t=>t!=='Run'),key=x=>x.slice().sort().join(),cardio=parts.includes('Run');
+  if(!lifts.length)return cardio?'Cardio':'Empty session';
+  let nm=onbSesTemplate(parts)||null;
+  if(!nm)nm=lifts.length>3?lifts.slice(0,3).map(partLabel).join(' + ')+' +'+(lifts.length-3):lifts.map(partLabel).join(' + ');
+  return (cardio?'Cardio + ':'')+nm;
+}
+function onbSesTemplate(parts){const lifts=parts.filter(t=>t!=='Run'),key=x=>x.slice().sort().join(),cur=onbF&&onbF.template;   /* the template you are in names first: Legs + Core is Legs in Push / Pull / Legs, Lower in Upper / Lower */
+  for(const z of [...PF_SPLITS.filter(x=>x[0]===cur),...PF_SPLITS.filter(x=>x[0]!==cur)])if(z[3])for(const [n,ps] of z[3])if(key(ps)===key(lifts))return n;return '';}
+function onbRename(){for(const c of onbF.cards)c.name=onbSesNamed(c.parts);}
 /* the sessions a template makes for n days: its own sessions in turn, one per training day */
 function onbCards(k,n){
   n=Math.max(1,n);
-  if(k==='own')return Array.from({length:n},(_,i)=>({name:'Session '+(i+1),parts:[]}));
+  if(k==='own')return Array.from({length:n},()=>({name:'Empty session',parts:[]}));
   if(k==='body')return Array.from({length:n},(_,i)=>{const p=BODY_PARTS[i%BODY_PARTS.length];return {name:partLabel(p),parts:[p]};});
   const z=PF_SPLITS.find(x=>x[0]===k);const base=z&&z[3]?z[3]:[['Full body',BODY_PARTS.slice()]];
   return Array.from({length:n},(_,i)=>{const [name,parts]=base[i%base.length];return {name,parts:parts.slice()};});
@@ -158,7 +171,7 @@ function onbCards(k,n){
    back the next week); anything you arranged is kept exactly as you left it */
 function onbRotation(){
   if(!onbF.edited&&['full','ul','ppl'].includes(onbF.template)){const z=PF_SPLITS.find(x=>x[0]===onbF.template);return {preset:onbF.template,sessions:z[3].map(([name,parts])=>({name,parts:parts.slice()}))};}
-  return {preset:'own',sessions:onbF.cards.filter(c=>c.parts.length).map(c=>({name:/^Session \d+$/.test(c.name)?'':c.name,parts:c.parts.slice()}))};
+  return {preset:'own',sessions:onbF.cards.filter(c=>c.parts.length).map(c=>({name:onbSesTemplate(c.parts),parts:c.parts.slice()}))};
 }
 function onbFreshInit(){
   const mon=!/^en-(US|CA)|^ja|^ko/i.test(navigator.language||'en-US');
@@ -173,7 +186,7 @@ function onbPut(part,to,from){const c=onbF.cards[to];if(!c||from===to)return;
   if(c.parts.includes(part)){onbSay(partLabel(part)+' is already in '+c.name+'.');onbRender();return;}
   onbSnap();if(part==='Run')c.parts.unshift(part);else c.parts.push(part);
   if(from!=null&&onbF.cards[from])onbF.cards[from].parts=onbF.cards[from].parts.filter(p=>p!==part);
-  onbF.sel=null;onbF.edited=true;onbSay(partLabel(part)+(from!=null?' moved to ':' added to ')+c.name+'.');onbRender();
+  const was=c.name;onbF.sel=null;onbF.edited=true;onbRename();onbSay(partLabel(part)+(from!=null?' moved to ':' added to ')+was+'.');onbRender();
   const el=document.querySelector(`#onb [data-rtcard="${to}"]`);if(el){el.classList.remove('ob-settle');void el.offsetWidth;el.classList.add('ob-settle');}}
 function onbMove(from,to){if(from===to||to<0||to>=onbF.cards.length)return;onbSnap();const c=onbF.cards.splice(from,1)[0];onbF.cards.splice(to,0,c);onbF.menu=-1;onbF.edited=true;onbSay(c.name+' moved to '+(onbDayLab(to)||'session '+(to+1))+'.');onbRender();}
 function onbFreshToday(){
@@ -182,7 +195,7 @@ function onbFreshToday(){
   const n=lifts.length>=4?6:5,out=[];
   for(let r=0;out.length<n&&r<6;r++)for(const l of pool){if(out.length>=n)break;if(l[r]&&!out.includes(l[r]))out.push(l[r]);}
   const reps=i=>onbF.goal==='lose'?12:onbF.goal==='strength'?(i===0?5:8):10;
-  return {name:ses.name||lifts.map(partLabel).join(' + '),cardio:ses.parts.includes('Run'),items:out.map((ex,i)=>({ex,sets:3,reps:reps(i)}))};
+  return {name:onbSesTemplate(ses.parts)||lifts.map(partLabel).join(' + '),cardio:ses.parts.includes('Run'),items:out.map((ex,i)=>({ex,sets:3,reps:reps(i)}))};
 }
 function onbFreshApply(){
   const T=onbFreshToday(),rot=onbRotation();
@@ -262,7 +275,7 @@ function onbRender(){
       ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button></div>`:''}</section>`).join('');
     b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>
       <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${hesc(t[1])}</b><span>${onbF.days.length} ${onbF.days.length===1?'day':'days'} · ${onbDaysSorted().map(x=>PF_DOW[x]).join(', ')}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">Change</button></div>
-      ${E?`<div class="ob-rt-tray"><div class="ob-rt-tray-h"><b>Add a body part</b><button type="button" class="ob-rt-link" data-onbact="fdone">Done</button></div><p>Drag onto a session, or tap a chip, then a session.</p><div class="ob-rt-chips">${ONB_TRAY.map(p=>`<button type="button" class="pf-pal-chip ob-rt-pool${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}">${hesc(partLabel(p))}</button>`).join('')}</div></div>`
+      ${E?`<div class="ob-rt-tray"><div class="ob-rt-tray-h"><b>Add a body part</b><button type="button" class="ob-rt-link" data-onbact="fdone">Done</button></div><p>Drag onto a session, or tap a chip, then a session.</p><div class="ob-rt-chips">${ONB_TRAY.map((p,k)=>`<button type="button" style="--k:${k}" class="pf-pal-chip ob-rt-pool${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}">${hesc(partLabel(p))}</button>`).join('')}</div></div>`
         :`<div class="ob-rt-bar"><span>Your sessions</span><button type="button" class="ob-rt-link" data-onbact="fcustom">Customize</button></div>`}
       <div class="ob-rt-list">${cards}</div>
       ${E?`<button type="button" class="ob-rt-addses" data-onbact="faddses">+ Add a session</button>`:''}
@@ -494,11 +507,11 @@ document.addEventListener('click',e=>{
   else if(act==='fdone'){ onbF.edit=false; onbF.sel=null; onbSay('Your routine is ready.'); onbRender(); }
   else if(act==='fpool'){ if(onbDragJust)return; onbF.sel=onbF.sel===a.dataset.v?null:a.dataset.v; onbSay(onbF.sel?'Tap a session to add '+partLabel(onbF.sel)+'.':'Drag to arrange. Tap works too.'); onbRender(); }
   else if(act==='fplace'){ onbPut(onbF.sel,+a.dataset.v,null); }
-  else if(act==='frm'){ if(onbDragJust)return; onbSnap(); const c=onbF.cards[+a.dataset.v]; c.parts=c.parts.filter(p=>p!==a.dataset.p); onbF.edited=true; onbSay(partLabel(a.dataset.p)+' removed.'); onbRender(); }
+  else if(act==='frm'){ if(onbDragJust)return; onbSnap(); const c=onbF.cards[+a.dataset.v]; c.parts=c.parts.filter(p=>p!==a.dataset.p); onbF.edited=true; onbRename(); onbSay(partLabel(a.dataset.p)+' removed.'); onbRender(); }
   else if(act==='fmenu'){ if(onbDragJust)return; const v=+a.dataset.v; onbF.menu=onbF.menu===v?-1:v; onbRender(); }
   else if(act==='fmove'){ onbMove(+a.dataset.v,+a.dataset.v+(+a.dataset.dir)); }
   else if(act==='fundo'){ const h=onbF.hist.pop(); if(h){ Object.assign(onbF,JSON.parse(h)); onbF.sel=null; onbF.menu=-1; onbSay('Change undone.'); onbRender(); } }
-  else if(act==='faddses'){ onbSnap(); onbF.cards.push({name:'Session '+(onbF.cards.length+1),parts:[]}); onbF.edited=true; onbF.sel=null; onbSay('New session added to the rotation.'); onbRender(); }
+  else if(act==='faddses'){ onbSnap(); onbF.cards.push({name:'Empty session',parts:[]}); onbF.edited=true; onbF.sel=null; onbSay('New session added to the rotation.'); onbRender(); }
   else if(act==='fsave'){ if(onbF.cards.some(c=>!c.parts.length)){ onbSay('Add a body part to each empty session first.'); onbRender(); return; } if(onbF.edited&&onbF.template!=='own') onbF.template=onbF.template; onbPathFinish(); }
   else if(act==='toCrew'){ onbGo('crew'); }
   else if(act==='notnow'){ onbBw=''; onbGo('crew'); }

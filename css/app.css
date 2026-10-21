@@ -5111,3 +5111,25 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .today-rot-days small{display:block;font:500 11px var(--mono);font-size:11px;color:var(--muted)}
 .today-rot-days span{display:block;margin-top:2px;font:500 12px var(--body);font-size:12px;color:var(--chalk)}
 .today-rot p{margin:10px 0 0;font:400 11px var(--body);font-size:11px;color:var(--muted)}
+
+/* v4.6.374: chips that can be dragged look like it -- a dashed edge, six grip
+   dots, and a slow breath that runs through the tray one chip after another.
+   It stops on the chip you are holding, and for reduced motion. */
+#onb .ob-rt-pool,#onb .ob-rt-chip{position:relative}
+#onb .ob-rt-pool{border:1.5px dashed color-mix(in srgb,var(--accent) 55%,var(--line));padding-left:24px;animation:obChipBreath 2.8s ease-in-out infinite;animation-delay:calc(var(--k,0) * .18s)}
+#onb .ob-rt-pool::before,#onb .ob-rt-chip::before{content:"";position:absolute;left:10px;top:50%;width:6px;height:10px;margin-top:-5px;
+  background:radial-gradient(circle,currentColor 1.1px,transparent 1.4px) 0 0/3px 3.4px;opacity:.55}
+#onb .ob-rt-chip{outline:1.5px dashed color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:-1.5px;padding-left:22px}
+#onb .ob-rt-chip::before{left:9px}
+#onb .ob-rt-pool.held,#onb .ob-lifted{animation:none}
+@keyframes obChipBreath{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 0%,transparent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+  50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent)}}
+@media(prefers-reduced-motion:reduce){#onb .ob-rt-pool{animation:none}}
+/* v4.6.374: session cards about 18% shorter */
+#onb .ob-rt-list{gap:6px}
+#onb .ob-rt-ses{padding:10px 10px 11px 14px}
+#onb .ob-rt-grip{height:44px;margin:-4px 0}
+#onb .ob-rt-head{min-height:36px}
+#onb .ob-rt-ses .ob-rt-chips{margin-top:0}
+#onb .ob-rt-ses .pf-rot-tag{height:28px}
+#onb .ob-rt-chip{height:30px}

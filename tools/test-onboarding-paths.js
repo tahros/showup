@@ -62,9 +62,11 @@ async function app(){
     ok('tap a chip: each session without it offers Add', a.w.document.querySelectorAll('#onb [data-onbact="fplace"]').length===3);
     await a.tap('[data-onbact="fplace"][data-v="0"]');
     ok('...and Cardio goes first in Push', a.run('onbF.cards[0].parts[0]')==='Run'&&/Cardio added to Push/.test(a.q('.ob-rt-feed').textContent));
+    ok('the title follows: Cardio + Push', a.run('onbF.cards[0].name')==='Cardio + Push');
     a.run(`onbPut('Back',0,null)`);a.run(`onbPut('Back',0,null)`);
     ok('no duplicate chips in a session', a.run(`onbF.cards[0].parts.filter(p=>p==='Back').length`)===1&&/already in/.test(a.q('.ob-rt-feed').textContent));
     a.run(`onbPut('Biceps',0,1)`);
+    ok('a session title follows its body parts: a set that is no split reads its parts', a.run('onbF.cards[0].name')==='Cardio + Upper'&&a.run('onbF.cards[1].name')==='Back');
     ok('a chip moves between sessions', a.run(`onbF.cards[0].parts.includes('Biceps')&&!onbF.cards[1].parts.includes('Biceps')`));
     await a.tap('[data-onbact="fmenu"][data-v="2"]');await a.tap('[data-onbact="fmove"][data-v="2"][data-dir="-1"]');
     ok('a session moves up from its handle', a.run('onbF.cards[1].name')==='Legs'&&/Legs moved to Wed/.test(a.q('.ob-rt-feed').textContent));
@@ -77,9 +79,9 @@ async function app(){
     ok('nothing is saved before Looks good', !a.run('DB.plan'));
     await a.tap('[data-onbact="fsave"]');
     ok('Looks good lands on Today, onboarded, units saved', a.run('view')==='today'&&!!a.run('DB.settings.onboarded')&&a.run('DB.settings.unit')==='lb');
-    ok('your routine is the planner\'s order, names kept', a.run(`(p=>p.orderMode==='own'&&p.rotation.preset==='own'&&p.rotation.sessions[0].name==='Push'&&p.rotation.sessions[0].parts[0]==='Run'&&p.trainDays.length===4)(DB.settings.plannerPreferences)`)&&a.run('DB.settings.objective')==='strength');
-    ok('session 1 is planned today from the starters, 5 reps on the first lift', a.run(`DB.plan.d===todayISO&&DB.plan.title==='Push'&&/^Run/.test(DB.plan.raw)`)&&/× 5/.test(a.run('DB.plan.raw')));
-    ok('04 Today: Push opens with its run', /Push/.test(a.w.document.querySelector('.today-focus-title')?.textContent||'')&&a.w.document.querySelector('.today-focus-next .btn')?.dataset.ex==='Run');
+    ok('your routine is the planner\'s order, names kept', a.run(`(p=>p.orderMode==='own'&&p.rotation.preset==='own'&&p.rotation.sessions[0].name==='Upper'&&p.rotation.sessions[1].name==='Legs'&&p.rotation.sessions[0].parts[0]==='Run'&&p.trainDays.length===4)(DB.settings.plannerPreferences)`)&&a.run('DB.settings.objective')==='strength');
+    ok('session 1 is planned today from the starters, 5 reps on the first lift', a.run(`DB.plan.d===todayISO&&DB.plan.title==='Upper'&&/^Run/.test(DB.plan.raw)`)&&/× 5/.test(a.run('DB.plan.raw')));
+    ok('04 Today: session 1 opens with its run', /Upper/.test(a.w.document.querySelector('.today-focus-title')?.textContent||'')&&a.w.document.querySelector('.today-focus-next .btn')?.dataset.ex==='Run');
     ok('04 Today: the rotation with Edit', /Your rotation/.test(a.w.document.querySelector('.today-rot')?.textContent||'')&&!!a.w.document.querySelector('[data-onbact="rotedit"]'));
     ok('no workout logged and no timer started', a.run(`!(DB.days[todayISO]?.w||[]).length&&!isLive()`));
     ok('no crew prompt before a finished workout', a.run('adoptDue()')===false);
