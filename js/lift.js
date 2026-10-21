@@ -440,9 +440,9 @@ function renderLift(){
       for(const [ex,list] of Object.entries(byEx)){
         const sub=list.every(isCardio)
           ?list.map(cardioLine).join('  ')
-          :list.map(s=>isHold(s.su)
-              ? `${wTxt(ex,s.w)} ${s.reps.map(r=>secLabel(r)).join(',')}`
-              : `${wTxt(ex,s.w)} × ${s.reps.join(',')}`).join('   ');
+          /* v4.6.370: sets at one weight read as one group -- "155lb × 3, 6 · 235lb × 4, 4",
+             not the weight again before every set */
+          :(g=>g.map(x=>x.hold?`${x.w} ${x.r.join(', ')}`:`${x.w} × ${x.r.join(', ')}`).join(' · '))(list.reduce((g,s)=>{const w=wTxt(ex,s.w),hold=isHold(s.su),r=hold?s.reps.map(r=>secLabel(r)):s.reps,l=g[g.length-1];if(l&&l.w===w&&l.hold===hold)l.r.push(...r);else g.push({w,hold,r:[...r]});return g;},[]));
         const v=list.reduce((a,s)=>a+volOf(s),0);
         const exDone=!exOpen(ex);
         h+=`<div class="item logrow todayrow ${exDone?'fin':''}">
@@ -452,28 +452,24 @@ function renderLift(){
               <span class="tvol mono">${v?vDisp(v)+' '+U():''}</span>
             </div>`;
       }
+      h+='__PTUSUAL__';
       if(partOpen(lift.part)){const _cx=continueExFor(lift.part);
-        h+=`<div class="btnrow"><button class="btn ${isLive()?'livego':''}" data-go="${lift.part}">${_cx?`Continue ${hesc(_cx)}`:'Continue'} →</button></div>`;}
+        /* v4.6.370: the top bar already names the exercise, and red is the top
+           bar's alone: the button is the app's own blue and says Continue */
+        h+=`<div class="btnrow"><button class="btn" data-go="${lift.part}" aria-label="${_cx?`Continue ${hesc(_cx)}`:'Continue'}">Continue →</button></div>`;}
       h+=`</div>`;
       h+=`${undoStack.length?`<button class="btn ghost" id="undoBtn">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}
 `;
-      const usual=avgSessionVol(lift.part);
-      /* v4.6.108: for Cardio this card compares running distance. A ride is not
-         a fraction of your usual run, so it only appears when you ran today. */
+      /* v4.6.370: "Today vs your usual" is a line inside the card it describes,
+         not a second card under it. Same numbers, same rule for Cardio. */
+      {const usual=avgSessionVol(lift.part);let line='';
       if(usual>0&&!(lift.part==='Run'&&!mine.some(s=>s.ex==='Run'))){
         const isRunPart=lift.part==='Run';
         const cur=mine.reduce((a,s)=>a+(s.ex==='Run'?s.w:volOf(s)),0);
         const pct=Math.round(cur/usual*100);
         const disp=v=>isRunPart?`${dDisp(v)} ${DU()}`:`${vDisp(v)} ${U()}`;
-        h+=`<div class="card notecard" style="margin-top:8px;padding:12px 14px">
-              <div class="row spread" style="margin-bottom:6px">
-                <span class="mono muted" style="font-size:10px;letter-spacing:.05em;text-transform:uppercase">Today vs your usual ${lift.part} session</span>
-                <span class="mono" style="font-weight:700;color:${pct>=100?'var(--accent)':'var(--chalk)'}">${pct}%</span>
-              </div>
-              <div class="smeter"><i style="width:${Math.min(100,pct)}%" class="${pct>=100?'over ':''}${isLive()?'live':''}"></i></div>
-              <div class="tot"><span><b>${disp(cur)}</b> today</span><span>usual ≈ ${disp(usual)}</span></div>
-            </div>`;
-      }
+        line=`<div class="pt-usual"><div class="smeter"><i style="width:${Math.min(100,pct)}%" class="${pct>=100?'over':''}"></i></div><div class="pt-usual-t"><span><b>${pct}%</b> of your usual</span><span>${isRunPart?dDisp(cur):vDisp(cur)} / ≈${disp(usual)}</span></div></div>`;}
+      h=h.replace('__PTUSUAL__',line);}
       /* v3.3.33: an open part offers BOTH exits. Continue reuses the data-go
          router, so it lands on the exercise you're mid-way through (v3.3.31);
          Complete seals. Continue leads — you tap it many times a session and
