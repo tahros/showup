@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.373 — Crew toggle on the landscape clock: no flicker
+- **Reported (screen recording):** tapping the crew button to show the crew again flashed the still crew in the corner for a frame or two, then the walking crew jumped in from the start of its walk.
+- **Cause:** hiding switched the walking image to the still one; showing switched it back, so the still painted first and the 16-second walk restarted.
+- **Fix:** the walking image keeps its source and keeps walking while hidden (opacity and visibility, not a source swap or display:none). Show fades it back in where it is. The recovery crew still stops while hidden; Appearance › Mascot off and reduced motion are unchanged.
+- Test: test-crew-toggle-steady.js (fails on the old code); check-timer-crew-toggle.cjs passes.
+
 ## v4.6.372 — First run: two ways in, a routine you can shape
 - Setup keeps its friendly steps: Welcome, "What should we call you?" (name, units, optional bodyweight), "Someone wants to come along" (the crew). "What's in your training?" is gone.
 - "You're in" keeps its layout and entrance and now asks **How are you starting?** -- Start me fresh / I have a routine / Just looking around. One progress bar runs through the whole setup.

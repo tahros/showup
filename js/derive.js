@@ -643,8 +643,13 @@ function tickRest(){
   toggle.setAttribute('aria-label',motion==='off'?'Crew disabled in Appearance':hidden?'Show Crew':'Hide Crew');
   const icon=toggle.querySelector('img'),iconSource=`assets/crew/white/${crew}.webp`;
   if(icon.getAttribute('src')!==iconSource)icon.src=iconSource;
+  /* v4.6.373: hiding the crew is a fade, not a reload. The toggle used to
+     switch the roaming image to the still one on hide and back on show, so
+     every Show painted the still at its own corner for a frame or two and then
+     restarted the 16-second walk from its first frame: a flicker and a jump.
+     The image now keeps its source and keeps walking while hidden, and Show
+     brings it back exactly where it is. */
   const roaming=document.documentElement.classList.contains('bigtimer')&&!document.hidden&&
-    !hidden&&
     motion!=='still'&&motion!=='off'&&
     !(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)&&buddy.dataset.failedCrew!==crew;
   const source=`assets/crew/${roaming&&!recovery?'roaming':'white'}/${crew}.webp`;
@@ -658,7 +663,7 @@ function tickRest(){
   }
   el.dataset.recoveryAnchor=completed;
   if(recovery)paintQuietClock(el,completed);
-  syncRecoveryCrew(el,crew,recovery&&roaming);
+  syncRecoveryCrew(el,crew,recovery&&roaming&&!hidden);   // the recovery crew still stops while hidden
 }
 setInterval(tickRest,1000);
 document.addEventListener('visibilitychange',tickRest);

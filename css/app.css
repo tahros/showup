@@ -1079,7 +1079,11 @@
     html.bigtimer body > #hTimer.on .rt-crew-toggle{display:flex;position:absolute;right:max(24px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:4;align-items:center;justify-content:center;min-width:58px;height:44px;padding:0 14px;margin:0;border:1px solid #ffffff20;border-radius:24px;background:#ffffff0d;box-shadow:none;touch-action:manipulation}
     html.bigtimer body > #hTimer.on .rt-crew-toggle img{width:30px;height:30px;object-fit:contain;pointer-events:none}
     html.bigtimer body > #hTimer.on .rt-crew-toggle[aria-pressed="false"]{opacity:.55}
-    html.bigtimer body > #hTimer.on.rt-crew-hidden :is(.rt-buddy,.rt-sync){display:none!important}
+    /* v4.6.373: hidden, the walking crew keeps its place in the walk; Show fades it back in where it is */
+    html.bigtimer body > #hTimer.on .rt-buddy{transition:opacity .22s ease}
+    html.bigtimer body > #hTimer.on.rt-crew-hidden .rt-buddy{opacity:0;visibility:hidden;transition:none}
+    html.bigtimer body > #hTimer.on.rt-crew-hidden .rt-sync{display:none!important}
+    @media (prefers-reduced-motion:reduce){html.bigtimer body > #hTimer.on .rt-buddy,html.bigtimer body > #hTimer.on.rt-crew-hidden .rt-buddy{transition:none}}
   }
   @media (orientation:landscape){
     html.bigtimer body > #hTimer.on.recovery{
