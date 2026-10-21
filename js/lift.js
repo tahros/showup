@@ -553,7 +553,7 @@ function renderLift(){
     const mtag=ex=>multi&&!mf&&MUSCLE_SHORT[mOf(ex)]?`<span class="mtag">${MUSCLE_SHORT[mOf(ex)]}</span>`:'';
     if(multi) h+=`<div class="mf-row" role="group" aria-label="Show one muscle of ${lift.part}">${[['','All'],...partMs.map(m=>[m,MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m])].map(([m,l])=>`<button type="button" class="mf-chip${m===mf?' on':''}" data-mf="${m}" aria-pressed="${m===mf}">${l}</button>`).join('')}</div>`;
     const row=({ex,last,freq,avoided},big)=>{
-      const when=mtag(ex)+xhTag(ex)+(last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):'never logged');
+      const when=mtag(ex)+xhTag(ex)+(last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):(EQUIP_SHORT(ex)||'not logged yet'));
       const meta=big&&!refinedFlow()?`${when} · ${freq}× this year`:when;
       /* v3.3.329: the per-side line is GONE. It restated the same weight in a
          second arithmetic on the row that already carries the total, and it
@@ -607,11 +607,26 @@ function renderLift(){
       some.forEach(x=>h+=row(x,false));
       if(refinedFlow()) h+=`</div>`;
     }
+    /* v4.6.367: A FIRST VISIT IS FIVE CHOICES, NOT TWENTY-THREE. Untried
+       exercises open with a short starter set -- the common, forgiving staples,
+       one or two per kind of equipment -- and the rest fold behind "More".
+       With nothing logged in this part the heading says "Start here", not
+       "Never tried": a first visit is a menu, not a list of what you have not
+       done. Under a muscle filter the list is already short and nothing folds. */
     if(fresh.length){
-      h+=`<h2 class="quiet">Never tried</h2>`;
-      if(refinedFlow()) h+=`<div class="flow-exgroup">`;
-      fresh.forEach(x=>h+=row(x,false));
-      if(refinedFlow()) h+=`</div>`;
+      const st=(TRAIN_STARTERS[lift.part]||[]).map(ex=>fresh.find(x=>x.ex===ex)).filter(Boolean);
+      const fold=!mf&&st.length>=3&&fresh.length>st.length+2;
+      const top=fold?st:fresh, rest=fold?fresh.filter(x=>!st.includes(x)):[];
+      const open=fold&&lift.moreOpen===lift.part;
+      h+=`<h2 class="quiet">${goto.length||some.length?'Never tried':'Start here'}</h2>`;
+      h+=`<div class="${refinedFlow()?'flow-exgroup ':''}fresh-group">`;
+      /* the starters of a first visit are full go-to rows: a new user should meet
+         the same size row a regular sees, not only the small ones */
+      const first=!goto.length&&!some.length;
+      top.forEach(x=>h+=row(x,first&&fold));
+      if(open) rest.forEach(x=>h+=row(x,false));
+      if(fold) h+=`<button type="button" class="fresh-more${open?' open':''}" data-fresh-more aria-expanded="${open}"><span>${open?'Show fewer':`More ${partLabel(lift.part).toLowerCase()}`}</span>${open?'':`<span class="fresh-n">${rest.length}</span>`}<span class="fresh-chev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span></button>`;
+      h+=`</div>`;
     }
     if(mf&&!goto.length&&!some.length&&!fresh.length&&!avoided.length) h+=`<p class="note" style="margin-top:11px">Nothing for ${MUSCLE_LABEL[mf]||mf} here yet.</p>`;
     if(lift.adding){

@@ -348,6 +348,7 @@ document.addEventListener('click',e=>{
   }
   const pt=e.target.closest('[data-part]:not([data-ex])');
   /* v4.6.187: Train's muscle filter -- same list, one muscle */
+  if(e.target.closest('[data-fresh-more]')&&view==='lift'){lift.moreOpen=lift.moreOpen===lift.part?null:lift.part;return render();}   // v4.6.367
   {const mfc=e.target.closest('[data-mf]');if(mfc&&view==='lift'){lift.mf=mfc.dataset.mf?{part:lift.part,m:mfc.dataset.mf}:null;return render();}}
   if(pt){lift.part=pt.dataset.part;lift.ex=null;lift.weight=0;lift.mf=null;lift.enterAnim=true;return render();}   // v3.3.57: the arriving list gets its one entrance
   const ex=e.target.closest('[data-ex]');

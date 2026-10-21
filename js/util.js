@@ -238,6 +238,21 @@ const EZ_NAME=/\bEZ[\s-]?bar\b/i;
 const equipOf=ex=>equipOv()[ex] || customs()[ex]?.equip || (EZ_NAME.test(ex||'')?'ezbar':null) || SEED.equip[ex] || 'machine';
 const EQUIP_LABEL={barbell:'Barbell (bar + plates)',ezbar:'EZ / curl bar',smith:'Smith machine',dumbbell:'Dumbbell (per hand)',
   cable:'Cable',machine:'Machine (stack)',plate:'Machine (plate-loaded)',body:'Bodyweight'};
+/* v4.6.367: the word an untried row wears on its gray line ("Mid · Dumbbell") */
+const EQUIP_WORD={barbell:'Barbell',ezbar:'EZ bar',smith:'Smith',dumbbell:'Dumbbell',cable:'Cable',machine:'Machine',plate:'Machine',body:'Bodyweight'};
+const EQUIP_SHORT=ex=>EQUIP_WORD[equipOf(ex)]||'';
+/* v4.6.367: the starter set each body part opens with before anything is
+   logged -- common, forgiving staples across the kinds of equipment, in the
+   order a coach would hand them over. Names must match the catalog; a name
+   that is missing is skipped, never invented. */
+const TRAIN_STARTERS={
+  Chest:['Barbell Bench Press','Incline Dumbbell Bench Press','Chest Press','Cable Crossover','Push Up'],
+  Back:['Lat Pulldown','Seated Cable Row','Single-Arm Dumbbell Row','Bent-Over Row','Pull Up'],
+  Shoulder:['Dumbbell Shoulder Press','Lateral Raise','Machine Shoulder Press','Face Pull','Reverse Pec Deck'],
+  Legs:['Leg Press','Squat','Romanian Deadlift','Leg Extension','Seated Leg Curl'],
+  Biceps:['Dumbbell Curl','Hammer Curl','Barbell Curl','Cable Curl'],
+  Triceps:['Triceps Pushdown','Rope Pushdown','Overhead Cable Extension','Skull Crusher'],
+  Sixpack:['Plank','Hanging Leg Raise','Cable Crunch','Russian Twist']};
 
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
