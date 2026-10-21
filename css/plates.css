@@ -33,7 +33,7 @@
 .plate-canvas{display:block;width:100%;height:100%}
 .plate-scene .su-mascot{position:absolute;right:0;bottom:3px;width:94px;pointer-events:none}
 .plate-total{font:12px var(--mono);color:var(--muted)}
-.plate-total b{font:700 28px var(--body);color:var(--chalk);font-variant-numeric:tabular-nums}
+.plate-total b{font:700 28px var(--body);font-size:28px;color:var(--chalk);font-variant-numeric:tabular-nums}
 .plate-caption,.plate-bank{font:10px var(--mono);color:var(--muted);margin-top:8px}
 /* Matching flexible side cells keep the date centered independently of the
    different Replay and Share widths. */
