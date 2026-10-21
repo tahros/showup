@@ -112,7 +112,7 @@ function onbTop(cur,total=4,skip=false){
     `<div class="ob-prog" aria-label="Step ${cur} of ${total}">${Array.from({length:total},(_,k)=>`<i class="${k+1<=cur?'on':''}"></i>`).join('')}</div>`+
     (skip?`<button type="button" class="ob-skip" data-onbact="skip">Skip</button>`:`<span class="ob-stepn">${String(cur).padStart(2,'0')} / ${String(total).padStart(2,'0')}</span>`)+`</div>`;
 }
-/* v4.6.371: TWO WAYS IN. The second screen asks how you are starting, and each
+/* v4.6.372: TWO WAYS IN. The second screen asks how you are starting, and each
    answer gets only the screens it needs.
    fork  -- "I have a routine" / "Start me fresh" / Just looking around
    have  -- where the routine lives: another app (import), my notes or head
@@ -123,7 +123,7 @@ function onbTop(cur,total=4,skip=false){
    you   -- name and units, last, for both.
    The crew member is met after the first finished workout, not here. */
 let onbPath=null,onbHave=null,onbHist=[],onbF=null;
-/* v4.6.371: START ME FRESH, the approved four-screen flow (handoff 2026-10-21):
+/* v4.6.372: START ME FRESH, the approved four-screen flow (handoff 2026-10-21):
    01 Start  -- the fork.
    02 Basics -- goal, the days you train, units, and an optional name and
                 bodyweight, on one screen.
@@ -226,11 +226,11 @@ function onbRender(){
         <p class="ob-note">Sign in to sync. Or keep it on this device.</p>
       </div></div>`;
   }else if(onbStep==='crew'){
-    /* v4.6.312: THE COMPANION, IN SETUP -- kept (v4.6.371): Pip has met you; now one of the crew comes along. */
+    /* v4.6.312: THE COMPANION, IN SETUP -- kept (v4.6.372): Pip has met you; now one of the crew comes along. */
     const n=onbName.trim();
     b=`<div class="ob ob-step ob-adopt ad-root">${onbTop(...onbPos())}${typeof adoptMarkup==='function'?adoptMarkup(n?`${hesc(n)}, someone wants to come along.`:'Someone wants to come along.'):''}</div>`;
   }else if(onbStep==='fork'){
-    /* v4.6.371: "You're in" keeps its layout and its entrance -- the crew member jumps in, the cards
+    /* v4.6.372: "You're in" keeps its layout and its entrance -- the crew member jumps in, the cards
        rise one by one -- and asks the one question that decides the rest: how are you starting? */
     const n=onbName.trim();
     b=`<div class="ob ob-step ob-goal">${onbTop(...onbPos())}
@@ -320,8 +320,8 @@ function onbFinish(skip,go){
   if(go==='train'&&typeof liftEnter==='function'){ liftEnter({}); view='lift'; }
   else if(go==='plan'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(null,'dates'); return; }
   else if(go==='import'&&typeof impOpen==='function'){ view='today'; render(); impOpen('onboarding'); return; }   // v4.6.274
-  else if(go==='paste'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(todayISO); try{const s=pw();s.pasteText='';s.editIndex=undefined;s.editAll=false;pwGo('paste');}catch(e){} return; }   // v4.6.371
-  else if(go==='fresh'){ view='today'; }   // v4.6.371: today's session 1 is already planned
+  else if(go==='paste'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(todayISO); try{const s=pw();s.pasteText='';s.editIndex=undefined;s.editAll=false;pwGo('paste');}catch(e){} return; }   // v4.6.372
+  else if(go==='fresh'){ view='today'; }   // v4.6.372: today's session 1 is already planned
   else{ view='today'; DB.settings.lookAround=1; }   // v4.6.287: sample data is offered on this path only
   render();
 }
@@ -431,7 +431,7 @@ document.addEventListener('click',e=>{
   const chip=e.target.closest('[data-onbp]');
   if(chip){ const p=chip.dataset.onbp; onbSel.has(p)&&onbSel.size>1?onbSel.delete(p):onbSel.add(p); onbRender(); return; }
   const u=e.target.closest('[data-onbu]');
-  if(u){ const nu=u.dataset.onbu; if(onbBw&&nu!==onbUnit){ const v=parseFloat(onbBw); if(v>0) onbBw=String(Math.round(v*(nu==='lb'?2.20462262:0.45359237)*10)/10); } onbUnit=nu; onbRender(); return; }   // v4.6.371: bodyweight follows the unit
+  if(u){ const nu=u.dataset.onbu; if(onbBw&&nu!==onbUnit){ const v=parseFloat(onbBw); if(v>0) onbBw=String(Math.round(v*(nu==='lb'?2.20462262:0.45359237)*10)/10); } onbUnit=nu; onbRender(); return; }   // v4.6.372: bodyweight follows the unit
   /* v3.3.372: day one's own actions. In PREVIEW none of these may write:
      picking a lift shows the logger for real on day one, but in preview it
      stops at the ceremony instead, because entering the logger over live data
@@ -583,12 +583,12 @@ function dayCountUp(){
 }
 /* One decision before training. Rest, active and completed days keep their
    established screens. A future plan is context, never today's prescription. */
-/* v4.6.371: the card's Start. "Run first" (v4.6.131) is right for someone who
+/* v4.6.372: the card's Start. "Run first" (v4.6.131) is right for someone who
    opens with a run -- it was written for one -- and wrong for a beginner whose
    plan has no run in it: their Start opened a run. It stays for anyone who has
    run in the last three weeks and not yet today; everyone else starts on the
    plan's first exercise not yet done. */
-/* v4.6.371: until the first workout, Today shows the rotation onboarding made, with Edit (Preferences) */
+/* v4.6.372: until the first workout, Today shows the rotation onboarding made, with Edit (Preferences) */
 function todayRotationHTML(){
   if(!DB.settings.onbRoutine||SEED.totals.sessions>0)return '';
   const p=DB.settings.plannerPreferences||{},r=p.rotation,days=(p.trainDays||[]).slice();if(!r||!r.sessions||!r.sessions.length||!days.length)return '';
@@ -610,7 +610,7 @@ function focusedTodayHTML(){
   const now=planNow(),items=(now?.items||[]).map(planItemShape),fresh=SEED.totals.sessions===0;
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
-  const parts=items.length?(now?.title&&now.d===todayISO?now.title:pwParts(pwRead(planText(now))).map(partLabel).join(' + ')):'';   // v4.6.371: a session made from a template keeps its name
+  const parts=items.length?(now?.title&&now.d===todayISO?now.title:pwParts(pwRead(planText(now))).map(partLabel).join(' + ')):'';   // v4.6.372: a session made from a template keeps its name
   let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${(typeof companionHTML==='function'&&companionHTML('su-hello-comp'))||mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details>${todayFirstHTML(items)}`;
@@ -632,7 +632,7 @@ function focusedTodayHTML(){
   // Keep rescheduling available without putting a second call-to-action card on Today.
   if(items.length&&planShiftable(planRunFrom(todayISO),1).ok)h+=`<div class="pw-home"><button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button></div>`;
   if(!fresh)h+='<button class="btn ghost restbtn today-focus-rest" id="restBtn">Rest day</button>';
-  h+=todayRotationHTML();   // v4.6.371
+  h+=todayRotationHTML();   // v4.6.372
   h+=sampleLink;
   const template=document.createElement('template');template.innerHTML=h+'</section>';
   template.content.querySelectorAll('details').forEach(d=>{const s=d.querySelector(':scope > summary');if(s){s.classList.add('pw-fold-summary');s.setAttribute('aria-expanded',String(d.open));}});
@@ -1339,7 +1339,7 @@ document.addEventListener('focusin',()=>tipQueue());document.addEventListener('f
 new MutationObserver(()=>{const t=tipsState();if(t&&t.on)tipQueue();}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
 function tipsSettingsHTML(){return `<button class="btn ghost" data-tips-again style="margin:6px 0 0">Show tips again</button>`;}
 document.addEventListener('click',e=>{if(!e.target.closest('[data-tips-again]'))return;tipsStart();save(true);toast('Tips are back.');});
-/* v4.6.371: the Routine screen's drag. A chip from the tray or a session, or a
+/* v4.6.372: the Routine screen's drag. A chip from the tray or a session, or a
    session's handle, lifts after 7px of travel: a lifted copy follows the
    finger, a session under it lights as the drop target, and letting go adds,
    moves or reorders. Below 7px it is a tap and the tap alternatives run.

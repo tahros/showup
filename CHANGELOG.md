@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.372 — First run: two ways in, a routine you can shape
+- Setup keeps its friendly steps: Welcome, "What should we call you?" (name, units, optional bodyweight), "Someone wants to come along" (the crew). "What's in your training?" is gone.
+- "You're in" keeps its layout and entrance and now asks **How are you starting?** -- Start me fresh / I have a routine / Just looking around. One progress bar runs through the whole setup.
+- **Start me fresh:** Basics (goal and the days you train) then **Your week, your way**: a ready arrangement (Full body / Upper / Lower / Push / Pull / Legs suggested by the days), Change opens a template sheet with a preview on your days and Undo, Customize opens a body-part tray -- drag a chip onto a session or between sessions, or tap a chip then Add; sessions reorder by drag, Move up/down or the arrow keys. Saved as the planner's own goal, training days and order. Session 1 is planned for today from the starter exercises; Today shows "Your rotation" with Edit until the first workout. Nothing is logged and no timer starts.
+- **I have a routine:** In another app (import), In my notes or my head (Paste), or I'll log as I go (Train).
+- Fix: Today's Start said "Run first" and opened a run for everyone (v4.6.131, made for one person). It now does so for anyone who has run in the last three weeks or whose session opens with cardio; everyone else starts on the plan's first exercise. A template session keeps its name on Today ("Full body").
+- Tests: test-onboarding-paths.js (new); test-progress-home.js follows the Start rule.
+
 ## v4.6.371 — A quieter timer, one tap away
 
 - Added the approved Crew icon toggle to both landscape timers. Tap to hide or restore your selected Crew; the icon stays visible and dims when hidden. The choice lasts for this app session and follows you between the red timer and blue clock, without changing timer timestamps or Appearance preferences.

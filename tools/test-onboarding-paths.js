@@ -1,4 +1,4 @@
-/* test-onboarding-paths.js DIR -- v4.6.371: two ways in.
+/* test-onboarding-paths.js DIR -- v4.6.372: two ways in.
  * After the door: "How are you starting?" -- I have a routine / Start me fresh /
  * Just looking around. Fresh asks four one-tap questions and lands on Today with
  * session 1 of a fixed template planned; a routine goes to import, paste, or the

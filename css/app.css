@@ -4982,7 +4982,7 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .partcard.liveP .ps::before{content:"";display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:var(--live);vertical-align:1px}
 .partcard.sel.liveP .ps::before{background:#fff}
 
-/* v4.6.371: the two ways in. Choice cards advance on a tap; the plan screen
+/* v4.6.372: the two ways in. Choice cards advance on a tap; the plan screen
    shows the week and today's session before anything is saved. */
 #onb .ob-card.ob-big{padding:22px 18px;margin-top:14px}
 #onb .ob-card.ob-big .ob-ct b{font-size:18px}
@@ -5002,7 +5002,7 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 #onb .ob-ex{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font:400 14px var(--body);color:var(--chalk)}
 #onb .ob-ex b{font:500 13px var(--mono);font-size:13px;color:var(--muted);white-space:nowrap}
 #onb .ob-plan .ob-why{margin-top:12px}
-/* v4.6.371 (revised): the fresh path is the planner's Preferences, one section a screen */
+/* v4.6.372 (revised): the fresh path is the planner's Preferences, one section a screen */
 #onb .ob-pref .card{margin:22px 0 0;padding:18px}
 #onb .ob-pref .pf-seg{margin:0}
 #onb .ob-order .card.pf-split{padding:14px 12px}
@@ -5017,7 +5017,7 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 #onb .ob-ses-h i{font:500 11px var(--mono);font-size:11px;font-style:normal;color:var(--accent-ink)}
 #onb .ob-order .pf-pal{position:static;margin:10px 0 4px;border-radius:14px}
 
-/* v4.6.371: START ME FRESH, four screens. Built from the app's own pieces: the
+/* v4.6.372: START ME FRESH, four screens. Built from the app's own pieces: the
    onboarding card and button, the planner's segmented control, weekday circles
    and body-part tags. */
 #onb .ob-top .ob-stepn{flex:none;font:400 11px var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;min-width:44px;text-align:right}
