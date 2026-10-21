@@ -227,7 +227,7 @@ function ownerChart(days,from,to){
 #ownerDash .o-span,#ownerDash .o-note{color:var(--muted);font:400 11px var(--mono);margin:5px 0 11px}
 #ownerDash .o-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 8px}
 #ownerDash .o-tile{background:var(--surface);border-radius:14px;padding:12px}
-#ownerDash .o-tile b{display:block;font:600 21px var(--body);font-variant-numeric:tabular-nums}#ownerDash .o-tile span{color:var(--muted);font-size:11px}
+#ownerDash .o-tile b{display:block;font:600 21px var(--body);font-size:21px;font-variant-numeric:tabular-nums}#ownerDash .o-tile span{color:var(--muted);font-size:11px}
 #ownerDash h3{font:600 14px var(--body);margin:19px 0 8px}#ownerDash h3 small{font:400 11px var(--body);color:var(--muted);margin-left:6px}
 #ownerDash .o-funnel{background:var(--surface);border-radius:14px;padding:6px 12px}
 #ownerDash .o-step{display:grid;grid-template-columns:96px 1fr 52px 40px;gap:8px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--whisper)}

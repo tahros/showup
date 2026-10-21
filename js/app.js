@@ -36,6 +36,10 @@ document.addEventListener('click',e=>{
     DB.settings.weekStart=weekPick.dataset.weekStart==='monday'?'monday':'sunday';
     save(true);return render();
   }
+  {const tp=e.target.closest('[data-text-size]');   // v4.6.368
+   if(tp){ const v=tp.dataset.textSize;
+     DB.settings.textSize=v==='auto'?((DB.settings.textSize==='auto'||DB.settings.textSize==null)?textAdd():'auto'):+v;
+     DB.settingsAt=Date.now(); applyTheme(); save(true); return render({inplace:true}); }}
   const mascotPick=e.target.closest('[data-mascot-pick]');
   const palettePick=e.target.closest('[data-body-palette-pick]');
   if(palettePick){

@@ -61,6 +61,17 @@ function renderSync(){
     <div class="card"><span class="seg" style="display:flex">
       ${[['sunday','Sunday'],['monday','Monday']].map(([v,label])=>`<button data-week-start="${v}" class="${weekStartDow()===(v==='monday'?1:0)?'sel':''}" aria-pressed="${weekStartDow()===(v==='monday'?1:0)}">${label}</button>`).join('')}
     </span></div>
+    <!-- v4.6.368: Text size. Five steps half a pixel apart, Default in the
+         middle; Auto follows the iPhone's own text size where it can be read. -->
+    <h2>Text size</h2>
+    <div class="card ts-card">
+      <div class="ts-preview" aria-hidden="true"><b>Barbell Bench Press</b><span>Mid · yesterday · 135 lb × 8</span></div>
+      <div class="ts-steps" role="radiogroup" aria-label="Text size">
+        ${TEXT_STEPS.map((v,i)=>`<button type="button" role="radio" data-text-size="${v}" class="ts-step${textAdd()===v&&DB.settings.textSize!=='auto'?' sel':''}${v===TEXT_DEFAULT?' ts-def':''}" aria-checked="${textAdd()===v&&DB.settings.textSize!=='auto'}" aria-label="${['Smaller','Small','Default','Large','Larger'][i]}"><span style="--ts-g:${12+i*2.5}px">A</span></button>`).join('')}
+      </div>
+      <div class="ts-labels" aria-hidden="true"><span>Smaller</span><span>Default</span><span>Larger</span></div>
+      ${textPhoneAdd()!=null?`<button type="button" class="ts-auto${DB.settings.textSize==='auto'||DB.settings.textSize==null?' on':''}" data-text-size="auto" role="switch" aria-checked="${DB.settings.textSize==='auto'||DB.settings.textSize==null}"><span>Match iPhone text size</span><i aria-hidden="true"></i></button>`:''}
+    </div>
     <h2>Mascot</h2>
     <div class="card"><span class="seg" style="display:flex">
       ${['animated','still','off'].map(mode=>`<button data-mascot-pick="${mode}" class="${mascotMode()===mode?'sel':''}" aria-pressed="${mascotMode()===mode}">${mode[0].toUpperCase()+mode.slice(1)}</button>`).join('')}
@@ -379,7 +390,7 @@ function clubCardHTML(){
 let clubKeepPicker=false,clubPickerOpen=false;   /* v4.6.325: an open picker survives a background re-render of Settings */
 function clubArrangeSettings(){
   const host=document.getElementById('view');if(!host||!host.querySelector('.club-card')||host.querySelector('.club-settings-groups'))return;
-  const groups=[['profile','Profile','Name & body details',['You']],['appearance','Appearance','Theme, units & week',['Display','Week starts on','Mascot']],['training','Training','Feedback & planning',['Workout feedback','Planning','Holding weight','Avoided exercises','What you train','Bars','Same exercise, two names']],['connections','Connections','Health & reminders',['Reminders','Apple Health']],['account','Account & data','Membership, sign-in & backups',['Membership','Account & cloud sync','Your data']]];
+  const groups=[['profile','Profile','Name & body details',['You']],['appearance','Appearance','Theme, units & week',['Display','Week starts on','Text size','Mascot']],['training','Training','Feedback & planning',['Workout feedback','Planning','Holding weight','Avoided exercises','What you train','Bars','Same exercise, two names']],['connections','Connections','Health & reminders',['Reminders','Apple Health']],['account','Account & data','Membership, sign-in & backups',['Membership','Account & cloud sync','Your data']]];
   const wrap=document.createElement('div');wrap.className='club-settings-groups';host.querySelector('.club-card').after(wrap);
   for(const [key,title,sub,headings] of groups){const nodes=[];for(const h of Array.from(host.children).filter(n=>n.tagName==='H2'&&headings.includes(n.textContent.trim()))){nodes.push(h);let n=h.nextElementSibling;while(n&&n.tagName!=='H2'&&!n.classList.contains('assetcredits')){const next=n.nextElementSibling;nodes.push(n);n=next;}}
     if(!nodes.length)continue;const d=document.createElement('details');d.className='club-settings-group';d.dataset.clubGroup=key;d.open=clubOpenGroups.has(key);const s=document.createElement('summary');s.innerHTML=`<span><b>${title}</b><small>${sub}</small></span><span aria-hidden="true">+</span>`;d.append(s);const content=document.createElement('div');content.className='club-group-content';nodes.forEach(n=>content.append(n));d.append(content);d.addEventListener('toggle',()=>{if(d.open)clubOpenGroups.add(key);else clubOpenGroups.delete(key)});wrap.append(d);

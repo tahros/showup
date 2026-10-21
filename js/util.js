@@ -340,7 +340,93 @@ function systemTheme(){
 }
 let _themeWatched=false;
 function bodyPalette(){return 'normal';}   /* v4.6.326: the Neon choice is retired; Normal everywhere */
+/* v4.6.368: TEXT SIZE. One number, --tsa, is added to every pixel font size in
+   the app: Settings > Appearance > Text size picks it, and Auto follows the
+   iPhone's own text size (Settings > Display & Brightness > Text Size).
+   Adding pixels, not scaling: 1px makes a 9px label 11% larger and a 25px
+   figure 4% larger, so the small gray text that is hard to read gains most and
+   the big numbers do not push the layout apart.
+   It is done once, in the stylesheets themselves (CSSOM), not by editing
+   hundreds of declarations: each px font-size becomes calc(Npx + var(--tsa)).
+   Styles injected later and inline style="font-size" attributes are caught as
+   they arrive. Left alone: the tab bar, the weather, the timers (sized in vw)
+   and anything drawn for a share image. em, %, vw and clamp() sizes follow
+   their parents or the screen and are not touched. */
+const TEXT_STEPS=[0,0.5,1,1.5,2];          // added px; 1 is the default
+const TEXT_DEFAULT=1;
+const TEXT_SKIP=/(^|[\s>+~,(])nav\b|#nav\b|\.dr-weather|#hTimer|bigtimer|resttimer|\.share|share-|story-frame|plate-canvas|\.ttc-|@font-face/;
+const _tsDone=new WeakSet();
+function textPhoneAdd(){
+  /* iOS exposes the system text size through the -apple-system-body font: 17px
+     at the default (Large). Two pixels a step on iOS ~ half a pixel here. */
+  try{
+    if(!(window.CSS&&CSS.supports&&CSS.supports('font','-apple-system-body'))) return null;
+    const p=document.createElement('span'); p.style.cssText='position:absolute;visibility:hidden;font:-apple-system-body';
+    document.body.appendChild(p); const px=parseFloat(getComputedStyle(p).fontSize); p.remove();
+    if(!(px>0)) return null;
+    return Math.max(0,Math.min(2,Math.round(((px-17)/4+TEXT_DEFAULT)*2)/2));
+  }catch(e){ return null; }
+}
+function textAdd(){
+  const v=DB.settings.textSize;
+  if(typeof v==='number'&&TEXT_STEPS.includes(v)) return v;
+  if(v==='auto'||v==null){ const ph=textPhoneAdd(); return ph==null?TEXT_DEFAULT:ph; }
+  return TEXT_DEFAULT;
+}
+function _tsValue(v){ return /^\d+(\.\d+)?px$/.test(v)?`calc(${v} + var(--tsa,0px))`:null; }
+/* a declaration block: font-size, or the size inside a font shorthand. A
+   shorthand that uses var() (font:500 12px var(--body)) has no longhands to
+   read until it is computed, so its own text is rewritten instead. */
+const _TS_FONT=/^((?:(?:italic|oblique|normal|bold|bolder|lighter|small-caps|[1-9]00)\s+)*)(\d+(?:\.\d+)?px)(?=[\s/])/;
+function _tsDecl(st){
+  const fz=st.getPropertyValue('font-size');
+  if(fz){ const nv=_tsValue(fz); if(!nv) return false; st.setProperty('font-size',nv,st.getPropertyPriority('font-size')); return true; }
+  let f=st.getPropertyValue('font');
+  if(!f){ const c=/(?:^|;)\s*font:\s*([^;]+)/.exec(st.cssText||''); f=c?c[1]:''; }   // a later font-* longhand hides the shorthand's own text
+  const m=f.trim().match(_TS_FONT); if(!m) return false;
+  /* a font-size set after the shorthand wins over the shorthand's size and
+     leaves its family, weight and any later font-* longhand as they were */
+  st.setProperty('font-size',`calc(${m[2]} + var(--tsa,0px))`,/!important/.test(f)?'important':st.getPropertyPriority('font')); return true;
+}
+function _tsRules(rules){
+  for(const r of rules){
+    if(r.cssRules&&!r.style){ _tsRules(r.cssRules); continue; }      // @media, @supports
+    if(!r.style) continue;
+    if(TEXT_SKIP.test(r.selectorText||'')) continue;
+    _tsDecl(r.style);
+  }
+}
+function _tsSheets(){
+  for(const sh of document.styleSheets){
+    if(_tsDone.has(sh)) continue;
+    let rules; try{ rules=sh.cssRules; }catch(e){ continue; }   // cross-origin: Google Fonts
+    _tsDone.add(sh); _tsRules(rules);
+  }
+}
+function _tsInline(root){
+  const els=root.nodeType===1?[root,...root.querySelectorAll('[style*="font"]')]:[];
+  for(const e of els){
+    if(!e.style||e.dataset.tsa) continue;
+    if(e.closest('nav,.dr-weather,#hTimer,.share-frame')) continue;
+    if(_tsDecl(e.style)) e.dataset.tsa='1';
+  }
+}
+let _tsObs=null;
+function applyTextSize(){
+  const a=textAdd();
+  document.documentElement.style.setProperty('--tsa',a+'px');
+  document.documentElement.dataset.tsaPx=String(a);   // not data-text-size: that is the picker's own attribute, and every click would find it on <html>
+  _tsSheets(); if(document.body) _tsInline(document.body);
+  if(!_tsObs&&typeof MutationObserver==='function'&&document.body){
+    _tsObs=new MutationObserver(ms=>{ let sheets=false;
+      for(const m of ms) for(const n of m.addedNodes){ if(n.nodeType!==1) continue;
+        if(n.tagName==='STYLE'||n.tagName==='LINK') sheets=true; else _tsInline(n); }
+      if(sheets) _tsSheets(); });
+    _tsObs.observe(document.documentElement,{childList:true,subtree:true});
+  }
+}
 function applyTheme(){
+  try{ applyTextSize(); }catch(e){}   // v4.6.368
   const pref=DB.settings.theme;
   /* Design-review links may pin a theme without mutating the user's saved
      preference. The override is URL-only and disappears with the preview. */

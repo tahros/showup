@@ -112,7 +112,7 @@ body.rest-home::before{content:"";position:fixed;top:0;left:0;right:0;height:cal
 .su-completion-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 10px;width:100%;margin:10px auto 0}
 #dayDone.su-celebration .ddsummary{width:100%}
 .su-completion-metrics>div{display:flex;flex-direction:column;gap:4px 5px}
-.su-completion-metrics b{font:600 21px/1.2 var(--disp);color:var(--chalk);font-variant-numeric:tabular-nums}
+.su-completion-metrics b{font:600 21px/1.2 var(--disp);font-size:21px;color:var(--chalk);font-variant-numeric:tabular-nums}
 .su-completion-metrics span{font:400 10px/1.316 var(--mono);color:var(--muted)}
 .su-milestone{width:100%;margin:14px auto 0}
 .su-milestone-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px 7px;width:126px;margin:auto}
