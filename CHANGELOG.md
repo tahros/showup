@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.368 — Text size
+- Settings › Appearance › Text size: five steps half a pixel apart (0, +0.5, +1, +1.5, +2 px added to every text size), with a live sample row. Default is +1; Smaller is the size before this release.
+- iPhone: "Match iPhone text size" (on by default) follows iOS Settings › Display & Brightness › Text Size.
+- Pixels are added, not scaled: small gray text gains most, big figures barely move. Left alone: the tab bar, weather, timers, share images and chart labels.
+- Done once in the stylesheets (each px font size becomes calc(Npx + var(--tsa))), plus inline styles as they render. 26 rules whose var() font shorthand was followed by a font-* longhand now state font-size, since browsers hide that size from scripts.
+- New test: test-text-size.js (includes the source rule above).
+
 ## v4.6.367 — Train: a first visit is five choices
 - Untried exercises open with a starter set per body part (five for Chest, Back, Shoulder, Legs; four for Biceps, Triceps, Core); the rest fold behind "More <part> · N".
 - With nothing logged in a part the heading is "Start here", and the starters are go-to rows; once there is history it is "Never tried" again, at regular size.

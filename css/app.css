@@ -4947,7 +4947,7 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .ts-preview b{font:600 15px var(--body);color:var(--chalk)}
 .ts-preview span{font:400 10px var(--mono);color:var(--muted)}
 .ts-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.ts-step{min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.ts-step{--ts-g:14px;min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .ts-step span{font-family:var(--body);font-weight:600;line-height:1;font-size:var(--ts-g)!important}
 .ts-step.sel{background:var(--accent);border-color:var(--accent);color:#fff}
 .ts-labels{display:grid;grid-template-columns:1fr 1fr 1fr;margin-top:-6px;font:400 10px var(--mono);color:var(--faint)}
