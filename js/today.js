@@ -77,7 +77,7 @@ function maybeOnboard(){
   if(hasAnyDays()||SEED.totals.sessions>0){ DB.settings.onboarded='auto'; save(); return; }
   const signedIn=!!localStorage.getItem(SKEY);
   if(signedIn&&!pulledOK) return;                  // cloud may still hold their history — wait for the verdict
-  onbHist=[]; onbStep=signedIn?'fork':1; onbRender();
+  onbHist=[]; onbStep=signedIn?'you':1; onbRender();
 }
 /* ============ v4.6.262: THE FIRST RUN, REDESIGNED ============================
    Four screens, one look: a blue front door, then three short steps on the
@@ -197,8 +197,8 @@ function onbFreshApply(){
 }
 function onbGo(step){ onbHist.push(onbStep); onbStep=step; onbRender(); }
 function onbPos(){   // where this screen sits in its path, and how long the path is
-  const path=onbPath==='fresh'?['fork','basics','routine']:onbHave==='log'?['fork','have','parts','you']:onbPath==='have'?['fork','have','you']:['fork','have','you'];
-  return [Math.max(1,path.indexOf(onbStep)+1),path.length];
+  const path=onbPath==='have'?['you','crew','fork','have']:['you','crew','fork','basics','routine'];
+  return [Math.max(1,path.indexOf(onbStep)+1),path.length,onbStep==='you'||onbStep==='crew'];   // name and crew can be skipped, as before
 }
 function onbChoice(act,val,title,sub,on){
   return `<button type="button" class="ob-card ob-pick ob-rise${on?' on':''}" data-onbact="${act}" data-v="${val}" aria-pressed="${!!on}"><span class="ob-ct"><b>${title}</b>${sub?`<span>${sub}</span>`:''}</span>${ONB_AR}</button>`;
@@ -225,37 +225,33 @@ function onbRender(){
         <button type="button" class="ob-btn ob-local" data-onbact="local">Continue without an account</button>
         <p class="ob-note">Sign in to sync. Or keep it on this device.</p>
       </div></div>`;
+  }else if(onbStep==='crew'){
+    /* v4.6.312: THE COMPANION, IN SETUP -- kept (v4.6.371): Pip has met you; now one of the crew comes along. */
+    const n=onbName.trim();
+    b=`<div class="ob ob-step ob-adopt ad-root">${onbTop(...onbPos())}${typeof adoptMarkup==='function'?adoptMarkup(n?`${hesc(n)}, someone wants to come along.`:'Someone wants to come along.'):''}</div>`;
   }else if(onbStep==='fork'){
-    b=`<div class="ob ob-step ob-fork">${onbTop(1,3)}
-      <h1 class="ob-h ob-rise" ${d(.05)}>How are you<br>starting?</h1>
-      <p class="ob-sub ob-rise" ${d(.15)}>Either way, you'll know what to do today.</p>
-      <button type="button" class="ob-card ob-big ob-rise" ${d(.3)} data-onbact="path" data-v="have"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>I have a routine</b><span>Bring it over and keep going</span></span>${ONB_AR}</button>
-      <button type="button" class="ob-card ob-big ob-rise" ${d(.42)} data-onbact="path" data-v="fresh"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>Start me fresh</b><span>New to lifting, or want a new plan</span></span>${ONB_AR}</button>
-      <div class="ob-sp"></div><button type="button" class="ob-link ob-look ob-rise" ${d(.6)} data-onbact="look">Just looking around</button></div>`;
+    /* v4.6.371: "You're in" keeps its layout and its entrance -- the crew member jumps in, the cards
+       rise one by one -- and asks the one question that decides the rest: how are you starting? */
+    const n=onbName.trim();
+    b=`<div class="ob ob-step ob-goal">${onbTop(...onbPos())}
+      <p class="ob-in ob-rise" ${d(.05)}>You're in${n?', '+hesc(n):''}.</p>
+      <p class="ob-q ob-rise" ${d(.15)}>How are you starting?</p>
+      <div class="ob-jump">${(typeof companionHTML==='function'&&companionHTML('ob-comp'))||(typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):'')}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
+      <button type="button" class="ob-card pri ob-rise" ${d(1.1)} data-onbact="path" data-v="fresh"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>Start me fresh</b><span>A starting point. Made yours.</span></span>${ONB_AR}</button>
+      <button type="button" class="ob-card ob-rise" ${d(1.25)} data-onbact="path" data-v="have"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>I have a routine</b><span>Bring it over and keep going</span></span>${ONB_AR}</button>
+      <div class="ob-sp"></div><button type="button" class="ob-link ob-look ob-rise" ${d(1.45)} data-onbact="look">Just looking around</button><p class="ob-foot ob-rise" ${d(1.6)}>Either way, you'll know what to do today.</p></div>`;
   }else if(onbStep==='have'){
     b=`<div class="ob ob-step">${onbTop(...onbPos())}
       <h1 class="ob-h ob-rise" ${d(.05)}>Where's your<br>routine now?</h1>
       <p class="ob-sub ob-rise" ${d(.15)}>Bring it in once. Pick up where you left off.</p>
       ${[['import','In another app','Strong, Hevy or a spreadsheet: bring your history',ONB_IMPORT],['paste','In my notes or my head','Paste or type it, we turn it into your plan',ICON_PASTE_ONB],['log','I\'ll log as I go','Pick what you train and start today',ONB_PLUS]].map(([v,t,sub,ic],i)=>`<button type="button" class="ob-card ob-rise${onbHave===v?' on':''}" ${d((.3+i*.1).toFixed(2))} data-onbact="have" data-v="${v}"><span class="ob-ic">${ic}</span><span class="ob-ct"><b>${t}</b><span>${sub}</span></span>${ONB_AR}</button>`).join('')}
       <div class="ob-sp"></div></div>`;
-  }else if(onbStep==='parts'){
-    const keys=Object.keys(SEED0.catalog), all=keys.every(p=>onbSel.has(p));
-    b=`<div class="ob ob-step">${onbTop(...onbPos())}
-      <h1 class="ob-h ob-rise" ${d(.05)}>What's in your<br>training?</h1>
-      <p class="ob-sub ob-rise" ${d(.15)}>We'll tailor your suggestions. Change it anytime.</p>
-      <div class="ob-parts">${keys.map((p,i)=>`<button type="button" class="ob-part ob-rise${onbSel.has(p)?' on':''}" ${d((.3+i*.07).toFixed(2))} data-onbp="${hesc(p)}" aria-pressed="${onbSel.has(p)}">${hesc(partLabel(p))}${onbSel.has(p)?ONB_CK:''}</button>`).join('')}</div>
-      <p class="ob-count ob-rise" ${d(.95)}>${all?'All selected to start. Tap to adjust.':`${onbSel.size} of ${keys.length} picked`}</p>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toYou">Continue</button></div>`;
   }else if(onbStep==='basics'){
     const n=onbF.days.length,lb=onbUnit==='lb',g=PF_GOALS.find(x=>x[0]===onbF.goal)||PF_GOALS[0];
     b=`<div class="ob ob-step pf-workspace ob-basics">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Make it fit<br>your life.</h1><p class="ob-sub ob-rise" ${d(.12)}>A few basics. Nothing set in stone.</p>
       <div class="ob-sec ob-rise" ${d(.2)}><span class="ob-lbl">What are you training for?</span><div class="pf-seg" role="group" aria-label="Goal" style="--n:3;--i:${ONB_GOALS.findIndex(x=>x[0]===onbF.goal)}">${ONB_GOALS.map(([v,t])=>`<button type="button" class="pf-segb${v===onbF.goal?' on':''}" data-onbact="fgoal" data-v="${v}" aria-pressed="${v===onbF.goal}">${t}</button>`).join('')}</div><p class="pf-pref-cap">${g[2]}</p></div>
       <div class="ob-sec ob-rise" ${d(.28)}><span class="ob-lbl">Which days work for you?</span><div class="pf-dow" role="group" aria-label="Days you train">${onbDayOrder().map(x=>`<button type="button" class="pf-dowb${onbF.days.includes(x)?' on':''}" data-onbact="fday" data-v="${x}" aria-pressed="${onbF.days.includes(x)}" aria-label="${PF_DOW[x]}">${PF_DOW[x][0]}</button>`).join('')}</div>
         <p class="pf-pref-cap" aria-live="polite">${n?`<strong>${n} ${n===1?'day':'days'} a week</strong> · ${onbDaysSorted().map(x=>PF_DOW[x]).join(', ')}`:'Pick at least one day.'}</p></div>
-      <div class="ob-row ob-sec ob-rise" ${d(.36)}><span class="ob-lbl">Your units</span><span class="ob-seg" role="group" aria-label="Units"><button type="button" class="${lb?'':'on'}" data-onbu="kg" aria-pressed="${!lb}">kg</button><button type="button" class="${lb?'on':''}" data-onbu="lb" aria-pressed="${lb}">lb</button></span></div>
-      <details class="ob-more ob-rise" ${d(.42)} ${onbF.profileOpen?'open':''}><summary data-onbact="fprofile"><span>Name & bodyweight <i>Optional</i></span>${icon('plus',ICON_SZ.sm)}</summary>
-        <div class="ob-more-in"><label>First name<input id="onbName" class="ob-in-f" type="text" autocapitalize="words" autocomplete="given-name" maxlength="40" placeholder="Your name" value="${hesc(onbName)}"></label><label>Bodyweight (${lb?'lb':'kg'})<input id="onbBw" class="ob-in-f" type="number" inputmode="decimal" placeholder="Optional" value="${hesc(onbBw)}"></label></div>
-        <p class="ob-why">Used for bodyweight exercises.</p></details>
       <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="frt" ${n?'':'disabled'}>See my routine →</button><p class="ob-foot2">Change any of this later in Settings.</p></div>`;
   }else if(onbStep==='routine'){
     const t=ONB_TPLS.find(x=>x[0]===onbF.template)||ONB_TPLS[0],E=onbF.edit,sel=onbF.sel,X=icon('close',ICON_SZ.sm),GR=icon('grip',ICON_SZ.sm);
@@ -289,12 +285,13 @@ function onbRender(){
       <label class="ob-opt ob-rise" ${d(.9)} for="onbBw">Bodyweight <span>· Optional</span></label>
       <div class="ob-field ob-rise" ${d(.95)}><input id="onbBw" type="number" inputmode="decimal" placeholder="Enter weight" value="${hesc(onbBw)}"><b>${lb?'lb':'kg'}</b></div>
       <p class="ob-why ob-rise" ${d(1)}>Used for bodyweight exercise calculations.</p>
-      <button type="button" class="ob-link ob-notnow ob-rise" ${d(1.05)} data-onbact="youNotNow">Not now</button>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="finishPath">${onbPath==='fresh'?'Start training':'Continue'}</button></div>`;
+      <button type="button" class="ob-link ob-notnow ob-rise" ${d(1.05)} data-onbact="notnow">Not now</button>
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toCrew">Continue</button></div>`;
   }
   el.dataset.step=onbStep;
   el.classList.toggle('ob-still',!replay);
   el.innerHTML=b;
+  if(onbStep==='crew'&&typeof adoptBind==='function'){const r=el.querySelector('.ob-adopt');if(r)adoptBind(r,()=>{onbGo('fork');});}
   if(onbStep===1&&replay&&typeof showupppAnimate==='function'){
     const host=el.querySelector('.ob-lock');setTimeout(()=>{ if(host&&host.isConnected) showupppAnimate(host); },1500);
   }
@@ -482,9 +479,9 @@ document.addEventListener('click',e=>{
   const act=a.dataset.onbact;
   if(act==='signin') signInGoogle();
   else if(act==='apple'){ if(typeof appleReady==='function'&&appleReady()&&typeof signInApple==='function') signInApple(); else toast('Apple sign-in arrives with the App Store app'); }
-  else if(act==='local'){ onbHist=[]; onbStep='fork'; onbRender(); }
+  else if(act==='local'){ onbHist=[]; onbStep='you'; onbRender(); }
   else if(act==='path'){ onbPath=a.dataset.v; if(onbPath==='fresh'&&!onbF)onbFreshInit(); onbGo(onbPath==='fresh'?'basics':'have'); }
-  else if(act==='have'){ onbHave=a.dataset.v; onbGo(onbHave==='log'?'parts':'you'); }
+  else if(act==='have'){ onbHave=a.dataset.v; onbPathFinish(); }
   else if(act==='fgoal'){ onbF.goal=a.dataset.v; onbRender(); }
   else if(act==='fday'){ const v=+a.dataset.v,i=onbF.days.indexOf(v); if(i>=0)onbF.days.splice(i,1); else onbF.days.push(v); onbRender(); }
   else if(act==='fprofile'){ onbF.profileOpen=!onbF.profileOpen; }   /* <details> toggles itself; remembered across re-renders */
@@ -503,13 +500,12 @@ document.addEventListener('click',e=>{
   else if(act==='fundo'){ const h=onbF.hist.pop(); if(h){ Object.assign(onbF,JSON.parse(h)); onbF.sel=null; onbF.menu=-1; onbSay('Change undone.'); onbRender(); } }
   else if(act==='faddses'){ onbSnap(); onbF.cards.push({name:'Session '+(onbF.cards.length+1),parts:[]}); onbF.edited=true; onbF.sel=null; onbSay('New session added to the rotation.'); onbRender(); }
   else if(act==='fsave'){ if(onbF.cards.some(c=>!c.parts.length)){ onbSay('Add a body part to each empty session first.'); onbRender(); return; } if(onbF.edited&&onbF.template!=='own') onbF.template=onbF.template; onbPathFinish(); }
-  else if(act==='toYou'){ onbGo('you'); }
-  else if(act==='youNotNow'){ onbBw=''; onbPathFinish(); }
-  else if(act==='finishPath'){ onbPathFinish(); }
-  else if(act==='look'){ onbFinish(true,'look'); }
+  else if(act==='toCrew'){ onbGo('crew'); }
+  else if(act==='notnow'){ onbBw=''; onbGo('crew'); }
+  else if(act==='look'){ onbFinish(false,'look'); }
   else if(act==='rotedit'){ if(typeof pwOpen==='function'){ view='today'; render(); pwOpen(todayISO); try{ const j=pfState(); j.prefOrigin='dates'; j.prefs=pfStagePrefs(); pfNavigate('prefs'); }catch(e){} } }
   else if(act==='back'){ if(onbHist.length){ onbStep=onbHist.pop(); onbRender(); } }
-  else if(act==='skip'){ onbFinish(true,'look'); }
+  else if(act==='skip'){ DB.settings.companionAsked=todayISO; if(!DB.settings.companionName){DB.settings.clubAvatar='pip';DB.settings.companionFree='pip';} onbHist.push(onbStep); onbStep='fork'; onbRender(); }   // v4.6.311: skip goes past the companion too; the dealt one comes along
   else if(act==='go') onbFinish(false,a.dataset.onbgo);
   else if(act==='finish') onbFinish(false);
   else if(act==='demo') demoLoad();

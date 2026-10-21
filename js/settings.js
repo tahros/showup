@@ -1019,9 +1019,7 @@ function adoptOpen(){
 /* People who set up before companions existed meet theirs once, on Today. Not under automation
    (Playwright, jsdom): a dialog that opens on a timer would sit over every other check. */
 function adoptDue(){
-  /* v4.6.371: a new user meets the crew after the first finished workout, not before the first set */
-  const worked=Object.values(DB.days||{}).some(v=>v&&v.doneAll&&(v.w||[]).length);
-  return !!DB.settings.onboarded&&worked&&!DB.settings.companionName&&!DB.settings.companionAsked&&!DB.settings.demo&&
+  return !!DB.settings.onboarded&&!DB.settings.companionName&&!DB.settings.companionAsked&&!DB.settings.demo&&
     (typeof mascotMode!=='function'||mascotMode()!=='off')&&typeof view!=='undefined'&&view==='today'&&
     !document.querySelector('#onb:not([hidden]),#dayDone,#paywall,#mbManage,#memberWelcome,#adopt')&&!(typeof modalOpen==='function'&&modalOpen());
 }
