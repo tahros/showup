@@ -620,7 +620,10 @@ function renderLift(){
       const open=fold&&lift.moreOpen===lift.part;
       h+=`<h2 class="quiet">${goto.length||some.length?'Never tried':'Start here'}</h2>`;
       h+=`<div class="${refinedFlow()?'flow-exgroup ':''}fresh-group">`;
-      top.forEach(x=>h+=row(x,false));
+      /* the starters of a first visit are full go-to rows: a new user should meet
+         the same size row a regular sees, not only the small ones */
+      const first=!goto.length&&!some.length;
+      top.forEach(x=>h+=row(x,first&&fold));
       if(open) rest.forEach(x=>h+=row(x,false));
       if(fold) h+=`<button type="button" class="fresh-more${open?' open':''}" data-fresh-more aria-expanded="${open}"><span>${open?'Show fewer':`More ${partLabel(lift.part).toLowerCase()}`}</span>${open?'':`<span class="fresh-n">${rest.length}</span>`}<span class="fresh-chev" aria-hidden="true">${icon('chevron',ICON_SZ.sm)}</span></button>`;
       h+=`</div>`;

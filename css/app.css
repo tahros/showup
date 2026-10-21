@@ -4042,7 +4042,7 @@
   :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exname{flex:1;min-width:0}
   :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain b{display:block;font-size:14px;line-height:1.269;white-space:normal;overflow:visible}
   :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain .sub{display:block;margin-top:4px;font-size:10px;line-height:1.504;color:var(--faint);font-weight:400;white-space:normal}
-  :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-goto .logmain b{font-size:15px;font-weight:600}
+  :root[data-flow="refined"] #view[data-flow-view="lift"] :is(.flow-goto,.fresh-group .item.logrow.goto) .logmain b{font-size:15px;font-weight:600}   /* v4.6.367: a first visit's starters are go-to rows */
   :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .pr-top{font-size:11px;color:var(--muted)}
   :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exchev{flex:0 0 auto;color:var(--faint);transition:transform var(--dur-quick) var(--settle)}
   :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain:active .flow-exchev{transform:translateX(2px)}
