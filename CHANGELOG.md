@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.367 — Train: a first visit is five choices
+- Untried exercises open with a starter set per body part (five for Chest, Back, Shoulder, Legs; four for Biceps, Triceps, Core); the rest fold behind "More <part> · N".
+- With nothing logged in a part the heading is "Start here", and the starters are go-to rows; once there is history it is "Never tried" again, at regular size.
+- Untried rows name the muscle and equipment ("Mid · Barbell") instead of "never logged".
+- A muscle filter, and Cardio, show the whole list; nothing folds.
+- New test: test-train-starters.js.
+
 ## v4.6.366 — Stats: one rhythm, two heading levels, one chart head
 - "Your strength progress" gets the same 30px above it as every section; the 2px pull-up now applies only to the page's own first heading.
 - Running subsections (October so far, Run by run, Distance over time) are a second heading level: 13px, muted, no rule, smaller info.
