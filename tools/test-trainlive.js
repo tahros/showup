@@ -37,7 +37,7 @@ check("...and says today without an emoji", `document.querySelector('.partcard.s
 check("the Body part label is kept for screen readers only", `document.querySelector('h2.flow-bodyhead').classList.contains('vh')`, true);
 check("today's sets sit in one card, outlined while open", `!!document.querySelector('.pt-card.on .todayrow[data-ex], .pt-card.on .todayrow .logmain[data-ex="Hanging Leg Raise"]')`, true);
 check("...with no delete button beside them", `!document.querySelector('[data-dropex]')`, true);
-check("...and Continue inside it, naming the exercise", `document.querySelector('.pt-card .btnrow .btn[data-go]').textContent.trim()`, "Continue Hanging Leg Raise →");
+check("...and Continue inside it, naming the exercise (between exercises the top bar says only Workout)", `document.querySelector('.pt-card .btnrow .btn[data-go]').textContent.trim()`, "Continue Hanging Leg Raise →");
 check("the heading uses the part's display name", `document.querySelector('.pt-head h2').textContent.trim()`, `${run("partLabel('Sixpack')")} · today`);
 check("last time is a link on the heading, card closed", `!!document.querySelector('.pt-head .pt-last') && !document.querySelector('.partlast')`, true);
 run(`document.querySelector('.pt-last').click()`);

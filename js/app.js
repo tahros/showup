@@ -36,6 +36,9 @@ document.addEventListener('click',e=>{
     DB.settings.weekStart=weekPick.dataset.weekStart==='monday'?'monday':'sunday';
     save(true);return render();
   }
+  if(e.target.closest('[data-pt-add]')&&view==='lift'){   // v4.6.370: every exercise in the card is done -- go to this part's list
+    const t=document.querySelector('#view .mf-row')||document.querySelector('#view h2.gotohead')||document.querySelector('#view .fresh-group');
+    if(t){const y=t.getBoundingClientRect().top+scrollY-140;scrollTo({top:y,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}return;}
   {const tp=e.target.closest('[data-text-size]');   // v4.6.368
    if(tp){ const v=tp.dataset.textSize;
      DB.settings.textSize=v==='auto'?((DB.settings.textSize==='auto'||DB.settings.textSize==null)?textAdd():'auto'):+v;

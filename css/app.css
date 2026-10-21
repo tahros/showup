@@ -4956,3 +4956,22 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .ts-auto i{flex:0 0 auto;width:44px;height:26px;border-radius:13px;background:var(--line);position:relative;transition:background .2s}
 .ts-auto i::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0003;transition:transform .2s}
 .ts-auto.on i{background:var(--accent)}.ts-auto.on i::after{transform:translateX(18px)}
+
+/* v4.6.370: CALMER TRAIN DURING A WORKOUT. Red is the top bar's: the card loses
+   its red outline, the button is the app's blue, the meter is neutral, and a
+   body-part tile in progress keeps only a small red dot -- the selected tile
+   is the ordinary selected tile. The usual-session line lives in the card. */
+.pt-card.on{border-color:transparent}
+.pt-head .pt-last{color:var(--muted)}
+.pt-usual{display:flex;flex-direction:column;gap:6px;padding:10px 10px 4px;border-top:1px solid var(--line);margin-top:2px}
+.pt-usual .smeter{margin:0}
+.pt-usual .smeter i{background:color-mix(in srgb,var(--chalk) 32%,transparent)}
+.pt-usual b.pt-over{color:var(--accent-ink)}
+.pt-card .todayrow.fin .logmain>b::before{content:'✓';margin-right:7px}
+.pt-usual-t{display:flex;justify-content:space-between;gap:10px;font:400 11px var(--mono);color:var(--muted)}
+.pt-usual-t b{color:var(--chalk);font-weight:600}
+:root[data-skin="minimal"] .partcard.sel.liveP,.partcard.sel.liveP{background:var(--accent);border-color:var(--accent);animation:none}
+:root[data-skin="minimal"] .partcard.liveP,.partcard.liveP{border-color:transparent;animation:none}
+.partcard.liveP:not(.sel) .ps{color:var(--muted)}
+.partcard.liveP .ps::before{content:"";display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:var(--live);vertical-align:1px}
+.partcard.sel.liveP .ps::before{background:#fff}
