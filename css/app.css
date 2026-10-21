@@ -4966,7 +4966,8 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .pt-usual{display:flex;flex-direction:column;gap:6px;padding:10px 10px 4px;border-top:1px solid var(--line);margin-top:2px}
 .pt-usual .smeter{margin:0}
 .pt-usual .smeter i{background:color-mix(in srgb,var(--chalk) 32%,transparent)}
-.pt-usual .smeter i.over{background:var(--accent)}
+.pt-usual b.pt-over{color:var(--accent-ink)}
+.pt-card .todayrow.fin .logmain>b::before{content:'✓';margin-right:7px}
 .pt-usual-t{display:flex;justify-content:space-between;gap:10px;font:400 11px var(--mono);color:var(--muted)}
 .pt-usual-t b{color:var(--chalk);font-weight:600}
 :root[data-skin="minimal"] .partcard.sel.liveP,.partcard.sel.liveP{background:var(--accent);border-color:var(--accent);animation:none}

@@ -454,9 +454,15 @@ function renderLift(){
       }
       h+='__PTUSUAL__';
       if(partOpen(lift.part)){const _cx=continueExFor(lift.part);
-        /* v4.6.370: the top bar already names the exercise, and red is the top
-           bar's alone: the button is the app's own blue and says Continue */
-        h+=`<div class="btnrow"><button class="btn" data-go="${lift.part}" aria-label="${_cx?`Continue ${hesc(_cx)}`:'Continue'}">Continue →</button></div>`;}
+        /* v4.6.370: red is the top bar's alone, so the button is the app's own
+           blue. It names where it goes: between exercises the top bar says only
+           "Workout". When every exercise in the card is ticked done there is
+           nothing to continue -- the button offers the next one instead, and
+           takes you to this part's list. */
+        const _allDone=Object.keys(byEx).length&&Object.keys(byEx).every(ex=>!exOpen(ex));
+        h+=_allDone
+          ?`<div class="btnrow"><button type="button" class="btn ghost pt-add" data-pt-add>+ Add an exercise</button></div>`
+          :`<div class="btnrow"><button class="btn" data-go="${lift.part}">${_cx?`Continue ${hesc(_cx)}`:'Continue'} →</button></div>`;}
       h+=`</div>`;
       h+=`${undoStack.length?`<button class="btn ghost" id="undoBtn">↺ Undo — ${undoStack[undoStack.length-1].label}</button>`:''}
 `;
@@ -468,7 +474,7 @@ function renderLift(){
         const cur=mine.reduce((a,s)=>a+(s.ex==='Run'?s.w:volOf(s)),0);
         const pct=Math.round(cur/usual*100);
         const disp=v=>isRunPart?`${dDisp(v)} ${DU()}`:`${vDisp(v)} ${U()}`;
-        line=`<div class="pt-usual"><div class="smeter"><i style="width:${Math.min(100,pct)}%" class="${pct>=100?'over':''}"></i></div><div class="pt-usual-t"><span><b>${pct}%</b> of your usual</span><span>${isRunPart?dDisp(cur):vDisp(cur)} / ≈${disp(usual)}</span></div></div>`;}
+        line=`<div class="pt-usual"><div class="smeter"><i style="width:${Math.min(100,pct)}%"></i></div><div class="pt-usual-t"><span><b class="${pct>=100?'pt-over':''}">${pct}%</b> of your usual</span><span>${isRunPart?dDisp(cur):vDisp(cur)} / ≈${disp(usual)}</span></div></div>`;}
       h=h.replace('__PTUSUAL__',line);}
       /* v3.3.33: an open part offers BOTH exits. Continue reuses the data-go
          router, so it lands on the exercise you're mid-way through (v3.3.31);
