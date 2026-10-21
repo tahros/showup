@@ -110,7 +110,7 @@ function onbLockup(){
 function onbTop(cur,total=4,skip=false){
   return `<div class="ob-top"><button type="button" class="ob-back" data-onbact="back" aria-label="Back" style="visibility:${cur>1?'visible':'hidden'}">‹</button>`+
     `<div class="ob-prog" aria-label="Step ${cur} of ${total}">${Array.from({length:total},(_,k)=>`<i class="${k+1<=cur?'on':''}"></i>`).join('')}</div>`+
-    `<button type="button" class="ob-skip" data-onbact="skip" style="visibility:${skip?'visible':'hidden'}">Skip</button></div>`;
+    (skip?`<button type="button" class="ob-skip" data-onbact="skip">Skip</button>`:`<span class="ob-stepn">${String(cur).padStart(2,'0')} / ${String(total).padStart(2,'0')}</span>`)+`</div>`;
 }
 /* v4.6.371: TWO WAYS IN. The second screen asks how you are starting, and each
    answer gets only the screens it needs.
@@ -123,30 +123,61 @@ function onbTop(cur,total=4,skip=false){
    you   -- name and units, last, for both.
    The crew member is met after the first finished workout, not here. */
 let onbPath=null,onbHave=null,onbHist=[],onbF=null;
-/* v4.6.371 (revised): "Start me fresh" asks the planner's own Preferences,
-   one section a screen, each pre-filled: What are you training for, Days you
-   train, Body parts you train, and the order you train them in -- body parts
-   per session, laid over the chosen days for the first week. What is answered
-   here is what Preferences shows afterwards. Today's session 1 is built from
-   the starter exercises for its body parts (fixed, offline). */
+/* v4.6.371: START ME FRESH, the approved four-screen flow (handoff 2026-10-21):
+   01 Start  -- the fork.
+   02 Basics -- goal, the days you train, units, and an optional name and
+                bodyweight, on one screen.
+   03 Routine -- a usable arrangement at once ("Looks good"); Change opens a
+                template sheet (preview, then Use, with Undo); Customize opens a
+                tray of body parts: drag a chip onto a session, drag one between
+                sessions, or tap a chip and then "Add <part>"; x removes;
+                sessions reorder by their handle (drag, Move up/down, arrow keys).
+   04 Today  -- the real Today, with session 1 planned and the rotation shown.
+   What is saved is what the planner already uses: objective, trainDays and
+   your order (rotation). Edits survive Back; changing days re-suggests only an
+   arrangement you have not touched. Sessions are an order, not dates: a
+   missed day means the next session waits. Saving logs nothing and starts no
+   timer. */
+const ONB_GOALS=[['grow','Build muscle'],['strength','Get stronger'],['lose','Lose weight']];
+const ONB_TRAY=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack','Run'];
+const ONB_TPLS=[['full','Full body','A little of everything, each session.'],['ul','Upper / Lower','Alternate upper-body and lower-body sessions.'],['ppl','Push / Pull / Legs','Group pushing, pulling and leg work.'],['body','Body-part days','Give each session its own focus.'],['own','My own','Arrange your own body-part combinations.']];
+function onbDayOrder(){return onbF.weekStart==='monday'?[1,2,3,4,5,6,0]:[0,1,2,3,4,5,6];}
+function onbDaysSorted(){const o=onbDayOrder();return o.filter(d=>onbF.days.includes(d));}
+function onbDayLab(i){const ds=onbDaysSorted();return ds.length?PF_DOW[ds[i%ds.length]]:'';}
+function onbSuggest(){const n=onbF.days.length;return n<=3?'full':n===4?'ul':'ppl';}
+/* the sessions a template makes for n days: its own sessions in turn, one per training day */
+function onbCards(k,n){
+  n=Math.max(1,n);
+  if(k==='own')return Array.from({length:n},(_,i)=>({name:'Session '+(i+1),parts:[]}));
+  if(k==='body')return Array.from({length:n},(_,i)=>{const p=BODY_PARTS[i%BODY_PARTS.length];return {name:partLabel(p),parts:[p]};});
+  const z=PF_SPLITS.find(x=>x[0]===k);const base=z&&z[3]?z[3]:[['Full body',BODY_PARTS.slice()]];
+  return Array.from({length:n},(_,i)=>{const [name,parts]=base[i%base.length];return {name,parts:parts.slice()};});
+}
+/* what goes into Your order: an untouched template keeps its own sessions
+   (Upper, Lower -- not Upper, Lower, Upper, which would put two uppers back to
+   back the next week); anything you arranged is kept exactly as you left it */
+function onbRotation(){
+  if(!onbF.edited&&['full','ul','ppl'].includes(onbF.template)){const z=PF_SPLITS.find(x=>x[0]===onbF.template);return {preset:onbF.template,sessions:z[3].map(([name,parts])=>({name,parts:parts.slice()}))};}
+  return {preset:'own',sessions:onbF.cards.filter(c=>c.parts.length).map(c=>({name:/^Session \d+$/.test(c.name)?'':c.name,parts:c.parts.slice()}))};
+}
 function onbFreshInit(){
-  const mon=!/^en-(US|CA)|^ja|^ko/i.test(navigator.language||'en-US');   // Sunday-first locales start on Sunday; Settings can change it
-  onbF={goal:'grow',weekStart:mon?'monday':'sunday',days:[1,3,5],parts:BODY_PARTS.slice(),preset:null,sessions:null,touched:false,sel:[]};
-  onbFreshSplit();
+  const mon=!/^en-(US|CA)|^ja|^ko/i.test(navigator.language||'en-US');
+  onbF={goal:'grow',weekStart:mon?'monday':'sunday',days:[1,3,5],template:null,cards:null,edited:false,edit:false,sel:null,menu:-1,hist:[],notice:'A starting point, not a commitment.',sheet:null,profileOpen:false};
 }
-function onbFreshAuto(){const n=onbF.days.length;return n<=3?'full':n===4?'ul':'ppl';}
-function onbFreshSplit(k){
-  const key=k||onbF.preset||onbFreshAuto();onbF.preset=key;
-  onbF.sessions=(pfRotPreset(key,onbF.parts)||[]).map(x=>({name:x.name,parts:x.parts.slice()}));onbF.sel=[];
+function onbRoutineReady(){   // the arrangement when Basics hands over: suggested, unless you already shaped one
+  if(!onbF.cards||(!onbF.edited&&onbF.cards.length!==onbF.days.length)){onbF.template=onbF.template&&onbF.edited?onbF.template:onbSuggest();onbF.cards=onbCards(onbF.template,onbF.days.length);}
 }
-/* the first week: each session on the next training day, in order */
-function onbFreshDays(){   // the days each session lands on in the first week, cycling when there are more days than sessions
-  const order=onbF.weekStart==='monday'?[1,2,3,4,5,6,0]:[0,1,2,3,4,5,6],days=order.filter(d=>onbF.days.includes(d)),n=onbF.sessions.length,out=onbF.sessions.map(()=>[]);
-  if(n) days.forEach((d,k)=>out[k%n].push(PF_DOW[d]));
-  return out.map(a=>a.join(' · '));
-}
+function onbSnap(){onbF.hist.push(JSON.stringify({template:onbF.template,cards:onbF.cards,edited:onbF.edited}));if(onbF.hist.length>12)onbF.hist.shift();}
+function onbSay(t){onbF.notice=t;const l=document.getElementById('onbLive');if(l)l.textContent=t;}
+function onbPut(part,to,from){const c=onbF.cards[to];if(!c||from===to)return;
+  if(c.parts.includes(part)){onbSay(partLabel(part)+' is already in '+c.name+'.');onbRender();return;}
+  onbSnap();if(part==='Run')c.parts.unshift(part);else c.parts.push(part);
+  if(from!=null&&onbF.cards[from])onbF.cards[from].parts=onbF.cards[from].parts.filter(p=>p!==part);
+  onbF.sel=null;onbF.edited=true;onbSay(partLabel(part)+(from!=null?' moved to ':' added to ')+c.name+'.');onbRender();
+  const el=document.querySelector(`#onb [data-rtcard="${to}"]`);if(el){el.classList.remove('ob-settle');void el.offsetWidth;el.classList.add('ob-settle');}}
+function onbMove(from,to){if(from===to||to<0||to>=onbF.cards.length)return;onbSnap();const c=onbF.cards.splice(from,1)[0];onbF.cards.splice(to,0,c);onbF.menu=-1;onbF.edited=true;onbSay(c.name+' moved to '+(onbDayLab(to)||'session '+(to+1))+'.');onbRender();}
 function onbFreshToday(){
-  const ses=onbF.sessions.find(x=>x.parts.some(t=>t!=='Run'))||onbF.sessions[0]||{parts:[]};
+  const ses=onbF.cards.find(x=>x.parts.some(t=>t!=='Run'))||onbF.cards[0]||{parts:[]};
   const lifts=ses.parts.filter(t=>t!=='Run'),pool=lifts.map(t=>(TRAIN_STARTERS[t]||[]).filter(e=>!/Plank/.test(e)&&catFor(t).includes(e)));
   const n=lifts.length>=4?6:5,out=[];
   for(let r=0;out.length<n&&r<6;r++)for(const l of pool){if(out.length>=n)break;if(l[r]&&!out.includes(l[r]))out.push(l[r]);}
@@ -154,18 +185,19 @@ function onbFreshToday(){
   return {name:ses.name||lifts.map(partLabel).join(' + '),cardio:ses.parts.includes('Run'),items:out.map((ex,i)=>({ex,sets:3,reps:reps(i)}))};
 }
 function onbFreshApply(){
-  const T=onbFreshToday();
-  DB.settings.myParts=[...onbF.parts,...(onbF.sessions.some(x=>x.parts.includes('Run'))?['Run']:[])];
-  DB.settings.objective=onbF.goal;DB.settings.weekStart=onbF.weekStart;
+  const T=onbFreshToday(),rot=onbRotation();
+  const used=new Set(onbF.cards.flatMap(c=>c.parts));
+  DB.settings.myParts=[...BODY_PARTS.filter(p=>used.has(p)||!onbF.edited),...(used.has('Run')?['Run']:[])];
+  DB.settings.objective=onbF.goal;DB.settings.weekStart=onbF.weekStart;DB.settings.onbRoutine=todayISO;
   const prev=DB.settings.plannerPreferences||{};
-  DB.settings.plannerPreferences={...prev,frequency:onbF.days.length,trainDays:onbF.days.slice(),rotation:{preset:onbF.touched?'own':onbF.preset,sessions:onbF.sessions.map(x=>({name:onbF.touched?'':x.name,parts:x.parts.slice()}))},orderMode:'own',avoid:prev.avoid||[]};
+  DB.settings.plannerPreferences={...prev,frequency:onbF.days.length,trainDays:onbF.days.slice(),rotation:rot,orderMode:'own',avoid:prev.avoid||[]};
   const text=(T.cardio?'Run — by feel\n':'')+T.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n');
   try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan) DB.plan.title=T.name; }catch(e){}
   if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
 }
 function onbGo(step){ onbHist.push(onbStep); onbStep=step; onbRender(); }
 function onbPos(){   // where this screen sits in its path, and how long the path is
-  const path=onbPath==='fresh'?['fork','goal','week','parts2','order','you']:onbHave==='log'?['fork','have','parts','you']:onbPath==='have'?['fork','have','you']:['fork','have','you'];
+  const path=onbPath==='fresh'?['fork','basics','routine']:onbHave==='log'?['fork','have','parts','you']:onbPath==='have'?['fork','have','you']:['fork','have','you'];
   return [Math.max(1,path.indexOf(onbStep)+1),path.length];
 }
 function onbChoice(act,val,title,sub,on){
@@ -194,7 +226,7 @@ function onbRender(){
         <p class="ob-note">Sign in to sync. Or keep it on this device.</p>
       </div></div>`;
   }else if(onbStep==='fork'){
-    b=`<div class="ob ob-step ob-fork">${onbTop(1,onbPath==='fresh'?6:3,true)}
+    b=`<div class="ob ob-step ob-fork">${onbTop(1,3)}
       <h1 class="ob-h ob-rise" ${d(.05)}>How are you<br>starting?</h1>
       <p class="ob-sub ob-rise" ${d(.15)}>Either way, you'll know what to do today.</p>
       <button type="button" class="ob-card ob-big ob-rise" ${d(.3)} data-onbact="path" data-v="have"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>I have a routine</b><span>Bring it over and keep going</span></span>${ONB_AR}</button>
@@ -214,31 +246,39 @@ function onbRender(){
       <div class="ob-parts">${keys.map((p,i)=>`<button type="button" class="ob-part ob-rise${onbSel.has(p)?' on':''}" ${d((.3+i*.07).toFixed(2))} data-onbp="${hesc(p)}" aria-pressed="${onbSel.has(p)}">${hesc(partLabel(p))}${onbSel.has(p)?ONB_CK:''}</button>`).join('')}</div>
       <p class="ob-count ob-rise" ${d(.95)}>${all?'All selected to start. Tap to adjust.':`${onbSel.size} of ${keys.length} picked`}</p>
       <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toYou">Continue</button></div>`;
-  }else if(onbStep==='goal'){
-    const g=PF_GOALS.find(x=>x[0]===onbF.goal)||PF_GOALS[0];
-    b=`<div class="ob ob-step pf-workspace ob-pref">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>What are you<br>training for?</h1><p class="ob-sub ob-rise" ${d(.15)}>It sets your reps. Change it anytime in Preferences.</p>
-      <div class="card ob-rise" ${d(.25)}><div class="pf-seg" role="group" style="--n:3;--i:${PF_GOALS.findIndex(x=>x[0]===g[0])}">${PF_GOALS.map(([v,t])=>`<button type="button" class="pf-segb${v===g[0]?' on':''}" data-onbact="fgoal" data-v="${v}" aria-pressed="${v===g[0]}">${t}</button>`).join('')}</div><p class="pf-pref-cap">${g[2]}</p></div>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="fnext" data-v="week">Continue</button></div>`;
-  }else if(onbStep==='week'){
-    const order=onbF.weekStart==='monday'?[1,2,3,4,5,6,0]:[0,1,2,3,4,5,6],n=onbF.days.length;
-    b=`<div class="ob ob-step pf-workspace ob-pref">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Which days<br>do you train?</h1><p class="ob-sub ob-rise" ${d(.15)}>Pick what you can keep. More isn't better if it doesn't happen.</p>
-      <div class="card ob-rise" ${d(.25)}><div class="pf-dow" role="group" aria-label="Days you train">${order.map(x=>`<button type="button" class="pf-dowb${onbF.days.includes(x)?' on':''}" data-onbact="fday" data-v="${x}" aria-pressed="${onbF.days.includes(x)}" aria-label="${PF_DOW[x]}">${PF_DOW[x][0]}</button>`).join('')}</div>
-      <p class="pf-pref-cap"><strong>${n} ${n===1?'day':'days'} a week.</strong> ${n?'Plans open with these days picked.':'Pick at least one.'}</p></div>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="fnext" data-v="parts2" ${n?'':'disabled'}>Continue</button></div>`;
-  }else if(onbStep==='parts2'){
-    b=`<div class="ob ob-step pf-workspace ob-pref">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Body parts<br>you train</h1><p class="ob-sub ob-rise" ${d(.15)}>All of them to start. Switch off any you don't.</p>
-      <div class="card pf-myparts ob-rise" ${d(.25)}><div class="pf-mypart-chips" role="group" aria-label="Body parts you train">${BODY_PARTS.map(t=>`<button type="button" class="pf-mypart${onbF.parts.includes(t)?' on':''}" data-onbact="fpart" data-v="${hesc(t)}" aria-pressed="${onbF.parts.includes(t)}">${hesc(partLabel(t))}</button>`).join('')}</div></div>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="fnext" data-v="order" ${onbF.parts.length?'':'disabled'}>Continue</button></div>`;
-  }else if(onbStep==='order'){
-    const lab=onbFreshDays(),sel=onbF.sel,X=icon('close',ICON_SZ.sm),pal=['Run',...onbF.parts];
-    const rows=onbF.sessions.map((x,i)=>`<div class="pf-ses${sel.includes(i)?' sel':''}"><button type="button" class="pf-rot-n" data-onbact="fsel" data-v="${i}" aria-pressed="${sel.includes(i)}" aria-label="Session ${i+1}${lab[i]?', '+lab[i]:''}: ${sel.includes(i)?'selected':'select'}">${i+1}</button><div class="pf-ses-in"><span class="ob-ses-h">${x.name&&!onbF.touched?`<b>${hesc(x.name)}</b>`:''}<i>${lab[i]||'next week'}</i></span><div class="pf-rot-tags">${x.parts.length?x.parts.map((t,k)=>`<span class="pf-rot-tag${t==='Run'?' cardio':''}">${hesc(partLabel(t))}<button type="button" class="pf-rot-x" data-onbact="fx" data-v="${i}" data-k="${k}" aria-label="Take ${hesc(partLabel(t))} out">${X}</button></span>`).join(''):'<em>Empty: select it and tap a body part</em>'}</div></div><button type="button" class="pf-rot-remove ob-ses-del" data-onbact="fdel" data-v="${i}" aria-label="Remove session">${X}</button></div>`).join('');
-    const allHave=t=>sel.length>0&&sel.every(i=>onbF.sessions[i].parts.includes(t));
-    b=`<div class="ob ob-step pf-workspace ob-pref ob-order">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>What do you<br>train each day?</h1><p class="ob-sub ob-rise" ${d(.15)}>A starting point for ${onbF.days.length} days. Tap a split, or make it yours.</p>
-      <div class="card pf-split pf-order-host ob-rise" ${d(.25)}><div class="pf-from"><span>Start from</span>${PF_SPLITS.filter(z=>z[3]||z[0]==='body').map(([k,t])=>`<button type="button" class="pf-from-b${onbF.preset===k&&!onbF.touched?' on':''}" data-onbact="fsplit" data-v="${k}">${t}</button>`).join('')}</div>
-      <div class="pf-split-body"><div class="pf-pal"><div class="pf-pal-h">${sel.length?`<span class="pf-selbar"><b>${sel.length} selected</b></span><em>Tap a body part to add or remove it</em>`:'<span>Body parts</span><em>Select a day, then tap a body part</em>'}</div><div class="pf-pal-chips">${pal.map(t=>`<button type="button" class="pf-pal-chip${allHave(t)?' all':''}" data-onbact="fput" data-v="${hesc(t)}" ${sel.length?'':'disabled'} aria-pressed="${allHave(t)}">${hesc(partLabel(t))}</button>`).join('')}</div></div>
-      <div class="pf-rots">${rows}</div><button type="button" class="pf-rot-add" data-onbact="fadd">+ Add a session</button></div></div>
-      <p class="ob-why ob-rise" ${d(.35)}>Sessions go in order, not by date: miss a day and the next session waits for you.</p>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="fnext" data-v="you" ${onbF.sessions.some(x=>x.parts.length)?'':'disabled'}>Continue</button></div>`;
+  }else if(onbStep==='basics'){
+    const n=onbF.days.length,lb=onbUnit==='lb',g=PF_GOALS.find(x=>x[0]===onbF.goal)||PF_GOALS[0];
+    b=`<div class="ob ob-step pf-workspace ob-basics">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Make it fit<br>your life.</h1><p class="ob-sub ob-rise" ${d(.12)}>A few basics. Nothing set in stone.</p>
+      <div class="ob-sec ob-rise" ${d(.2)}><span class="ob-lbl">What are you training for?</span><div class="pf-seg" role="group" aria-label="Goal" style="--n:3;--i:${ONB_GOALS.findIndex(x=>x[0]===onbF.goal)}">${ONB_GOALS.map(([v,t])=>`<button type="button" class="pf-segb${v===onbF.goal?' on':''}" data-onbact="fgoal" data-v="${v}" aria-pressed="${v===onbF.goal}">${t}</button>`).join('')}</div><p class="pf-pref-cap">${g[2]}</p></div>
+      <div class="ob-sec ob-rise" ${d(.28)}><span class="ob-lbl">Which days work for you?</span><div class="pf-dow" role="group" aria-label="Days you train">${onbDayOrder().map(x=>`<button type="button" class="pf-dowb${onbF.days.includes(x)?' on':''}" data-onbact="fday" data-v="${x}" aria-pressed="${onbF.days.includes(x)}" aria-label="${PF_DOW[x]}">${PF_DOW[x][0]}</button>`).join('')}</div>
+        <p class="pf-pref-cap" aria-live="polite">${n?`<strong>${n} ${n===1?'day':'days'} a week</strong> · ${onbDaysSorted().map(x=>PF_DOW[x]).join(', ')}`:'Pick at least one day.'}</p></div>
+      <div class="ob-row ob-sec ob-rise" ${d(.36)}><span class="ob-lbl">Your units</span><span class="ob-seg" role="group" aria-label="Units"><button type="button" class="${lb?'':'on'}" data-onbu="kg" aria-pressed="${!lb}">kg</button><button type="button" class="${lb?'on':''}" data-onbu="lb" aria-pressed="${lb}">lb</button></span></div>
+      <details class="ob-more ob-rise" ${d(.42)} ${onbF.profileOpen?'open':''}><summary data-onbact="fprofile"><span>Name & bodyweight <i>Optional</i></span>${icon('plus',ICON_SZ.sm)}</summary>
+        <div class="ob-more-in"><label>First name<input id="onbName" class="ob-in-f" type="text" autocapitalize="words" autocomplete="given-name" maxlength="40" placeholder="Your name" value="${hesc(onbName)}"></label><label>Bodyweight (${lb?'lb':'kg'})<input id="onbBw" class="ob-in-f" type="number" inputmode="decimal" placeholder="Optional" value="${hesc(onbBw)}"></label></div>
+        <p class="ob-why">Used for bodyweight exercises.</p></details>
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="frt" ${n?'':'disabled'}>See my routine →</button><p class="ob-foot2">Change any of this later in Settings.</p></div>`;
+  }else if(onbStep==='routine'){
+    const t=ONB_TPLS.find(x=>x[0]===onbF.template)||ONB_TPLS[0],E=onbF.edit,sel=onbF.sel,X=icon('close',ICON_SZ.sm),GR=icon('grip',ICON_SZ.sm);
+    const chip=(p,i)=>E?`<button type="button" class="pf-rot-tag ob-rt-chip${p==='Run'?' cardio':''}" data-rtdrag="${p}" data-rtfrom="${i}" data-onbact="frm" data-v="${i}" data-p="${p}" aria-label="Remove ${hesc(partLabel(p))} from ${hesc(onbF.cards[i].name)}; drag to move">${hesc(partLabel(p))}${X}</button>`:`<span class="pf-rot-tag${p==='Run'?' cardio':''}">${hesc(partLabel(p))}</span>`;
+    const cards=onbF.cards.map((c,i)=>`<section class="ob-rt-ses" data-rtcard="${i}" aria-label="${onbDayLab(i)}, ${hesc(c.name)}"><div class="ob-rt-head"><span class="ob-rt-day">${onbDayLab(i)}</span><b>${hesc(c.name)}</b><button type="button" class="ob-rt-grip" data-rthandle="${i}" data-onbact="fmenu" data-v="${i}" aria-label="Move ${hesc(c.name)}. Drag, or choose up or down." aria-expanded="${onbF.menu===i}">${GR}</button></div>
+      <div class="ob-rt-chips">${(E?c.parts:c.parts.slice(0,3)).map(p=>chip(p,i)).join('')}${!E&&c.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${c.parts.length-3}</button>`:''}${!c.parts.length?'<em>Drop body parts here</em>':''}</div>
+      ${sel&&!c.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="${i}">+ Add ${hesc(partLabel(sel))}</button>`:''}
+      ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button></div>`:''}</section>`).join('');
+    b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>
+      <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${hesc(t[1])}</b><span>${onbF.days.length} ${onbF.days.length===1?'day':'days'} · ${onbDaysSorted().map(x=>PF_DOW[x]).join(', ')}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">Change</button></div>
+      ${E?`<div class="ob-rt-tray"><div class="ob-rt-tray-h"><b>Add a body part</b><button type="button" class="ob-rt-link" data-onbact="fdone">Done</button></div><p>Drag onto a session, or tap a chip, then a session.</p><div class="ob-rt-chips">${ONB_TRAY.map(p=>`<button type="button" class="pf-pal-chip ob-rt-pool${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}">${hesc(partLabel(p))}</button>`).join('')}</div></div>`
+        :`<div class="ob-rt-bar"><span>Your sessions</span><button type="button" class="ob-rt-link" data-onbact="fcustom">Customize</button></div>`}
+      <div class="ob-rt-list">${cards}</div>
+      ${E?`<button type="button" class="ob-rt-addses" data-onbact="faddses">+ Add a session</button>`:''}
+      <div class="ob-rt-feed"><span>${hesc(onbF.notice)}</span>${onbF.hist.length?`<button type="button" class="ob-rt-link" data-onbact="fundo">Undo</button>`:''}</div>
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="fsave">Looks good →</button><p class="ob-foot2">Miss a day? Your next session waits for you.</p>
+      <div class="ob-live" id="onbLive" aria-live="polite"></div></div>`;
+    if(onbF.sheet){const k=onbF.sheet,pick=ONB_TPLS.find(x=>x[0]===k),sug=onbSuggest();
+      b+=`<div class="ob-sheet-wrap" data-onbact="fsheetbg"><section class="ob-sheet" role="dialog" aria-modal="true" aria-labelledby="obSheetT"><div class="ob-sheet-grip"></div><div class="ob-sheet-h"><div class="ob-sheet-t" id="obSheetT" role="heading" aria-level="2">Find your rhythm.</div><button type="button" class="ob-sheet-x" data-onbact="fclose" aria-label="Close">${X}</button></div>
+        <p class="ob-sub">Same ${onbF.days.length} ${onbF.days.length===1?'day':'days'}. A different way to arrange them.</p>
+        ${ONB_TPLS.map(([v,name,desc])=>`<button type="button" class="ob-tpl${v===k?' on':''}" data-onbact="ftpl" data-v="${v}" aria-pressed="${v===k}"><span><b>${name}</b><small>${desc}</small></span>${v===sug?'<i>Suggested</i>':''}${v===k?icon('check',ICON_SZ.sm):''}</button>`).join('')}
+        <div class="ob-tpl-week">${onbCards(k,onbF.days.length).map((c,i)=>`<div><small>${onbDayLab(i)}</small><span>${hesc(c.name)}</span></div>`).join('')}</div>
+        <button type="button" class="ob-go" data-onbact="fapply">Use ${hesc(pick[1])}</button><p class="ob-foot2">Replaces your sessions. You can undo.</p></section></div>`;}
   }else if(onbStep==='you'){
     const lb=onbUnit==='lb';
     b=`<div class="ob ob-step ob-about">${onbTop(...onbPos())}
@@ -258,7 +298,7 @@ function onbRender(){
   if(onbStep===1&&replay&&typeof showupppAnimate==='function'){
     const host=el.querySelector('.ob-lock');setTimeout(()=>{ if(host&&host.isConnected) showupppAnimate(host); },1500);
   }
-  if(onbStep==='you'){
+  if(onbStep==='you'||onbStep==='basics'){
     const nm=el.querySelector('#onbName'), bw=el.querySelector('#onbBw'), bb=el.querySelector('#onbBubble');
     nm?.addEventListener('input',()=>{ onbName=nm.value.slice(0,40); nm.classList.toggle('filled',!!onbName); if(bb){ bb.innerHTML=onbBubble(); bb.classList.remove('bump'); void bb.offsetWidth; bb.classList.add('bump'); } });
     bw?.addEventListener('input',()=>{ onbBw=bw.value; });
@@ -394,7 +434,7 @@ document.addEventListener('click',e=>{
   const chip=e.target.closest('[data-onbp]');
   if(chip){ const p=chip.dataset.onbp; onbSel.has(p)&&onbSel.size>1?onbSel.delete(p):onbSel.add(p); onbRender(); return; }
   const u=e.target.closest('[data-onbu]');
-  if(u){ onbUnit=u.dataset.onbu; onbRender(); return; }
+  if(u){ const nu=u.dataset.onbu; if(onbBw&&nu!==onbUnit){ const v=parseFloat(onbBw); if(v>0) onbBw=String(Math.round(v*(nu==='lb'?2.20462262:0.45359237)*10)/10); } onbUnit=nu; onbRender(); return; }   // v4.6.371: bodyweight follows the unit
   /* v3.3.372: day one's own actions. In PREVIEW none of these may write:
      picking a lift shows the logger for real on day one, but in preview it
      stops at the ceremony instead, because entering the logger over live data
@@ -443,22 +483,31 @@ document.addEventListener('click',e=>{
   if(act==='signin') signInGoogle();
   else if(act==='apple'){ if(typeof appleReady==='function'&&appleReady()&&typeof signInApple==='function') signInApple(); else toast('Apple sign-in arrives with the App Store app'); }
   else if(act==='local'){ onbHist=[]; onbStep='fork'; onbRender(); }
-  else if(act==='path'){ onbPath=a.dataset.v; if(onbPath==='fresh'&&!onbF)onbFreshInit(); onbGo(onbPath==='fresh'?'goal':'have'); }
+  else if(act==='path'){ onbPath=a.dataset.v; if(onbPath==='fresh'&&!onbF)onbFreshInit(); onbGo(onbPath==='fresh'?'basics':'have'); }
   else if(act==='have'){ onbHave=a.dataset.v; onbGo(onbHave==='log'?'parts':'you'); }
   else if(act==='fgoal'){ onbF.goal=a.dataset.v; onbRender(); }
-  else if(act==='fday'){ const v=+a.dataset.v,i=onbF.days.indexOf(v); if(i>=0)onbF.days.splice(i,1); else onbF.days.push(v); if(!onbF.touched){onbF.preset=null;onbFreshSplit();} onbRender(); }
-  else if(act==='fpart'){ const v=a.dataset.v,i=onbF.parts.indexOf(v); if(i>=0)onbF.parts.splice(i,1); else onbF.parts=BODY_PARTS.filter(t=>t===v||onbF.parts.includes(t)); if(!onbF.touched)onbFreshSplit(); else onbF.sessions.forEach(x=>x.parts=x.parts.filter(t=>t==='Run'||onbF.parts.includes(t))); onbRender(); }
-  else if(act==='fsplit'){ onbF.touched=false; onbFreshSplit(a.dataset.v); onbRender(); }
-  else if(act==='fsel'){ const v=+a.dataset.v,i=onbF.sel.indexOf(v); if(i>=0)onbF.sel.splice(i,1); else onbF.sel.push(v); onbRender(); }
-  else if(act==='fput'){ const t=a.dataset.v,all=onbF.sel.every(i=>onbF.sessions[i].parts.includes(t)); for(const i of onbF.sel){const x=onbF.sessions[i];if(all)x.parts=x.parts.filter(z=>z!==t);else if(!x.parts.includes(t)){if(t==='Run')x.parts.unshift(t);else x.parts.push(t);}} onbF.touched=true; onbRender(); }
-  else if(act==='fx'){ const x=onbF.sessions[+a.dataset.v]; if(x){x.parts.splice(+a.dataset.k,1);onbF.touched=true;} onbRender(); }
-  else if(act==='fdel'){ onbF.sessions.splice(+a.dataset.v,1); onbF.sel=[]; onbF.touched=true; onbRender(); }
-  else if(act==='fadd'){ onbF.sessions.push({name:'',parts:[]}); onbF.sel=[onbF.sessions.length-1]; onbF.touched=true; onbRender(); }
-  else if(act==='fnext'){ onbGo(a.dataset.v); }
+  else if(act==='fday'){ const v=+a.dataset.v,i=onbF.days.indexOf(v); if(i>=0)onbF.days.splice(i,1); else onbF.days.push(v); onbRender(); }
+  else if(act==='fprofile'){ onbF.profileOpen=!onbF.profileOpen; }   /* <details> toggles itself; remembered across re-renders */
+  else if(act==='frt'){ if(!onbF.days.length)return; onbRoutineReady(); onbGo('routine'); }
+  else if(act==='fchange'){ onbF.sheet=onbF.template||onbSuggest(); onbRender(); document.querySelector('#onb .ob-tpl.on')?.focus(); }
+  else if(act==='ftpl'){ onbF.sheet=a.dataset.v; onbRender(); document.querySelector(`#onb .ob-tpl[data-v="${a.dataset.v}"]`)?.focus(); }
+  else if(act==='fclose'||(act==='fsheetbg'&&e.target===a)){ onbF.sheet=null; onbRender(); document.querySelector('#onb [data-onbact="fchange"]')?.focus(); }
+  else if(act==='fapply'){ onbSnap(); onbF.template=onbF.sheet; onbF.cards=onbCards(onbF.template,onbF.days.length); onbF.edited=onbF.template==='own'; onbF.edit=onbF.template==='own'; onbF.sel=null; onbF.sheet=null; onbSay('New arrangement. All yours to adjust.'); onbRender(); }
+  else if(act==='fcustom'){ onbF.edit=true; onbSay('Drag to arrange. Tap works too.'); onbRender(); }
+  else if(act==='fdone'){ onbF.edit=false; onbF.sel=null; onbSay('Your routine is ready.'); onbRender(); }
+  else if(act==='fpool'){ if(onbDragJust)return; onbF.sel=onbF.sel===a.dataset.v?null:a.dataset.v; onbSay(onbF.sel?'Tap a session to add '+partLabel(onbF.sel)+'.':'Drag to arrange. Tap works too.'); onbRender(); }
+  else if(act==='fplace'){ onbPut(onbF.sel,+a.dataset.v,null); }
+  else if(act==='frm'){ if(onbDragJust)return; onbSnap(); const c=onbF.cards[+a.dataset.v]; c.parts=c.parts.filter(p=>p!==a.dataset.p); onbF.edited=true; onbSay(partLabel(a.dataset.p)+' removed.'); onbRender(); }
+  else if(act==='fmenu'){ if(onbDragJust)return; const v=+a.dataset.v; onbF.menu=onbF.menu===v?-1:v; onbRender(); }
+  else if(act==='fmove'){ onbMove(+a.dataset.v,+a.dataset.v+(+a.dataset.dir)); }
+  else if(act==='fundo'){ const h=onbF.hist.pop(); if(h){ Object.assign(onbF,JSON.parse(h)); onbF.sel=null; onbF.menu=-1; onbSay('Change undone.'); onbRender(); } }
+  else if(act==='faddses'){ onbSnap(); onbF.cards.push({name:'Session '+(onbF.cards.length+1),parts:[]}); onbF.edited=true; onbF.sel=null; onbSay('New session added to the rotation.'); onbRender(); }
+  else if(act==='fsave'){ if(onbF.cards.some(c=>!c.parts.length)){ onbSay('Add a body part to each empty session first.'); onbRender(); return; } if(onbF.edited&&onbF.template!=='own') onbF.template=onbF.template; onbPathFinish(); }
   else if(act==='toYou'){ onbGo('you'); }
   else if(act==='youNotNow'){ onbBw=''; onbPathFinish(); }
   else if(act==='finishPath'){ onbPathFinish(); }
   else if(act==='look'){ onbFinish(true,'look'); }
+  else if(act==='rotedit'){ if(typeof pwOpen==='function'){ view='today'; render(); pwOpen(todayISO); try{ const j=pfState(); j.prefOrigin='dates'; j.prefs=pfStagePrefs(); pfNavigate('prefs'); }catch(e){} } }
   else if(act==='back'){ if(onbHist.length){ onbStep=onbHist.pop(); onbRender(); } }
   else if(act==='skip'){ onbFinish(true,'look'); }
   else if(act==='go') onbFinish(false,a.dataset.onbgo);
@@ -543,10 +592,19 @@ function dayCountUp(){
    plan has no run in it: their Start opened a run. It stays for anyone who has
    run in the last three weeks and not yet today; everyone else starts on the
    plan's first exercise not yet done. */
+/* v4.6.371: until the first workout, Today shows the rotation onboarding made, with Edit (Preferences) */
+function todayRotationHTML(){
+  if(!DB.settings.onbRoutine||SEED.totals.sessions>0)return '';
+  const p=DB.settings.plannerPreferences||{},r=p.rotation,days=(p.trainDays||[]).slice();if(!r||!r.sessions||!r.sessions.length||!days.length)return '';
+  const ord=(weekStartDow()===1?[1,2,3,4,5,6,0]:[0,1,2,3,4,5,6]).filter(d=>days.includes(d));
+  const name=x=>x.name||x.parts.map(partLabel).join(' + ');
+  return `<section class="today-rot"><div class="today-rot-h"><span>Your rotation</span><button type="button" class="today-rot-edit" data-onbact="rotedit">Edit</button></div><div class="today-rot-days">${ord.map((d,i)=>`<div><small>${PF_DOW[d]}</small><span>${hesc(name(r.sessions[i%r.sessions.length]))}</span></div>`).join('')}</div><p>Sessions go in order. Miss a day and the next one waits.</p></section>`;
+}
 function todayFirstHTML(items){
   const ranLately=Object.keys(DB.days||{}).some(d=>d<todayISO&&d>=(()=>{const t=new Date(todayISO+'T12:00');t.setDate(t.getDate()-21);return t.toLocaleDateString('en-CA');})()&&(DB.days[d].w||[]).some(s=>s.ex==='Run'));
   const ranToday=(DB.days[todayISO]?.w||[]).some(s=>s.ex==='Run');
-  if(ranLately&&!ranToday) return `<div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
+  const cardioFirst=DB.plan&&DB.plan.d===todayISO&&/^Run\b/.test(String(DB.plan.raw||'').trim());   // session 1 opens with cardio
+  if((ranLately||cardioFirst)&&!ranToday) return `<div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
   const done=new Set((DB.days[todayISO]?.w||[]).map(s=>s.ex)),it=items.find(x=>x.ex&&!done.has(x.ex))||items[0];
   if(!it||!it.ex) return '';
   const part=typeof homePartOf==='function'?homePartOf(it.ex):'';
@@ -578,6 +636,7 @@ function focusedTodayHTML(){
   // Keep rescheduling available without putting a second call-to-action card on Today.
   if(items.length&&planShiftable(planRunFrom(todayISO),1).ok)h+=`<div class="pw-home"><button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button></div>`;
   if(!fresh)h+='<button class="btn ghost restbtn today-focus-rest" id="restBtn">Rest day</button>';
+  h+=todayRotationHTML();   // v4.6.371
   h+=sampleLink;
   const template=document.createElement('template');template.innerHTML=h+'</section>';
   template.content.querySelectorAll('details').forEach(d=>{const s=d.querySelector(':scope > summary');if(s){s.classList.add('pw-fold-summary');s.setAttribute('aria-expanded',String(d.open));}});
@@ -1284,3 +1343,47 @@ document.addEventListener('focusin',()=>tipQueue());document.addEventListener('f
 new MutationObserver(()=>{const t=tipsState();if(t&&t.on)tipQueue();}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
 function tipsSettingsHTML(){return `<button class="btn ghost" data-tips-again style="margin:6px 0 0">Show tips again</button>`;}
 document.addEventListener('click',e=>{if(!e.target.closest('[data-tips-again]'))return;tipsStart();save(true);toast('Tips are back.');});
+/* v4.6.371: the Routine screen's drag. A chip from the tray or a session, or a
+   session's handle, lifts after 7px of travel: a lifted copy follows the
+   finger, a session under it lights as the drop target, and letting go adds,
+   moves or reorders. Below 7px it is a tap and the tap alternatives run.
+   Reduced motion keeps the lift, drops the settle. */
+let onbDrag=null,onbDragJust=false;
+document.addEventListener('pointerdown',e=>{
+  if(!onbF||onbStep!=='routine'||onbF.sheet||e.button>0)return;
+  const el=e.target.closest('#onb [data-rtdrag],#onb [data-rthandle]');if(!el)return;
+  if(el.dataset.rtdrag&&!onbF.edit)return;
+  onbDrag={x:e.clientX,y:e.clientY,id:e.pointerId,part:el.dataset.rtdrag||null,from:el.dataset.rtfrom!=null?+el.dataset.rtfrom:null,card:el.dataset.rthandle!=null?+el.dataset.rthandle:null,on:false,ghost:null,src:el};
+});
+document.addEventListener('pointermove',e=>{
+  const D=onbDrag;if(!D||e.pointerId!==D.id)return;
+  if(!D.on){if(Math.hypot(e.clientX-D.x,e.clientY-D.y)<=7)return;D.on=true;
+    const g=document.createElement('div');g.className='ob-rt-ghost';g.textContent=D.part?partLabel(D.part):onbF.cards[D.card]?.name||'';document.getElementById('onb').appendChild(g);D.ghost=g;D.src.classList.add('ob-lifted');document.documentElement.classList.add('ob-dragging');}
+  e.preventDefault();
+  D.ghost.style.transform=`translate(${e.clientX-30}px,${e.clientY-28}px) rotate(-3deg)`;
+  document.querySelectorAll('#onb .ob-rt-ses.ob-drop').forEach(c=>c.classList.remove('ob-drop'));
+  const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('#onb [data-rtcard]');
+  if(t&&!(D.part&&+t.dataset.rtcard===D.from)&&!(D.card!=null&&+t.dataset.rtcard===D.card))t.classList.add('ob-drop');
+  /* keep a long list in reach: scroll the page near its edges */
+  const sc=document.getElementById('onb'),r=sc.getBoundingClientRect();if(e.clientY>r.bottom-70)sc.scrollTop+=8;else if(e.clientY<r.top+90)sc.scrollTop-=8;
+},{passive:false});
+function onbDragEnd(e,cancel){
+  const D=onbDrag;if(!D||e.pointerId!==D.id)return;onbDrag=null;
+  document.documentElement.classList.remove('ob-dragging');
+  if(!D.on)return;
+  D.ghost?.remove();D.src.classList.remove('ob-lifted');
+  document.querySelectorAll('#onb .ob-rt-ses.ob-drop').forEach(c=>c.classList.remove('ob-drop'));
+  onbDragJust=true;setTimeout(()=>{onbDragJust=false;},250);
+  if(cancel)return;
+  const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('#onb [data-rtcard]');if(!t)return;
+  const to=+t.dataset.rtcard;
+  if(D.part)onbPut(D.part,to,D.from);else onbMove(D.card,to);
+}
+document.addEventListener('pointerup',e=>onbDragEnd(e,false));
+document.addEventListener('pointercancel',e=>onbDragEnd(e,true));
+document.addEventListener('keydown',e=>{
+  if(!onbF||onbStep!=='routine')return;
+  if(onbF.sheet&&e.key==='Escape'){e.preventDefault();onbF.sheet=null;onbRender();document.querySelector('#onb [data-onbact="fchange"]')?.focus();return;}
+  const h=e.target.closest&&e.target.closest('#onb [data-rthandle]');
+  if(h&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();const from=+h.dataset.rthandle,to=from+(e.key==='ArrowUp'?-1:1);onbMove(from,to);document.querySelector(`#onb [data-rthandle="${Math.max(0,Math.min(to,onbF.cards.length-1))}"]`)?.focus();}
+});

@@ -5010,3 +5010,94 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 #onb .ob-ses-h b{font:600 13px var(--body);color:var(--chalk)}
 #onb .ob-ses-h i{font:500 11px var(--mono);font-size:11px;font-style:normal;color:var(--accent-ink)}
 #onb .ob-order .pf-pal{position:static;margin:10px 0 4px;border-radius:14px}
+
+/* v4.6.371: START ME FRESH, four screens. Built from the app's own pieces: the
+   onboarding card and button, the planner's segmented control, weekday circles
+   and body-part tags. */
+#onb .ob-top .ob-stepn{flex:none;font:400 11px var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;min-width:44px;text-align:right}
+#onb .ob-sec{margin:22px 0 0}
+#onb .ob-sec>.ob-lbl{display:block;margin:0 0 10px;font:600 14px var(--body);font-size:14px;color:var(--chalk)}
+#onb .ob-sec .pf-seg{margin:0}
+#onb .ob-row.ob-sec{display:flex;align-items:center;justify-content:space-between}
+#onb .ob-row.ob-sec>.ob-lbl{margin:0}
+#onb .ob-more{margin:22px 0 0;border-top:1px solid var(--line)}
+#onb .ob-more summary{display:flex;align-items:center;justify-content:space-between;min-height:52px;list-style:none;cursor:pointer;font:600 14px var(--body);font-size:14px;color:var(--chalk)}
+#onb .ob-more summary::-webkit-details-marker{display:none}
+#onb .ob-more summary i{font:400 12px var(--body);font-size:12px;font-style:normal;color:var(--muted);margin-left:6px}
+#onb .ob-more summary .ic{color:var(--muted);transition:transform .2s}
+#onb .ob-more[open] summary .ic{transform:rotate(45deg)}
+#onb .ob-more-in{display:grid;grid-template-columns:1fr 120px;gap:10px}
+#onb .ob-more-in label{display:flex;flex-direction:column;gap:6px;font:400 12px var(--body);font-size:12px;color:var(--muted)}
+#onb .ob-in-f{height:46px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--chalk);font:400 16px var(--body);font-size:16px}
+#onb .ob-foot2{margin:10px 0 0;text-align:center;font:400 12px var(--body);font-size:12px;color:var(--muted)}
+#onb .ob-go:disabled{opacity:.4}
+/* 03 Routine */
+#onb .ob-rt-plan{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 0;padding:16px 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+#onb .ob-rt-plan b{display:block;font:600 17px var(--body);font-size:17px;color:var(--chalk)}
+#onb .ob-rt-plan span{display:block;margin-top:3px;font:400 12px var(--mono);font-size:12px;color:var(--muted)}
+#onb .ob-rt-link{min-height:44px;padding:0 4px;border:0;background:none;color:var(--accent-ink);font:500 13px var(--body);font-size:13px;cursor:pointer}
+#onb .ob-rt-bar{display:flex;align-items:center;justify-content:space-between;margin:18px 0 2px}
+#onb .ob-rt-bar>span{font:500 10px var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+#onb .ob-rt-tray{margin:14px 0 4px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+#onb .ob-rt-tray-h{display:flex;align-items:center;justify-content:space-between}
+#onb .ob-rt-tray-h b{font:600 14px var(--body);font-size:14px;color:var(--chalk)}
+#onb .ob-rt-tray p{margin:0 0 10px;font:400 12px var(--body);font-size:12px;color:var(--muted)}
+#onb .ob-rt-pool{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;min-height:40px;cursor:grab}
+#onb .ob-rt-pool.held{background:var(--accent);border-color:var(--accent);color:#fff}
+#onb .ob-rt-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+#onb .ob-rt-ses{padding:12px 10px 12px 14px;border-radius:18px;background:var(--surface);border:1.5px solid transparent;box-shadow:var(--shadow);transition:border-color .16s,background-color .16s,transform .16s}
+#onb .ob-rt-ses.ob-drop{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));transform:scale(1.012)}
+#onb .ob-rt-ses.ob-settle{animation:obSettle .26s ease-out}
+@keyframes obSettle{50%{transform:scale(1.02)}}
+#onb .ob-rt-head{display:flex;align-items:center;gap:10px}
+#onb .ob-rt-day{flex:none;width:34px;font:500 12px var(--mono);font-size:12px;color:var(--muted)}
+#onb .ob-rt-head b{flex:1;min-width:0;font:600 15px var(--body);font-size:15px;color:var(--chalk)}
+#onb .ob-rt-grip{flex:none;width:44px;height:44px;padding:0;border:0;background:none;color:var(--faint);display:inline-flex;align-items:center;justify-content:center;touch-action:none;cursor:grab}
+#onb .ob-rt-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#onb .ob-rt-ses .ob-rt-chips{margin:2px 0 0 44px}
+#onb .ob-rt-chips em{font:400 12px var(--body);font-size:12px;font-style:normal;color:var(--muted)}
+#onb .ob-rt-chip{gap:4px;height:34px;padding:0 6px 0 12px;border:0;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
+#onb .ob-rt-chip .ic{width:12px;height:12px;opacity:.7}
+#onb .ob-rt-more{min-height:30px;padding:0 6px;border:0;background:none;color:var(--muted);font:500 12px var(--mono);font-size:12px;cursor:pointer}
+#onb .ob-rt-add{margin:8px 0 0 44px;min-height:36px;padding:0 12px;border:1px dashed var(--accent);border-radius:12px;background:none;color:var(--accent-ink);font:500 12px var(--body);font-size:12px;cursor:pointer}
+#onb .ob-rt-order{display:flex;gap:8px;margin:10px 0 0 44px}
+#onb .ob-rt-order button{flex:1;min-height:40px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--chalk);font:500 12px var(--body);font-size:12px}
+#onb .ob-rt-order button:disabled{opacity:.4}
+#onb .ob-rt-addses{align-self:center;margin:10px 0 0;min-height:44px;border:0;background:none;color:var(--accent-ink);font:500 13px var(--body);font-size:13px;cursor:pointer}
+#onb .ob-rt-feed{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;margin-top:8px;font:400 12px var(--body);font-size:12px;color:var(--muted)}
+#onb .ob-lifted{opacity:.35}
+#onb .ob-rt-ghost{position:fixed;left:0;top:0;z-index:99;pointer-events:none;padding:9px 16px;border-radius:17px;background:var(--accent);color:#fff;font:600 14px var(--body);font-size:14px;white-space:nowrap;box-shadow:0 12px 28px rgba(0,0,0,.28)}
+html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-select:none!important}
+#onb .ob-live{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+/* the template sheet */
+#onb .ob-sheet-wrap{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);animation:obFadeIn .2s ease-out}
+#onb .ob-sheet{width:100%;max-width:480px;max-height:92vh;overflow:auto;padding:10px 20px calc(env(safe-area-inset-bottom) + 20px);border-radius:28px 28px 0 0;background:var(--ground);box-shadow:0 -10px 40px rgba(0,0,0,.25);animation:obSheetIn .24s ease-out}
+#onb .ob-sheet-grip{width:40px;height:4px;margin:0 auto 14px;border-radius:2px;background:var(--line)}
+#onb .ob-sheet-h{display:flex;align-items:center;justify-content:space-between}
+#onb .ob-sheet-t{margin:0;font:700 23px var(--body);font-size:23px;letter-spacing:-.4px;color:var(--chalk)}
+#onb .ob-sheet-x{width:40px;height:40px;padding:0;border:0;border-radius:50%;background:var(--surface2);color:var(--chalk);display:inline-flex;align-items:center;justify-content:center}
+#onb .ob-sheet .ob-sub{margin:4px 0 12px}
+#onb .ob-tpl{display:flex;align-items:center;gap:10px;width:100%;margin:8px 0 0;padding:13px 14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--chalk);text-align:left;cursor:pointer}
+#onb .ob-tpl>span{flex:1;min-width:0}
+#onb .ob-tpl b{display:block;font:600 15px var(--body);font-size:15px}
+#onb .ob-tpl small{display:block;margin-top:3px;font:400 12px var(--body);font-size:12px;color:var(--muted)}
+#onb .ob-tpl i{flex:none;font:500 10px var(--mono);font-size:10px;font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink)}
+#onb .ob-tpl.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+#onb .ob-tpl .ic{flex:none;color:var(--accent-ink)}
+#onb .ob-tpl-week{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:6px;margin:14px 0}
+#onb .ob-tpl-week div{padding:9px 4px;border-radius:12px;background:var(--surface2);text-align:center}
+#onb .ob-tpl-week small{display:block;font:500 11px var(--mono);font-size:11px;color:var(--muted)}
+#onb .ob-tpl-week span{display:block;margin-top:2px;font:500 12px var(--body);font-size:12px;color:var(--chalk)}
+@keyframes obSheetIn{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes obFadeIn{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#onb .ob-rt-ses,#onb .ob-rt-ses.ob-settle,#onb .ob-sheet,#onb .ob-sheet-wrap{animation:none;transition:none}}
+/* Today: the rotation, until the first workout */
+.today-rot{margin:14px 0 0;padding:14px 16px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow)}
+.today-rot-h{display:flex;align-items:center;justify-content:space-between}
+.today-rot-h span{font:500 10px var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.today-rot-edit{min-height:40px;padding:0 4px;border:0;background:none;color:var(--accent-ink);font:500 13px var(--body);font-size:13px}
+.today-rot-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:6px;margin-top:4px}
+.today-rot-days div{padding:9px 4px;border-radius:12px;background:var(--surface2);text-align:center}
+.today-rot-days small{display:block;font:500 11px var(--mono);font-size:11px;color:var(--muted)}
+.today-rot-days span{display:block;margin-top:2px;font:500 12px var(--body);font-size:12px;color:var(--chalk)}
+.today-rot p{margin:10px 0 0;font:400 11px var(--body);font-size:11px;color:var(--muted)}
