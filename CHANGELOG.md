@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.370 — Train during a workout, calmer
+- One card: "Today vs your usual" is a line inside the part's card (a gray meter, "50% of your usual", "3,275 / ≈6,520 lb"), not a second card. Past 100% only the percentage turns blue.
+- Red is the top bar's alone: no red outline on the card, Continue is the app's blue button, and the selected tile is an ordinary selected tile. Small red dots still mark a part and an exercise in progress.
+- Continue names its exercise ("Continue Bent-Over Row →") -- between exercises the top bar says only "Workout".
+- When every exercise in the card is ticked done, the button is "+ Add an exercise" and scrolls to the part's list, instead of offering to continue a finished one.
+- Sets at one weight are grouped: "155lb × 3, 6 · 235lb × 4, 4"; a done exercise reads "✓ Deadlift" with a gap.
+- "Last: …" on the heading line is gray, not a blue link.
+- Tests follow the new design: test-exitpair, test-trainlive, test-todayhero.
+
 ## v4.6.369 — Set the run goal by tapping
 - Plan › the day's cardio row: the pencil opens a goal editor instead of a text box. Activity chips; By feel / Distance / Time / Both; steppers (¼ mi or ½ km, 5 min); the pace, speed or 500 m split; one-tap picks from your history (Last, Usual, Step up ≈ +10%). Edit as text stays.
 - The row reads "3.5 mi · 31 min · 8'51\" /mi". The plan still stores one line of text, so everything that reads plans is unchanged.
