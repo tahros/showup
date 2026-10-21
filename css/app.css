@@ -4571,7 +4571,7 @@ html.modal-open .calreturn{display:none!important}
 #onb .ob-top{display:flex;align-items:center;gap:14px;height:32px;margin-top:18px}
 #onb .ob-back,#onb .ob-skip{width:auto;min-width:28px;min-height:0;margin:0;padding:4px 0;border:0;background:none;box-shadow:none;color:var(--chalk);font:400 23px/1 var(--body);cursor:pointer}
 #onb .ob-skip{font:500 13px var(--body);color:var(--muted)}
-#onb .ob-prog{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:5px 6px}  /* v4.6.314: four steps since v4.6.311, one row */
+#onb .ob-prog{flex:1;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:5px 6px}  /* v4.6.314: four steps since v4.6.311, one row */
 #onb .ob-prog i{height:3px;border-radius:2px;background:color-mix(in srgb,var(--chalk) 14%,transparent)}
 #onb .ob-prog i.on{background:var(--chalk)}
 #onb .ob-h{font:700 28px/1.12 var(--body);letter-spacing:-.8px;margin:22px 0 6px}
@@ -4975,3 +4975,24 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .partcard.liveP:not(.sel) .ps{color:var(--muted)}
 .partcard.liveP .ps::before{content:"";display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:var(--live);vertical-align:1px}
 .partcard.sel.liveP .ps::before{background:#fff}
+
+/* v4.6.371: the two ways in. Choice cards advance on a tap; the plan screen
+   shows the week and today's session before anything is saved. */
+#onb .ob-card.ob-big{padding:22px 18px;margin-top:14px}
+#onb .ob-card.ob-big .ob-ct b{font-size:18px}
+#onb .ob-card.ob-pick{padding:16px 18px}
+#onb .ob-card.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+#onb .ob-look{align-self:center;margin:0 0 6px;font:500 14px var(--body);color:var(--muted);text-decoration:none;min-height:44px}
+#onb .ob-sub b{color:var(--chalk);font-weight:600}
+#onb .ob-week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:18px 0 0}
+#onb .ob-wk{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;border-radius:12px;background:color-mix(in srgb,var(--chalk) 4%,transparent);color:var(--faint)}
+#onb .ob-wk b{font:600 11px var(--mono)}
+#onb .ob-wk span{font:500 10px var(--body);white-space:nowrap}
+#onb .ob-wk.on{background:var(--accent);color:#fff}
+#onb .ob-today{margin:14px 0 0;padding:6px 16px 8px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+#onb .ob-today-h{display:flex;align-items:baseline;gap:8px;padding:10px 0 6px}
+#onb .ob-today-h span{font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+#onb .ob-today-h b{font:600 16px var(--body);color:var(--chalk)}
+#onb .ob-ex{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font:400 14px var(--body);color:var(--chalk)}
+#onb .ob-ex b{font:500 13px var(--mono);font-size:13px;color:var(--muted);white-space:nowrap}
+#onb .ob-plan .ob-why{margin-top:12px}

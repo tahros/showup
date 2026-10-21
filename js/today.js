@@ -77,7 +77,7 @@ function maybeOnboard(){
   if(hasAnyDays()||SEED.totals.sessions>0){ DB.settings.onboarded='auto'; save(); return; }
   const signedIn=!!localStorage.getItem(SKEY);
   if(signedIn&&!pulledOK) return;                  // cloud may still hold their history — wait for the verdict
-  onbStep=signedIn?2:1; onbRender();
+  onbHist=[]; onbStep=signedIn?'fork':1; onbRender();
 }
 /* ============ v4.6.262: THE FIRST RUN, REDESIGNED ============================
    Four screens, one look: a blue front door, then three short steps on the
@@ -100,16 +100,69 @@ const ONB_PLUS=icon('plus',ICON_SZ.sm);
 const ONB_CAL=icon('calendar',ICON_SZ.sm);
 const ONB_IMPORT=icon('download',ICON_SZ.sm);
 const ONB_EYE=icon('eye',ICON_SZ.sm);
+const ICON_PASTE_ONB=icon('paste',ICON_SZ.sm);
 /* the approved animated lockup (Lifted p trio + Pip), white on the blue door whatever the theme */
 function onbLockup(){
   const m=typeof mascotHTML==='function'?mascotHTML('hello','','white').replace('.png',typeof isRetro==='function'&&isRetro()?'.png':'-body.png'):'';
   return '<div class="showuppp-lockup showuppp-c'+(m?'':' showuppp-word-only')+'" role="img" aria-label="ShowUppp">'+
     (m?'<span class="showuppp-character"><i class="showuppp-ground" aria-hidden="true"></i>'+m+'</span>':'')+showupppCompletionLettersHTML()+'</div>';
 }
-function onbTop(cur){
+function onbTop(cur,total=4,skip=false){
   return `<div class="ob-top"><button type="button" class="ob-back" data-onbact="back" aria-label="Back" style="visibility:${cur>1?'visible':'hidden'}">‹</button>`+
-    `<div class="ob-prog" aria-label="Step ${cur} of 4">${[1,2,3,4].map(i=>`<i class="${i===cur||cur===4?'on':''}"></i>`).join('')}</div>`+
-    `<button type="button" class="ob-skip" data-onbact="skip" style="visibility:${cur<4?'visible':'hidden'}">Skip</button></div>`;
+    `<div class="ob-prog" aria-label="Step ${cur} of ${total}">${Array.from({length:total},(_,k)=>`<i class="${k+1<=cur?'on':''}"></i>`).join('')}</div>`+
+    `<button type="button" class="ob-skip" data-onbact="skip" style="visibility:${skip?'visible':'hidden'}">Skip</button></div>`;
+}
+/* v4.6.371: TWO WAYS IN. The second screen asks how you are starting, and each
+   answer gets only the screens it needs.
+   fork  -- "I have a routine" / "Start me fresh" / Just looking around
+   have  -- where the routine lives: another app (import), my notes or head
+            (paste), or I'll log as I go (pick body parts)
+   fresh -- experience, days a week, goal, minutes; one tap each. The answers
+            pick a fixed template (no writer, works offline) that becomes the
+            rotation, with session 1 planned for today, weights by feel.
+   you   -- name and units, last, for both.
+   The crew member is met after the first finished workout, not here. */
+let onbPath=null,onbHave=null,onbHist=[],onbF={exp:null,days:null,goal:null,min:null};
+const ONB_EXP=[['new','New to lifting','Machines and dumbbells, simple to learn'],['back','Coming back','Familiar moves, an easy restart'],['exp','I know my way around','Barbell staples in a new structure']];
+const ONB_DAYS_PICK=[[2,'Full body, twice a week'],[3,'Full body, three times a week'],[4,'Upper / Lower'],[5,'Push / Pull / Legs'],[6,'Push / Pull / Legs, twice through']];
+const ONB_GOAL=[['grow','Build muscle','Sets of 10'],['strength','Get stronger','Heavier, fewer reps'],['lose','Lose weight','Sets of 12, shorter sessions']];
+const ONB_MIN=[[30,'4 exercises, 2 sets each'],[45,'5 exercises, 3 sets each'],[60,'6 exercises, 3 sets each']];
+const ONB_TPL={
+  'Full body':{easy:['Leg Press','Chest Press','Lat Pulldown','Dumbbell Shoulder Press','Seated Cable Row','Cable Crunch'],hard:['Squat','Barbell Bench Press','Bent-Over Row','Overhead Barbell Press','Romanian Deadlift','Hanging Leg Raise']},
+  'Upper':{easy:['Chest Press','Lat Pulldown','Dumbbell Shoulder Press','Seated Cable Row','Dumbbell Curl','Triceps Pushdown'],hard:['Barbell Bench Press','Bent-Over Row','Overhead Barbell Press','Pull Up','Barbell Curl','Skull Crusher']},
+  'Lower':{easy:['Leg Press','Romanian Deadlift','Leg Extension','Seated Leg Curl','Standing Calf Raise','Cable Crunch'],hard:['Squat','Romanian Deadlift','Bulgarian Split Squat','Lying Leg Curl','Standing Calf Raise','Hanging Leg Raise']},
+  'Push':{easy:['Chest Press','Incline Dumbbell Bench Press','Machine Shoulder Press','Lateral Raise','Triceps Pushdown','Cable Crossover'],hard:['Barbell Bench Press','Incline Dumbbell Bench Press','Overhead Barbell Press','Lateral Raise','Skull Crusher','Dip']},
+  'Pull':{easy:['Lat Pulldown','Seated Cable Row','Single-Arm Dumbbell Row','Face Pull','Dumbbell Curl','Hammer Curl'],hard:['Pull Up','Bent-Over Row','Lat Pulldown','Face Pull','Barbell Curl','Hammer Curl']},
+  'Legs':{easy:['Leg Press','Romanian Deadlift','Leg Extension','Seated Leg Curl','Standing Calf Raise','Cable Crunch'],hard:['Squat','Romanian Deadlift','Leg Press','Lying Leg Curl','Standing Calf Raise','Hanging Leg Raise']}};
+const ONB_WEEK={2:[1,4],3:[1,3,5],4:[1,2,4,5],5:[1,2,3,4,5],6:[1,2,3,4,5,6]};
+/* the plan the four answers make: the split, its sessions, and today's exercises */
+function onbFreshPlan(f=onbF){
+  const preset=f.days<=3?'full':f.days===4?'ul':'ppl';
+  const split=PF_SPLITS.find(z=>z[0]===preset);
+  const sessions=split[3].map(([name,parts])=>({name,parts:[...parts]}));
+  const name=sessions[0].name,n=f.min<=30?4:f.min>=60?6:5,sets=f.min<=30?2:3;
+  const list=(ONB_TPL[name]||ONB_TPL['Full body'])[f.exp==='exp'?'hard':'easy'].slice(0,n);
+  const reps=i=>f.goal==='lose'?12:f.goal==='strength'?(i===0?5:8):10;
+  const items=list.map((ex,i)=>({ex,sets,reps:reps(i)}));
+  return {preset,label:split[1],sessions,today:name,items,week:ONB_WEEK[f.days]||ONB_WEEK[3]};
+}
+function onbFreshApply(){
+  const P=onbFreshPlan();
+  DB.settings.myParts=Object.keys(SEED0.catalog);
+  DB.settings.objective=onbF.goal;
+  const prev=DB.settings.plannerPreferences||{};
+  DB.settings.plannerPreferences={...prev,frequency:onbF.days,minutes:onbF.min,trainDays:P.week.slice(),rotation:{preset:P.preset,sessions:P.sessions},orderMode:prev.orderMode||'own',avoid:prev.avoid||[]};
+  const text=P.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n');
+  try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan) DB.plan.title=P.today; }catch(e){}
+  if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
+}
+function onbGo(step){ onbHist.push(onbStep); onbStep=step; onbRender(); }
+function onbPos(){   // where this screen sits in its path, and how long the path is
+  const path=onbPath==='fresh'?['fork','exp','days','goal','time','plan','you']:onbHave==='log'?['fork','have','parts','you']:onbPath==='have'?['fork','have','you']:['fork','have','you'];
+  return [Math.max(1,path.indexOf(onbStep)+1),path.length];
+}
+function onbChoice(act,val,title,sub,on){
+  return `<button type="button" class="ob-card ob-pick ob-rise${on?' on':''}" data-onbact="${act}" data-v="${val}" aria-pressed="${!!on}"><span class="ob-ct"><b>${title}</b>${sub?`<span>${sub}</span>`:''}</span>${ONB_AR}</button>`;
 }
 function onbBubble(){
   const n=onbName.trim();
@@ -133,17 +186,52 @@ function onbRender(){
         <button type="button" class="ob-btn ob-local" data-onbact="local">Continue without an account</button>
         <p class="ob-note">Sign in to sync. Or keep it on this device.</p>
       </div></div>`;
-  }else if(onbStep===2){
+  }else if(onbStep==='fork'){
+    b=`<div class="ob ob-step ob-fork">${onbTop(1,onbPath==='fresh'?7:3,true)}
+      <h1 class="ob-h ob-rise" ${d(.05)}>How are you<br>starting?</h1>
+      <p class="ob-sub ob-rise" ${d(.15)}>Either way, you'll know what to do today.</p>
+      <button type="button" class="ob-card ob-big ob-rise" ${d(.3)} data-onbact="path" data-v="have"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>I have a routine</b><span>Bring it over and keep going</span></span>${ONB_AR}</button>
+      <button type="button" class="ob-card ob-big ob-rise" ${d(.42)} data-onbact="path" data-v="fresh"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>Start me fresh</b><span>New to lifting, or want a new plan</span></span>${ONB_AR}</button>
+      <div class="ob-sp"></div><button type="button" class="ob-link ob-look ob-rise" ${d(.6)} data-onbact="look">Just looking around</button></div>`;
+  }else if(onbStep==='have'){
+    b=`<div class="ob ob-step">${onbTop(...onbPos())}
+      <h1 class="ob-h ob-rise" ${d(.05)}>Where's your<br>routine now?</h1>
+      <p class="ob-sub ob-rise" ${d(.15)}>Bring it in once. Pick up where you left off.</p>
+      ${[['import','In another app','Strong, Hevy or a spreadsheet: bring your history',ONB_IMPORT],['paste','In my notes or my head','Paste or type it, we turn it into your plan',ICON_PASTE_ONB],['log','I\'ll log as I go','Pick what you train and start today',ONB_PLUS]].map(([v,t,sub,ic],i)=>`<button type="button" class="ob-card ob-rise${onbHave===v?' on':''}" ${d((.3+i*.1).toFixed(2))} data-onbact="have" data-v="${v}"><span class="ob-ic">${ic}</span><span class="ob-ct"><b>${t}</b><span>${sub}</span></span>${ONB_AR}</button>`).join('')}
+      <div class="ob-sp"></div></div>`;
+  }else if(onbStep==='parts'){
     const keys=Object.keys(SEED0.catalog), all=keys.every(p=>onbSel.has(p));
-    b=`<div class="ob ob-step">${onbTop(1)}
+    b=`<div class="ob ob-step">${onbTop(...onbPos())}
       <h1 class="ob-h ob-rise" ${d(.05)}>What's in your<br>training?</h1>
       <p class="ob-sub ob-rise" ${d(.15)}>We'll tailor your suggestions. Change it anytime.</p>
       <div class="ob-parts">${keys.map((p,i)=>`<button type="button" class="ob-part ob-rise${onbSel.has(p)?' on':''}" ${d((.3+i*.07).toFixed(2))} data-onbp="${hesc(p)}" aria-pressed="${onbSel.has(p)}">${hesc(partLabel(p))}${onbSel.has(p)?ONB_CK:''}</button>`).join('')}</div>
       <p class="ob-count ob-rise" ${d(.95)}>${all?'All selected to start. Tap to adjust.':`${onbSel.size} of ${keys.length} picked`}</p>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toStep3">Continue</button></div>`;
-  }else if(onbStep===3){
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toYou">Continue</button></div>`;
+  }else if(onbStep==='exp'){
+    b=`<div class="ob ob-step">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>How much have<br>you lifted?</h1><p class="ob-sub ob-rise" ${d(.15)}>So the first exercises suit you.</p>
+      ${ONB_EXP.map(([v,t,sub])=>onbChoice('fexp',v,t,sub,onbF.exp===v)).join('')}<div class="ob-sp"></div></div>`;
+  }else if(onbStep==='days'){
+    b=`<div class="ob ob-step">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>How many days<br>a week?</h1><p class="ob-sub ob-rise" ${d(.15)}>Pick what you can keep. More is not better if it doesn't happen.</p>
+      ${ONB_DAYS_PICK.map(([v,sub])=>onbChoice('fdays',v,v+' days',sub,onbF.days===v)).join('')}<div class="ob-sp"></div></div>`;
+  }else if(onbStep==='goal'){
+    b=`<div class="ob ob-step">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>What's the<br>main goal?</h1><p class="ob-sub ob-rise" ${d(.15)}>It sets your reps. Change it anytime.</p>
+      ${ONB_GOAL.map(([v,t,sub])=>onbChoice('fgoal',v,t,sub,onbF.goal===v)).join('')}<div class="ob-sp"></div></div>`;
+  }else if(onbStep==='time'){
+    b=`<div class="ob ob-step">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>How long is<br>a session?</h1><p class="ob-sub ob-rise" ${d(.15)}>Including rest between sets.</p>
+      ${ONB_MIN.map(([v,sub])=>onbChoice('fmin',v,v+' min',sub,onbF.min===v)).join('')}<div class="ob-sp"></div></div>`;
+  }else if(onbStep==='plan'){
+    const P=onbFreshPlan(),wd=['S','M','T','W','T','F','S'],order=typeof pfWeekOrder==='function'?pfWeekOrder():[0,1,2,3,4,5,6];
+    let k=0;const strip=order.map(i=>{const on=P.week.includes(i),nm=on?P.sessions[(k++)%P.sessions.length].name:'';return `<div class="ob-wk${on?' on':''}"><b>${wd[i]}</b><span>${on?hesc(nm.replace('Full body','Full')):'rest'}</span></div>`;}).join('');
+    b=`<div class="ob ob-step ob-plan">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Your plan</h1>
+      <p class="ob-sub ob-rise" ${d(.15)}><b>${hesc(P.label)}</b> · ${onbF.days} days a week · ${onbF.min} min</p>
+      <div class="ob-week ob-rise" ${d(.25)}>${strip}</div>
+      <div class="ob-today ob-rise" ${d(.35)}><div class="ob-today-h"><span>Today</span><b>${hesc(P.today)}</b></div>
+        ${P.items.map(x=>`<div class="ob-ex"><span>${hesc(x.ex)}</span><b>${x.sets} × ${x.reps}</b></div>`).join('')}</div>
+      <p class="ob-why ob-rise" ${d(.45)}>Weights start by feel: pick one you could lift two or three more times. ShowUppp takes it from there. Swap any exercise later.</p>
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="planOK">Looks good</button></div>`;
+  }else if(onbStep==='you'){
     const lb=onbUnit==='lb';
-    b=`<div class="ob ob-step ob-about">${onbTop(2)}
+    b=`<div class="ob ob-step ob-about">${onbTop(...onbPos())}
       <div class="ob-hello">${typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):''}<div class="ob-bubble" id="onbBubble" aria-live="polite">${onbBubble()}</div></div>
       <label class="ob-lbl ob-rise" ${d(.6)} for="onbName">What should we call you?</label>
       <input class="ob-name ob-rise${onbName?' filled':''}" ${d(.7)} id="onbName" type="text" autocapitalize="words" autocomplete="given-name" maxlength="40" placeholder="Your first name" value="${hesc(onbName)}">
@@ -151,41 +239,28 @@ function onbRender(){
       <label class="ob-opt ob-rise" ${d(.9)} for="onbBw">Bodyweight <span>· Optional</span></label>
       <div class="ob-field ob-rise" ${d(.95)}><input id="onbBw" type="number" inputmode="decimal" placeholder="Enter weight" value="${hesc(onbBw)}"><b>${lb?'lb':'kg'}</b></div>
       <p class="ob-why ob-rise" ${d(1)}>Used for bodyweight exercise calculations.</p>
-      <button type="button" class="ob-link ob-notnow ob-rise" ${d(1.05)} data-onbact="notnow">Not now</button>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="toStep4">Continue</button></div>`;
-  }else if(onbStep===4){
-    /* v4.6.312: THE COMPANION, IN SETUP. Pip has met you; now one of the crew comes along. A member
-       (or anyone before launch) picks; a new user is picked by the one they were dealt. Named here. */
-    const n=onbName.trim();
-    b=`<div class="ob ob-step ob-adopt ad-root">${onbTop(3)}${typeof adoptMarkup==='function'?adoptMarkup(n?`${hesc(n)}, someone wants to come along.`:'Someone wants to come along.'):''}</div>`;
-  }else if(onbStep===5){
-    const n=onbName.trim();
-    b=`<div class="ob ob-step ob-goal">${onbTop(4)}
-      <p class="ob-in ob-rise" ${d(.05)}>You're in${n?', '+hesc(n):''}.</p>
-      <p class="ob-q ob-rise" ${d(.15)}>What brings you here today?</p>
-      <div class="ob-jump">${(typeof companionHTML==='function'&&companionHTML('ob-comp'))||(typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):'')}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
-      <button type="button" class="ob-card pri ob-rise" ${d(1.1)} data-onbact="go" data-onbgo="train"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>I'm training now</b><span>Choose your first exercise</span></span>${ONB_AR}</button>
-      <button type="button" class="ob-card ob-rise" ${d(1.25)} data-onbact="go" data-onbgo="plan"><span class="ob-ic">${ONB_CAL}</span><span class="ob-ct"><b>Plan my next workout</b><span>Make room for your next session</span></span>${ONB_AR}</button>
-      <button type="button" class="ob-card ob-rise" ${d(1.4)} data-onbact="go" data-onbgo="import"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>Bring my past workouts</b><span>From Strong, Hevy or a spreadsheet</span></span>${ONB_AR}</button>
-      <button type="button" class="ob-card plain ob-rise" ${d(1.55)} data-onbact="go" data-onbgo="look"><span class="ob-ic">${ONB_EYE}</span><span class="ob-ct"><b>Just looking around</b></span>${ONB_AR}</button>
-      <div class="ob-sp"></div><p class="ob-foot ob-rise" ${d(1.75)}>Start anywhere. You can change your mind.</p></div>`;
+      <button type="button" class="ob-link ob-notnow ob-rise" ${d(1.05)} data-onbact="youNotNow">Not now</button>
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="finishPath">${onbPath==='fresh'?'Start training':'Continue'}</button></div>`;
   }
   el.dataset.step=onbStep;
   el.classList.toggle('ob-still',!replay);
   el.innerHTML=b;
-  if(onbStep===4&&typeof adoptBind==='function'){const r=el.querySelector('.ob-adopt');if(r)adoptBind(r,()=>{onbStep=5;onbRender();});}
   if(onbStep===1&&replay&&typeof showupppAnimate==='function'){
     const host=el.querySelector('.ob-lock');setTimeout(()=>{ if(host&&host.isConnected) showupppAnimate(host); },1500);
   }
-  if(onbStep===3){
+  if(onbStep==='you'){
     const nm=el.querySelector('#onbName'), bw=el.querySelector('#onbBw'), bb=el.querySelector('#onbBubble');
     nm?.addEventListener('input',()=>{ onbName=nm.value.slice(0,40); nm.classList.toggle('filled',!!onbName); if(bb){ bb.innerHTML=onbBubble(); bb.classList.remove('bump'); void bb.offsetWidth; bb.classList.add('bump'); } });
     bw?.addEventListener('input',()=>{ onbBw=bw.value; });
   }
 }
+function onbPathFinish(){
+  if(onbPath==='fresh'){ onbFreshApply(); onbFinish(false,'fresh'); return; }
+  onbFinish(false,onbHave==='import'?'import':onbHave==='paste'?'paste':'train');
+}
 function onbFinish(skip,go){
   if(!skip){
-    DB.settings.myParts=[...onbSel];
+    if(onbPath!=='fresh') DB.settings.myParts=[...onbSel];
     DB.settings.unit=onbUnit;
     const nm=onbName.trim().slice(0,40);
     if(nm) DB.settings.name=nm;
@@ -198,6 +273,8 @@ function onbFinish(skip,go){
   if(go==='train'&&typeof liftEnter==='function'){ liftEnter({}); view='lift'; }
   else if(go==='plan'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(null,'dates'); return; }
   else if(go==='import'&&typeof impOpen==='function'){ view='today'; render(); impOpen('onboarding'); return; }   // v4.6.274
+  else if(go==='paste'&&typeof pwOpen==='function'){ view='today'; render(); pwOpen(todayISO); try{const s=pw();s.pasteText='';s.editIndex=undefined;s.editAll=false;pwGo('paste');}catch(e){} return; }   // v4.6.371
+  else if(go==='fresh'){ view='today'; }   // v4.6.371: today's session 1 is already planned
   else{ view='today'; DB.settings.lookAround=1; }   // v4.6.287: sample data is offered on this path only
   render();
 }
@@ -355,12 +432,20 @@ document.addEventListener('click',e=>{
   const act=a.dataset.onbact;
   if(act==='signin') signInGoogle();
   else if(act==='apple'){ if(typeof appleReady==='function'&&appleReady()&&typeof signInApple==='function') signInApple(); else toast('Apple sign-in arrives with the App Store app'); }
-  else if(act==='local'){ onbStep=2; onbRender(); }
-  else if(act==='toStep3'){ onbStep=3; onbRender(); }
-  else if(act==='toStep4'){ onbStep=4; onbRender(); }
-  else if(act==='notnow'){ onbBw=''; onbStep=4; onbRender(); }
-  else if(act==='back'){ if(onbStep>2){ onbStep--; onbRender(); } }
-  else if(act==='skip'){ DB.settings.companionAsked=todayISO; if(!DB.settings.companionName){DB.settings.clubAvatar='pip';DB.settings.companionFree='pip';} onbStep=5; onbRender(); }          // v4.6.311: skip goes past the companion too; the dealt one comes along, no prompt later          // v4.6.262: skip keeps what you picked and lands on "You're in"
+  else if(act==='local'){ onbHist=[]; onbStep='fork'; onbRender(); }
+  else if(act==='path'){ onbPath=a.dataset.v; onbGo(onbPath==='fresh'?'exp':'have'); }
+  else if(act==='have'){ onbHave=a.dataset.v; onbGo(onbHave==='log'?'parts':'you'); }
+  else if(act==='fexp'){ onbF.exp=a.dataset.v; onbGo('days'); }
+  else if(act==='fdays'){ onbF.days=+a.dataset.v; onbGo('goal'); }
+  else if(act==='fgoal'){ onbF.goal=a.dataset.v; onbGo('time'); }
+  else if(act==='fmin'){ onbF.min=+a.dataset.v; onbGo('plan'); }
+  else if(act==='planOK'){ onbGo('you'); }
+  else if(act==='toYou'){ onbGo('you'); }
+  else if(act==='youNotNow'){ onbBw=''; onbPathFinish(); }
+  else if(act==='finishPath'){ onbPathFinish(); }
+  else if(act==='look'){ onbFinish(true,'look'); }
+  else if(act==='back'){ if(onbHist.length){ onbStep=onbHist.pop(); onbRender(); } }
+  else if(act==='skip'){ onbFinish(true,'look'); }
   else if(act==='go') onbFinish(false,a.dataset.onbgo);
   else if(act==='finish') onbFinish(false);
   else if(act==='demo') demoLoad();
@@ -438,14 +523,28 @@ function dayCountUp(){
 }
 /* One decision before training. Rest, active and completed days keep their
    established screens. A future plan is context, never today's prescription. */
+/* v4.6.371: the card's Start. "Run first" (v4.6.131) is right for someone who
+   opens with a run -- it was written for one -- and wrong for a beginner whose
+   plan has no run in it: their Start opened a run. It stays for anyone who has
+   run in the last three weeks and not yet today; everyone else starts on the
+   plan's first exercise not yet done. */
+function todayFirstHTML(items){
+  const ranLately=Object.keys(DB.days||{}).some(d=>d<todayISO&&d>=(()=>{const t=new Date(todayISO+'T12:00');t.setDate(t.getDate()-21);return t.toLocaleDateString('en-CA');})()&&(DB.days[d].w||[]).some(s=>s.ex==='Run'));
+  const ranToday=(DB.days[todayISO]?.w||[]).some(s=>s.ex==='Run');
+  if(ranLately&&!ranToday) return `<div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
+  const done=new Set((DB.days[todayISO]?.w||[]).map(s=>s.ex)),it=items.find(x=>x.ex&&!done.has(x.ex))||items[0];
+  if(!it||!it.ex) return '';
+  const part=typeof homePartOf==='function'?homePartOf(it.ex):'';
+  return `<div class="today-focus-next"><div><small>First up</small><b>${hesc(it.ex)}</b></div><button class="btn" data-ex="${hesc(it.ex)}" data-part="${hesc(part||'')}">Start →</button></div>`;
+}
 function focusedTodayHTML(){
   const now=planNow(),items=(now?.items||[]).map(planItemShape),fresh=SEED.totals.sessions===0;
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
-  const parts=items.length?pwParts(pwRead(planText(now))).map(partLabel).join(' + '):'';
+  const parts=items.length?(now?.title&&now.d===todayISO?now.title:pwParts(pwRead(planText(now))).map(partLabel).join(' + ')):'';   // v4.6.371: a session made from a template keeps its name
   let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${(typeof companionHTML==='function'&&companionHTML('su-hello-comp'))||mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
-    h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details><div class="today-focus-next"><div><small>Run first</small><b>Run</b></div><button class="btn" data-ex="Run" data-part="Run">Start →</button></div>`;
+    h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details>${todayFirstHTML(items)}`;
   }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;
   /* v4.6.287: "Just looking around" -- sample data lives here now, not on the first screen */
   const sampleLink=fresh&&DB.settings.lookAround&&!DB.settings.demo?`<button type="button" class="today-sample" data-onbact="demo">See it with sample data</button>`:'';
