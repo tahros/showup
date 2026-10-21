@@ -553,7 +553,7 @@ function renderLift(){
     const mtag=ex=>multi&&!mf&&MUSCLE_SHORT[mOf(ex)]?`<span class="mtag">${MUSCLE_SHORT[mOf(ex)]}</span>`:'';
     if(multi) h+=`<div class="mf-row" role="group" aria-label="Show one muscle of ${lift.part}">${[['','All'],...partMs.map(m=>[m,MUSCLE_SHORT[m]||MUSCLE_LABEL[m]||m])].map(([m,l])=>`<button type="button" class="mf-chip${m===mf?' on':''}" data-mf="${m}" aria-pressed="${m===mf}">${l}</button>`).join('')}</div>`;
     const row=({ex,last,freq,avoided},big)=>{
-      const when=mtag(ex)+xhTag(ex)+(last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):(EQUIP_SHORT(ex)||'not logged yet'));
+      const when=mtag(ex)+xhTag(ex)+(last?(daysAgo(last)===0?'✓ done today':agoLabel(daysAgo(last))):(lift.part==='Run'?'not logged yet':(EQUIP_SHORT(ex)||'not logged yet')));
       const meta=big&&!refinedFlow()?`${when} · ${freq}× this year`:when;
       /* v3.3.329: the per-side line is GONE. It restated the same weight in a
          second arithmetic on the row that already carries the total, and it
