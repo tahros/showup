@@ -585,7 +585,7 @@ function pfSwapRow(old,ex){
 }
 function pfEditRows(){const b=pwDay(pw().active),strip=b.strip&&b.strip.line==null?b.strip:null;return '<div class="pw-exercises">'+b.rows.map((r,i)=>{
  const before=strip&&strip.row===i?pfStripHTML(strip.text):'';
- if(pfIsCardioRow(r)){const [nm,...rest]=String(r.raw||r.ex||'').split(/\s+[\u2014\u2013]\s+/);return before+'<article class="pw-exercise pf-cardio" data-pw-row="'+i+'"><div class="pf-ex-summary"><div><strong>'+hesc(nm.trim())+'</strong><span class="pf-mtag">Cardio</span></div><p class="pf-cardio-line">'+hesc(rest.join(' \u2014 ').trim()||'by feel')+'</p></div>'+pwButton('editrow',icon('edit',ICON_SZ.sm),'pf-cardio-edit',`data-index="${i}" aria-label="Edit ${hesc(nm.trim())}"`)+'</article>';}
+ if(pfIsCardioRow(r))return before+pfCardioRowHTML(r,i);
  if(r.kind!=='ex'||!r.ex)return before+'<div data-pw-row="'+i+'" class="pw-unread"><pre>'+hesc(r.raw||'')+'</pre>'+pwButton('editrow','Edit text','',`data-index="${i}"`)+'</div>';
  return before+pfExerciseHTML(r,i);
  }).join('')+(strip&&strip.row>=b.rows.length?pfStripHTML(strip.text):'')+'</div>';}
@@ -911,10 +911,58 @@ function pfWarmup(day,on,lockedText=[]){
    gave it. */
 function pfIsCardioRow(r){if(!r)return false;if(r.cardio)return true;if(r.kind==='ex'&&(r.lines||[]).some(l=>(l.reps||[]).length))return false;
  const head=String(r.ex||r.name||r.raw||'').split(/\s+[—–-]\s+|\n/)[0].trim();return !!head&&(isCardioEx(head)||(!!r.ex&&isCardioEx(r.ex)));}
+/* v4.6.369: the line came from fields a logged cardio row never had (km, min:
+   a row keeps its distance in w and its time in mins/secs), so it always fell
+   through to "by feel" -- for someone who runs every day. It reads the real
+   fields now, in the activity's own unit. */
 function pfCardioLine(){
- for(const d of Object.keys(DB.days||{}).filter(d=>d<=todayISO).sort().reverse())for(const x of [...(DB.days[d].w||[])].reverse())if(x.ex&&isCardioEx(x.ex)&&!(x.reps||[]).length&&(x.km>0||x.min>0))
-  return x.ex+' — '+[x.km>0?dDisp(x.km).replace(/\.?0+$/,'')+' '+DU():'',x.min>0?Math.round(x.min)+' min':''].filter(Boolean).join(' · ');
+ const km=x=>x.w>0?x.w:x.km>0?x.km:0,mn=x=>(x.mins||x.min||0)+(x.secs||0)/60;   // w/mins as logged; km/min as some older records and fixtures hold them
+ for(const d of Object.keys(DB.days||{}).filter(d=>d<=todayISO).sort().reverse())for(const x of [...(DB.days[d].w||[])].reverse())if(x.ex&&isCardioEx(x.ex)&&!(x.reps||[]).length&&(km(x)>0||mn(x)>0))
+  return pfCardioRaw({ex:x.ex,d:km(x)>0?pfCgFromKm(x.ex,km(x)):null,m:mn(x)>0?Math.round(mn(x)):null});
  return 'Run — by feel';}
+/* v4.6.369: A RUNNING GOAL YOU SET BY TAPPING. The day's cardio line is still
+   one line of text ("Run — 3 mi · 30 min"), so everything that reads a plan
+   reads it unchanged; what changed is how you write it. The pencil opens a
+   small editor: the activity, what the goal is (by feel, a distance, a time,
+   or both), steppers for each, and one-tap picks from what you have actually
+   done -- your last one, your usual, and a step up. Edit as text stays. */
+const pfCgUnit=ex=>{const c=cardioOf(ex);return !c.dist?'':c.unit==='road'?DU():'m';};
+const pfCgStep=ex=>{const u=pfCgUnit(ex);return u==='m'?250:u==='mi'?0.25:0.5;};
+function pfCgFromKm(ex,km){const u=pfCgUnit(ex);return u==='m'?Math.round(km*1000/50)*50:Math.round(+dDisp(km)*100)/100;}
+function pfCgFmt(n){return String(Math.round(n*100)/100).replace(/\.0+$/,'');}
+function pfCardioParse(raw){const [nm,...rest]=String(raw||'').split(/\s+[—–]\s+/),txt=rest.join(' ');
+ const ex=isCardioEx(nm.trim())?nm.trim():'Run',dm=/(\d+(?:\.\d+)?)\s*(mi|km|m)\b/i.exec(txt),mm=/(\d+(?:\.\d+)?)\s*min\b/i.exec(txt);
+ return {ex,d:dm?+dm[1]:null,m:mm?+mm[1]:null,du:dm?dm[2].toLowerCase():null};}
+function pfCardioRaw({ex,d,m}){const u=pfCgUnit(ex),bits=[d>0&&u?pfCgFmt(d)+' '+u:'',m>0?pfCgFmt(m)+' min':''].filter(Boolean);return ex+' — '+(bits.join(' · ')||'by feel');}
+function pfCgPace(g){const u=pfCgUnit(g.ex);if(!(g.d>0&&g.m>0)||!u)return '';const c=cardioOf(g.ex);
+ if(u==='m')return paceStr(g.m*60/(g.d/500))+' /500 m';
+ if(c.rate==='speed')return pfCgFmt(Math.round(g.d/(g.m/60)*10)/10)+' '+u+'/h';
+ return paceStr(g.m*60/g.d)+' /'+u;}
+function pfCgHistory(ex){const out=[];for(const d of Object.keys(DB.days||{}).filter(d=>d<=todayISO).sort().reverse()){for(const x of DB.days[d].w||[])if(x.ex===ex&&!(x.reps||[]).length&&(x.w>0||x.mins>0))out.push({d:x.w>0?pfCgFromKm(ex,x.w):null,m:x.mins>0||x.secs>0?Math.round((x.mins||0)+(x.secs||0)/60):null});if(out.length>=12)break;}return out;}
+function pfCgPicks(g){const h=pfCgHistory(g.ex);if(!h.length)return [];const st=pfCgStep(g.ex),med=a=>{const v=a.filter(x=>x>0).sort((p,q)=>p-q);return v.length?v[Math.floor(v.length/2)]:null;};
+ const last=h[0],usual={d:med(h.map(x=>x.d)),m:med(h.map(x=>x.m))},round=v=>v==null?null:Math.round(v/st)*st;
+ const up={d:usual.d?round(usual.d*1.1)||usual.d+st:null,m:usual.m?Math.round(usual.m*1.1/5)*5||usual.m+5:null};
+ return [['Last',last],['Usual',{d:round(usual.d),m:usual.m}],['Step up',up]].filter(([,v])=>v.d>0||v.m>0);}
+function pfCgSay(g){const u=pfCgUnit(g.ex);return [g.d>0&&u?pfCgFmt(g.d)+' '+u:'',g.m>0?pfCgFmt(g.m)+' min':''].filter(Boolean).join(' · ')||'by feel';}
+function pfCardioRowHTML(r,i){const s=pw(),g=pfCardioParse(r.raw||r.ex),e=s.cardioEdit&&s.cardioEdit.row===i?s.cardioEdit:null;
+ if(!e){const pace=pfCgPace(g);return '<article class="pw-exercise pf-cardio" data-pw-row="'+i+'"><div class="pf-ex-summary"><div><strong>'+hesc(g.ex)+'</strong><span class="pf-mtag">Cardio</span></div><p class="pf-cardio-line">'+hesc(pfCgSay(g))+(pace?'<span class="pf-cg-pace"> · '+hesc(pace)+'</span>':'')+'</p></div>'+pwButton('pf-cg-open',icon('edit',ICON_SZ.sm),'pf-cardio-edit',`data-index="${i}" aria-label="Set the ${hesc(g.ex.toLowerCase())} goal"`)+'</article>';}
+ const u=pfCgUnit(e.ex),mode=e.mode,num=(k,v,unit,label)=>'<div class="pf-cg-num"><span class="pf-cg-lab">'+label+'</span><div class="pf-cg-stepper">'+pwButton('pf-cg-step','−','pf-cg-pm',`data-k="${k}" data-dir="-1" aria-label="Less ${label.toLowerCase()}"`)+'<b>'+pfCgFmt(v)+'<small>'+unit+'</small></b>'+pwButton('pf-cg-step','+','pf-cg-pm',`data-k="${k}" data-dir="1" aria-label="More ${label.toLowerCase()}"`)+'</div></div>';
+ const modes=[['feel','By feel'],...(u?[['dist','Distance']]:[]),['time','Time'],...(u?[['both','Both']]:[])];
+ const picks=pfCgPicks(e),pace=pfCgPace({ex:e.ex,d:mode==='dist'||mode==='both'?e.d:null,m:mode==='time'||mode==='both'?e.m:null});
+ return '<article class="pw-exercise pf-cardio pf-cg" data-pw-row="'+i+'"><div class="pf-cg-head"><strong>'+hesc(e.ex)+' goal</strong>'+pwButton('pf-cg-close',icon('close',ICON_SZ.sm),'pf-cg-x','aria-label="Cancel"')+'</div>'
+  +'<div class="pf-cg-acts" role="group" aria-label="Activity">'+Object.keys(CARDIO_EX).map(x=>`<button type="button" class="pf-cg-act${x===e.ex?' on':''}" data-pw="pf-cg-ex" data-ex="${hesc(x)}" aria-pressed="${x===e.ex}">${hesc(x)}</button>`).join('')+'</div>'
+  +'<div class="pf-cg-modes" role="radiogroup" aria-label="Goal">'+modes.map(([k,l])=>`<button type="button" role="radio" class="pf-cg-mode${k===mode?' on':''}" data-pw="pf-cg-mode" data-mode="${k}" aria-checked="${k===mode}">${l}</button>`).join('')+'</div>'
+  +(mode==='feel'?'<p class="pf-cg-feel">No number to hit. Go out, log what you did.</p>':'<div class="pf-cg-nums">'+(mode==='dist'||mode==='both'?num('d',e.d,u,'Distance'):'')+(mode==='time'||mode==='both'?num('m',e.m,'min','Time'):'')+'</div>')
+  +(pace?'<p class="pf-cg-pacel">'+hesc(cardioOf(e.ex).rate==='speed'?'Average '+pace:'Pace '+pace)+'</p>':'')
+  +(picks.length&&mode!=='feel'?'<div class="pf-cg-picks">'+picks.map(([l,v])=>`<button type="button" class="pf-cg-pick" data-pw="pf-cg-pick" data-d="${v.d||''}" data-m="${v.m||''}"><span>${l}</span>${v.d>0&&u?`<b>${pfCgFmt(v.d)} ${u}</b>`:''}${v.m>0?(v.d>0&&u?`<small>${pfCgFmt(v.m)} min</small>`:`<b>${pfCgFmt(v.m)} min</b>`):''}</button>`).join('')+'</div>':'')
+  +'<div class="pf-cg-foot">'+pwButton('editrow','Edit as text','pf-cg-text',`data-index="${i}"`)+pwButton('pf-cg-done','Done','pf-cg-done primary')+'</div></article>';}
+function pfCgOpen(i){const b=pwDay(pw().active),r=b&&b.rows[i];if(!r)return;const g=pfCardioParse(r.raw||r.ex),u=pfCgUnit(g.ex),last=pfCgHistory(g.ex)[0]||{};
+ const dd=g.d!=null&&g.du&&g.du!==u?null:g.d;   // a goal written in another unit starts from your last one
+ pw().cardioEdit={row:i,ex:g.ex,mode:dd>0&&g.m>0?'both':dd>0?'dist':g.m>0?'time':'feel',d:dd||last.d||(u==='m'?2000:u==='mi'?3:5),m:g.m||last.m||30};}
+function pfCgSave(){const s=pw(),e=s.cardioEdit,b=pwDay(s.active);if(!e||!b||!b.rows[e.row])return;
+ const raw=pfCardioRaw({ex:e.ex,d:e.mode==='dist'||e.mode==='both'?e.d:null,m:e.mode==='time'||e.mode==='both'?e.m:null});
+ if(b.rows[e.row].raw!==raw){pfChange(b);b.rows[e.row]={...b.rows[e.row],kind:'note',raw,cardio:true};}
+ s.cardioEdit=null;}
 function pfCardio(day,src){
  const want=!!src.partsPick&&(src.parts||[]).includes('Run'),had=day.rows.some(pfIsCardioRow);if(!want&&!had)return;
  day.rows=day.rows.filter(r=>!pfIsCardioRow(r));
@@ -1102,6 +1150,16 @@ function pfSave(confirm=false){const s=pw(),j=pfState();if(!pfMatch())throw Erro
 }
 pwSave=function(){return pfOn()?pfSave():pfLegacy.save();};
 function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset.index,b=s.active?pwDay(s.active):null;
+ if(a==='pf-cg-open'){pfCgOpen(i);pwRender();return;}
+ if(a==='pf-cg-close'){s.cardioEdit=null;pwRender();return;}
+ if(a==='pf-cg-done'){pfCgSave();pwPersist();pwRender();return;}
+ if(a.startsWith('pf-cg-')){const e=s.cardioEdit;if(!e)return;
+  if(a==='pf-cg-ex'){const was=pfCgUnit(e.ex);e.ex=el.dataset.ex;const u=pfCgUnit(e.ex),last=pfCgHistory(e.ex)[0]||{};
+   if(u!==was)e.d=last.d||(u==='m'?2000:u==='mi'?3:5);if(!u&&(e.mode==='dist'||e.mode==='both'))e.mode='time';}
+  else if(a==='pf-cg-mode')e.mode=el.dataset.mode;
+  else if(a==='pf-cg-step'){if(el.dataset.k==='d'){const st=pfCgStep(e.ex);e.d=Math.max(st,Math.round((e.d+st*(+el.dataset.dir))/st)*st);}else e.m=Math.max(5,e.m+5*(+el.dataset.dir));}
+  else if(a==='pf-cg-pick'){const d=+el.dataset.d||0,m=+el.dataset.m||0;if(d)e.d=d;if(m)e.m=m;e.mode=d&&m?'both':d?'dist':'time';}
+  pwRender();return;}
  if(a==='pf-settings'){j.history=[];j.lastScreen=null;j.returnView='sync';j.prefOrigin='settings';j.prefs=pfStagePrefs();lift.plan='workspace';view='today';pfNavigate('prefs');return;}
  if(a==='pf-prefs'){j.prefOrigin=j.page;j.prefs=pfStagePrefs();pfNavigate('prefs');return;}
  if(a==='pf-move'){j.move={delta:1};pfRender();return;}

@@ -756,3 +756,39 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 @media(max-height:700px){:root .pf-workspace .pf-day-body.pf-writing{min-height:300px}:root .pf-workspace .pf-writing .writing{gap:14px;padding:0}:root .pf-workspace .pf-writing .wgrid{grid-template-columns:repeat(7,12px);gap:3px 4px}:root .pf-workspace .pf-writing .wsq{width:12px;height:12px}}
 /* v4.6.357: Stop, beside the busy button */
 .pf-date-actions .pf-stop,.pf-dates-page .pf-date-actions .pf-stop{flex:0 0 auto;padding:10px 18px;gap:6px}
+
+/* v4.6.369: the cardio goal editor. It opens in place of the cardio row, in
+   the plan's own card language: activity chips, a goal segment, steppers, and
+   picks from what you have done. */
+:root .pf-workspace .pf-cardio-line .pf-cg-pace{color:var(--faint)}
+:root .pf-workspace .pw-exercise.pf-cg{display:flex;flex-direction:column;align-items:stretch;gap:14px}
+.pf-cg-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pf-cg-head strong{font:600 15px var(--body);color:var(--chalk)}
+.pf-cg-x{width:36px;height:36px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.pf-cg-acts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:0 2px}
+.pf-cg-acts::-webkit-scrollbar{display:none}
+.pf-cg-act{flex:0 0 auto;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:color-mix(in srgb,var(--chalk) 6%,transparent);color:var(--muted);font:500 12px var(--body);cursor:pointer}
+.pf-cg-act.on{background:var(--accent);color:#fff}
+.pf-cg-modes{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:14px;background:color-mix(in srgb,var(--chalk) 5%,transparent)}
+.pf-cg-mode{min-height:38px;border:0;border-radius:10px;background:none;color:var(--muted);font:500 12px var(--body);cursor:pointer}
+.pf-cg-mode.on{background:var(--surface);color:var(--chalk);font-weight:600;box-shadow:0 1px 3px #0000001a}
+.pf-cg-nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.pf-cg-num{display:flex;flex-direction:column;gap:6px}
+.pf-cg-lab{font:400 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.pf-cg-stepper{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px;border:1px solid var(--line);border-radius:14px}
+.pf-cg-stepper b{font:600 22px var(--body);font-size:22px;font-variant-numeric:tabular-nums;color:var(--chalk);white-space:nowrap}
+.pf-cg-stepper b small{font:400 11px var(--mono);color:var(--muted);margin-left:4px}
+.pf-cg-pm{width:40px;height:40px;padding:0;border-radius:10px;font:500 20px/1 var(--body);display:inline-flex;align-items:center;justify-content:center}
+.pf-cg-pacel{margin:-4px 0 0;font:400 11px var(--mono);color:var(--muted)}
+.pf-cg-feel{margin:0;font:400 12px/1.5 var(--body);color:var(--muted)}
+.pf-cg-picks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pf-cg-pick{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:52px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);cursor:pointer;text-align:left}
+.pf-cg-pick span{font:400 10px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+.pf-cg-pick b{font:500 12px var(--body);color:var(--chalk)}
+.pf-cg-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.pf-cg-text{background:none;border:0;color:var(--muted);font:500 12px var(--body);padding:0 4px;min-height:40px}
+.pf-cg-done{min-height:40px;padding:0 22px;border-radius:12px;border:0;background:var(--accent);color:#fff;font:600 13px var(--body)}
+.pf-cg-pick small{font:400 11px var(--mono);color:var(--muted)}
+:root .pf-workspace .pw-exercise.pf-cardio:not(.pf-cg) .pf-ex-summary{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+:root .pf-workspace .pw-exercise.pf-cardio:not(.pf-cg) .pf-ex-summary>div{display:flex;align-items:center;gap:8px}
+:root .pf-workspace .pw-exercise.pf-cardio:not(.pf-cg) .pf-cardio-line{margin:0;font-size:13px;color:var(--chalk)}

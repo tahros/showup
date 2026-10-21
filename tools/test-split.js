@@ -118,7 +118,7 @@ test('Cardio first in the day’s parts: the cardio line opens the day',`!pw().e
 test('Cardio after the lifts: the line closes the day; the writer’s own cardio line is replaced, not doubled',`pfIsCardioRow(R2[R2.length-1])&&R2.filter(pfIsCardioRow).length===1&&R2.slice(0,-1).every(r=>r.kind==='ex')&&R2.some(r=>r.ex==='Lat Pulldown')`);
 test('it does not count toward the sets, and leaves no "could not be read" Check',`pwSetCount(R1)===pwSetCount(R1.filter(r=>!pfIsCardioRow(r)))&&!(pwDay(D2).notes||[]).some(n=>/could not be read/.test(n))`);
 run(`pw().active=D1;pwRender();`);
-test('on the Edit step it is a row of its own, tagged Cardio, with its detail and an edit button -- not a block of text',`(()=>{const a=document.querySelector('.pw-exercise.pf-cardio');return !!a&&a.querySelector('strong').textContent==='Run'&&a.querySelector('.pf-mtag').textContent==='Cardio'&&/20 min/.test(a.querySelector('.pf-cardio-line').textContent)&&!!a.querySelector('[data-pw="editrow"]')&&!document.querySelector('.pw-unread');})()`);
+test('on the Edit step it is a row of its own, tagged Cardio, with its detail and an edit button (v4.6.369: it opens the goal editor) -- not a block of text',`(()=>{const a=document.querySelector('.pw-exercise.pf-cardio');return !!a&&a.querySelector('strong').textContent==='Run'&&a.querySelector('.pf-mtag').textContent==='Cardio'&&/20 min/.test(a.querySelector('.pf-cardio-line').textContent)&&!!a.querySelector('[data-pw="pf-cg-open"]')&&!document.querySelector('.pw-unread');})()`);
 test('the writer is told to leave cardio to the app',`/Do not write cardio lines/.test(pwPayload([D1],'generate').note)`);
 run(`pfSave();`);
 test('it is saved with the plan',`/Run — /.test(pwSaved(D1).raw||'')&&pwSaved(D1).items.length===2`);
