@@ -44,8 +44,9 @@ check("exit row renders",       `!!document.querySelector('.btnrow')`, true);
 check("Continue stands alone in the row", `document.querySelectorAll('.btnrow .btn').length`, 1);
 check("Continue carries data-go",
       `document.querySelector('.btnrow .btn[data-go]').dataset.go`, "Shoulder");
-check("Continue is red while live",
-      `document.querySelector('.btnrow .btn[data-go]').classList.contains('livego')`, true);
+/* v4.6.370: red belongs to the top bar alone; Continue is the app's blue */
+check("Continue is the ordinary button while live (red is the top bar's)",
+      `document.querySelector('.btnrow .btn[data-go]').classList.contains('livego')`, false);
 check("no part-level Complete anywhere", `!!document.getElementById('donePartBtn')`, false);
 /* v4.6.45: the day's close moved off the page and into the persistent bar
    (v4.6.44). The claim survives the move: it is REACHABLE from this screen, and it

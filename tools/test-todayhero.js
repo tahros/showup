@@ -88,8 +88,9 @@ run(`
   dayMeta().doneAll=false;
   view='lift'; lift={part:'Shoulder',ex:null,weight:0}; render();
 `);
-check("live → meter is red",
-      `!!document.querySelector('#view .smeter i.live')`, true);
+/* v4.6.370: the meter sits inside the Train card now and stays neutral; red is the top bar's */
+check("live → meter is neutral, red is the top bar's",
+      `!!document.querySelector('#view .smeter i.live')`, false);
 run(`dayMeta().doneAll=true; render();`);
 check("day sealed → meter not red",
       `!!document.querySelector('#view .smeter i.live')`, false);
