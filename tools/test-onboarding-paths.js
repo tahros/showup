@@ -39,7 +39,9 @@ async function app(){
     await a.tap('[data-onbact="path"][data-v="fresh"]');
     ok('Basics: the goal and the days', a.run('onbStep')==='basics'&&!!a.q('.pf-segb[data-v="grow"].on')&&a.w.document.querySelectorAll('#onb .pf-dowb.on').length===3&&!a.q('#onbName'));
     ok('one bar for the whole setup: 04 / 05', /04 \/ 05/.test(a.q('.ob-stepn').textContent));
+    a.run(`window.__seg=document.querySelector('#onb .pf-seg')`);
     await a.tap('[data-onbact="fgoal"][data-v="strength"]');
+    ok('a goal tap changes Basics in place: the same control, its thumb moved (so it slides)', a.run(`document.querySelector('#onb .pf-seg')===window.__seg&&window.__seg.style.getPropertyValue('--i')==='1'`));
     ok('the goal caption is the planner\'s own', /3 to 6 reps/.test(a.q('.pf-pref-cap').textContent));
     await a.tap('[data-onbact="fday"][data-v="1"]');await a.tap('[data-onbact="fday"][data-v="3"]');await a.tap('[data-onbact="fday"][data-v="5"]');
     ok('no days: See my routine is off', a.q('[data-onbact="frt"]').disabled);
@@ -49,7 +51,9 @@ async function app(){
     ok('collapsed sessions show three chips and +N', /\+2/.test(a.q('.ob-rt-ses').textContent));
     await a.tap('[data-onbact="fchange"]');
     ok('Change opens the sheet with five templates, Full body suggested', a.w.document.querySelectorAll('#onb .ob-tpl').length===5&&/Suggested/.test(a.q('.ob-tpl[data-v="full"]').textContent));
+    a.run(`window.__sh=document.querySelector('#onb .ob-sheet')`);
     await a.tap('[data-onbact="ftpl"][data-v="ppl"]');
+    ok('picking a template keeps the same sheet (no slide-in again)', a.run(`document.querySelector('#onb .ob-sheet')===window.__sh&&/Use Push/.test(window.__sh.textContent)`));
     ok('picking previews it on your days; nothing changes yet', /Push/.test(a.q('.ob-tpl-week').textContent)&&a.run('onbF.template')==='full');
     await a.tap('[data-onbact="fapply"]');
     ok('Use applies it', a.run('onbF.template')==='ppl'&&/Push/.test(a.q('.ob-rt-ses').textContent)&&!a.q('.ob-sheet'));

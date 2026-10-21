@@ -208,6 +208,30 @@ function onbFreshApply(){
   try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan) DB.plan.title=T.name; }catch(e){}
   if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
 }
+/* v4.6.375: Basics changes in place. A tap used to redraw the screen, so the
+   goal's thumb and the day circles jumped to their new state; patched, the
+   thumb slides and the circles fade, as they do in Preferences. */
+function onbBasicsPatch(){
+  const el=document.querySelector('#onb .ob-basics');if(!el||onbStep!=='basics')return false;
+  const seg=el.querySelector('.pf-seg'),gi=ONB_GOALS.findIndex(x=>x[0]===onbF.goal),g=PF_GOALS.find(x=>x[0]===onbF.goal)||PF_GOALS[0];
+  if(seg)seg.style.setProperty('--i',String(Math.max(0,gi)));
+  el.querySelectorAll('.pf-segb').forEach(b=>{const on=b.dataset.v===onbF.goal;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
+  const caps=el.querySelectorAll('.pf-pref-cap');if(caps[0])caps[0].innerHTML=g[2];
+  el.querySelectorAll('.pf-dowb').forEach(b=>{const on=onbF.days.includes(+b.dataset.v);b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
+  const n=onbF.days.length;if(caps[1])caps[1].innerHTML=n?`<strong>${n} ${n===1?'day':'days'} a week</strong> · ${onbDaysSorted().map(x=>PF_DOW[x]).join(', ')}`:'Pick at least one day.';
+  const go=el.querySelector('[data-onbact="frt"]');if(go)go.disabled=!n;
+  return true;
+}
+/* v4.6.375: picking a template changes the sheet in place: the tick moves, the
+   week preview and the button follow, and nothing slides or jumps */
+function onbSheetPatch(){
+  const sh=document.querySelector('#onb .ob-sheet');if(!sh||!onbF.sheet)return false;
+  const k=onbF.sheet,pick=ONB_TPLS.find(x=>x[0]===k),CK=icon('check',ICON_SZ.sm);
+  sh.querySelectorAll('.ob-tpl').forEach(b=>{const on=b.dataset.v===k;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));const ic=b.querySelector(':scope > .ic');if(on&&!ic)b.insertAdjacentHTML('beforeend',CK);if(!on&&ic)ic.remove();});
+  const wk=sh.querySelector('.ob-tpl-week');if(wk)wk.innerHTML=onbCards(k,onbF.days.length).map((c,i)=>`<div><small>${onbDayLab(i)}</small><span>${hesc(c.name)}</span></div>`).join('');
+  const go=sh.querySelector('[data-onbact="fapply"]');if(go)go.textContent='Use '+pick[1];
+  return true;
+}
 function onbGo(step){ onbHist.push(onbStep); onbStep=step; onbRender(); }
 function onbPos(){   // where this screen sits in its path, and how long the path is
   const path=onbPath==='have'?['you','crew','fork','have']:['you','crew','fork','basics','routine'];
@@ -303,7 +327,12 @@ function onbRender(){
   }
   el.dataset.step=onbStep;
   el.classList.toggle('ob-still',!replay);
+  /* v4.6.375: a redraw of the same screen keeps its place -- the scroll stays
+     where it was, and an open sheet does not slide in again */
+  const keepY=replay?0:el.scrollTop,sheetWas=!!el.querySelector('.ob-sheet');
+  el.classList.toggle('ob-sheet-still',!replay&&sheetWas);
   el.innerHTML=b;
+  if(!replay)el.scrollTop=keepY;
   if(onbStep==='crew'&&typeof adoptBind==='function'){const r=el.querySelector('.ob-adopt');if(r)adoptBind(r,()=>{onbGo('fork');});}
   if(onbStep===1&&replay&&typeof showupppAnimate==='function'){
     const host=el.querySelector('.ob-lock');setTimeout(()=>{ if(host&&host.isConnected) showupppAnimate(host); },1500);
@@ -495,12 +524,12 @@ document.addEventListener('click',e=>{
   else if(act==='local'){ onbHist=[]; onbStep='you'; onbRender(); }
   else if(act==='path'){ onbPath=a.dataset.v; if(onbPath==='fresh'&&!onbF)onbFreshInit(); onbGo(onbPath==='fresh'?'basics':'have'); }
   else if(act==='have'){ onbHave=a.dataset.v; onbPathFinish(); }
-  else if(act==='fgoal'){ onbF.goal=a.dataset.v; onbRender(); }
-  else if(act==='fday'){ const v=+a.dataset.v,i=onbF.days.indexOf(v); if(i>=0)onbF.days.splice(i,1); else onbF.days.push(v); onbRender(); }
+  else if(act==='fgoal'){ onbF.goal=a.dataset.v; if(!onbBasicsPatch()) onbRender(); }
+  else if(act==='fday'){ const v=+a.dataset.v,i=onbF.days.indexOf(v); if(i>=0)onbF.days.splice(i,1); else onbF.days.push(v); if(!onbBasicsPatch()) onbRender(); }
   else if(act==='fprofile'){ onbF.profileOpen=!onbF.profileOpen; }   /* <details> toggles itself; remembered across re-renders */
   else if(act==='frt'){ if(!onbF.days.length)return; onbRoutineReady(); onbGo('routine'); }
   else if(act==='fchange'){ onbF.sheet=onbF.template||onbSuggest(); onbRender(); document.querySelector('#onb .ob-tpl.on')?.focus(); }
-  else if(act==='ftpl'){ onbF.sheet=a.dataset.v; onbRender(); document.querySelector(`#onb .ob-tpl[data-v="${a.dataset.v}"]`)?.focus(); }
+  else if(act==='ftpl'){ onbF.sheet=a.dataset.v; if(!onbSheetPatch()) onbRender(); document.querySelector(`#onb .ob-tpl[data-v="${a.dataset.v}"]`)?.focus(); }
   else if(act==='fclose'||(act==='fsheetbg'&&e.target===a)){ onbF.sheet=null; onbRender(); document.querySelector('#onb [data-onbact="fchange"]')?.focus(); }
   else if(act==='fapply'){ onbSnap(); onbF.template=onbF.sheet; onbF.cards=onbCards(onbF.template,onbF.days.length); onbF.edited=onbF.template==='own'; onbF.edit=onbF.template==='own'; onbF.sel=null; onbF.sheet=null; onbSay('New arrangement. All yours to adjust.'); onbRender(); }
   else if(act==='fcustom'){ onbF.edit=true; onbSay('Drag to arrange. Tap works too.'); onbRender(); }

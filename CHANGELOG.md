@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.375 — First run: choices move smoothly, nothing jumps
+- **Reported:** tapping Build muscle / Get stronger / Lose weight snapped instead of sliding; picking a template in "Find your rhythm" made the sheet move up and down.
+- **Cause:** every tap redrew the whole screen, so the goal's thumb and the day circles had no old state to move from, and the open sheet replayed its slide-in.
+- **Fix:** Basics changes in place (the thumb slides, the day circles fade, as in Preferences); picking a template moves the tick, the week preview and the button in place; any other redraw of the same screen keeps its scroll position and an open sheet does not play its entrance again.
+- test-onboarding-paths.js checks both stay the same element.
+
 ## v4.6.374 — Your week, your way: titles follow the chips, chips look draggable
 - A session's title is what is in it: a set that is one of the splits keeps that split's name (the current template's first, so Legs + Core is Legs in Push / Pull / Legs and Lower in Upper / Lower); anything else reads its parts ("Legs + Back", "Chest + Shoulder + Triceps +2"); Cardio goes in front; an empty one reads "Empty session". Split names are what is saved, so Preferences and Today agree.
 - Draggable chips look it: a dashed edge and six grip dots, and the tray breathes one chip after another. Still for reduced motion and on the chip you are holding.

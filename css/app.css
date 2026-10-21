@@ -5134,3 +5134,6 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-rt-ses .ob-rt-chips{margin-top:0}
 #onb .ob-rt-ses .pf-rot-tag{height:28px}
 #onb .ob-rt-chip{height:30px}
+/* v4.6.375: an open sheet redrawn in place does not play its entrance again */
+#onb.ob-sheet-still .ob-sheet,#onb.ob-sheet-still .ob-sheet-wrap{animation:none}
+#onb .ob-tpl{transition:border-color .2s ease,background-color .2s ease,box-shadow .2s ease}
