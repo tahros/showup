@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.374 — Your week, your way: titles follow the chips, chips look draggable
+- A session's title is what is in it: a set that is one of the splits keeps that split's name (the current template's first, so Legs + Core is Legs in Push / Pull / Legs and Lower in Upper / Lower); anything else reads its parts ("Legs + Back", "Chest + Shoulder + Triceps +2"); Cardio goes in front; an empty one reads "Empty session". Split names are what is saved, so Preferences and Today agree.
+- Draggable chips look it: a dashed edge and six grip dots, and the tray breathes one chip after another. Still for reduced motion and on the chip you are holding.
+- Session cards are about 18% shorter (106 to 87 px); the handle keeps its 44 px target.
+- test-onboarding-paths.js checks the titles.
+
 ## v4.6.373 — Crew toggle on the landscape clock: no flicker
 - **Reported (screen recording):** tapping the crew button to show the crew again flashed the still crew in the corner for a frame or two, then the walking crew jumped in from the start of its walk.
 - **Cause:** hiding switched the walking image to the still one; showing switched it back, so the still painted first and the 16-second walk restarted.

@@ -5115,6 +5115,7 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 /* v4.6.374: chips that can be dragged look like it -- a dashed edge, six grip
    dots, and a slow breath that runs through the tray one chip after another.
    It stops on the chip you are holding, and for reduced motion. */
+#onb .ob-rt-tray{--k:0}
 #onb .ob-rt-pool,#onb .ob-rt-chip{position:relative}
 #onb .ob-rt-pool{border:1.5px dashed color-mix(in srgb,var(--accent) 55%,var(--line));padding-left:24px;animation:obChipBreath 2.8s ease-in-out infinite;animation-delay:calc(var(--k,0) * .18s)}
 #onb .ob-rt-pool::before,#onb .ob-rt-chip::before{content:"";position:absolute;left:10px;top:50%;width:6px;height:10px;margin-top:-5px;
