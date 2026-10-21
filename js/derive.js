@@ -544,6 +544,8 @@ function syncRecoveryCrew(el,crew,enabled){
    (a click only toggles it to the time of day). It now asks the question the portrait veil
    already asks (css/app.css): landscape, a touch screen, and a phone's short side. */
 function phoneSideways(){return !!(window.matchMedia&&window.matchMedia('(orientation:landscape) and (pointer:coarse) and (max-height:500px)').matches);}
+// Session-only preference shared by both landscape timers; never changes workout data.
+let timerCrewHidden=false;
 function tickRest(){
   const el=$('#hTimer'); if(!el) return;
   /* v3.3.149: the WIDER rule. This used to require isLive(), so tapping
@@ -627,7 +629,22 @@ function tickRest(){
   // so membership locks and the user's free companion follow the existing rules.
   const crew=typeof clubAvatar==='function'&&(DB.settings.clubAvatar||DB.settings.companionName)?clubAvatar()[0]:'pip';
   const motion=document.documentElement.dataset.mascotMotion;
+  let toggle=el.querySelector('.rt-crew-toggle');
+  if(!toggle){
+    toggle=document.createElement('button');toggle.type='button';toggle.className='rt-crew-toggle';
+    const icon=document.createElement('img');icon.alt='';icon.setAttribute('aria-hidden','true');toggle.appendChild(icon);
+    toggle.onclick=e=>{e.stopPropagation();timerCrewHidden=!timerCrewHidden;tickRest();};
+    el.appendChild(toggle);
+  }
+  const hidden=timerCrewHidden||motion==='off';
+  el.classList.toggle('rt-crew-hidden',hidden);
+  toggle.disabled=motion==='off';
+  toggle.setAttribute('aria-pressed',String(!hidden));
+  toggle.setAttribute('aria-label',motion==='off'?'Crew disabled in Appearance':hidden?'Show Crew':'Hide Crew');
+  const icon=toggle.querySelector('img'),iconSource=`assets/crew/white/${crew}.webp`;
+  if(icon.getAttribute('src')!==iconSource)icon.src=iconSource;
   const roaming=document.documentElement.classList.contains('bigtimer')&&!document.hidden&&
+    !hidden&&
     motion!=='still'&&motion!=='off'&&
     !(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)&&buddy.dataset.failedCrew!==crew;
   const source=`assets/crew/${roaming&&!recovery?'roaming':'white'}/${crew}.webp`;

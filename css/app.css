@@ -1074,7 +1074,13 @@
     html.bigtimer body > #hTimer.on::after{animation:none;opacity:.88}
     html.bigtimer body > #hTimer.on .rt-buddy{animation:none}
   }
-  .resttimer .rt-buddy,.resttimer .rt-wordmark,.resttimer .rt-quiet,.resttimer .rt-sync{display:none}
+  .resttimer .rt-buddy,.resttimer .rt-wordmark,.resttimer .rt-quiet,.resttimer .rt-sync,.resttimer .rt-crew-toggle{display:none}
+  @media (orientation:landscape){
+    html.bigtimer body > #hTimer.on .rt-crew-toggle{display:flex;position:absolute;right:max(24px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:4;align-items:center;justify-content:center;min-width:58px;height:44px;padding:0 14px;margin:0;border:1px solid #ffffff20;border-radius:24px;background:#ffffff0d;box-shadow:none;touch-action:manipulation}
+    html.bigtimer body > #hTimer.on .rt-crew-toggle img{width:30px;height:30px;object-fit:contain;pointer-events:none}
+    html.bigtimer body > #hTimer.on .rt-crew-toggle[aria-pressed="false"]{opacity:.55}
+    html.bigtimer body > #hTimer.on.rt-crew-hidden :is(.rt-buddy,.rt-sync){display:none!important}
+  }
   @media (orientation:landscape){
     html.bigtimer body > #hTimer.on.recovery{
       --rt-crew-y:calc(78% - 10px);

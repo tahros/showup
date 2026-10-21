@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.371 — A quieter timer, one tap away
+
+- Added the approved Crew icon toggle to both landscape timers. Tap to hide or restore your selected Crew; the icon stays visible and dims when hidden. The choice lasts for this app session and follows you between the red timer and blue clock, without changing timer timestamps or Appearance preferences.
+
 ## v4.6.370 — Train during a workout, calmer
 - One card: "Today vs your usual" is a line inside the part's card (a gray meter, "50% of your usual", "3,275 / ≈6,520 lb"), not a second card. Past 100% only the percentage turns blue.
 - Red is the top bar's alone: no red outline on the card, Continue is the app's blue button, and the selected tile is an ordinary selected tile. Small red dots still mark a part and an exercise in progress.
