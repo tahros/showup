@@ -4930,3 +4930,12 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .pw-home.ld .lt-h{margin:24px 4px 10px}                                     /* 3B: every heading on the finished day sits 24px under what precedes it */
 .pw-home.ld>.lt-h:first-child{margin-top:10px}                              /* ...the day card above already holds 14px */
 :root[data-flow="refined"] #view[data-flow-view="lift"] .flow-exgroup .logmain{padding:11px 0;min-height:46px}  /* 4B: the compact list rows of 4A */
+
+/* v4.6.367: the fold under Start here. It is the last row of the group, quieter
+   than an exercise: a count and a chevron that turns when open. */
+.fresh-more{display:flex;align-items:center;gap:8px;width:100%;min-height:52px;padding:0 14px;border:0;background:none;color:var(--accent-ink);font:500 14px var(--body);cursor:pointer;text-align:left}
+.flow-exgroup .fresh-more{margin:0;padding:0 6px 0 0;min-height:56px}
+.fresh-more>span:first-child{flex:1}
+.fresh-more .fresh-n{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.fresh-more .fresh-chev{display:inline-flex;color:var(--muted);transform:rotate(90deg);transition:transform .2s}
+.fresh-more.open .fresh-chev{transform:rotate(-90deg)}
