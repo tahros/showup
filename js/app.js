@@ -1983,7 +1983,7 @@ function ddNextEntrance(){const choices=['rise','arc','land'].filter(x=>x!==ddLa
 function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard){
   if(document.getElementById('dayDone')) return;
   const connected=sourceCard?.isConnected&&mascotMode()==='animated'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const origins=connected?['.su-mascot','.dcn'].map(selector=>sourceCard.querySelector(selector)?.getBoundingClientRect()):null;
+  const origins=connected?['.su-mascot,.su-companion','.dcn'].map(selector=>sourceCard.querySelector(selector)?.getBoundingClientRect()):null;   /* v4.6.379: your crew makes the same entrance Pip does */
   if(!nowrite){
     if(DB.settings.dayDone===todayISO&&!forceShow) return;
     if(DB.settings.dayDone!==todayISO){ DB.settings.dayDone=todayISO; save(); }
@@ -2071,80 +2071,108 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
      Blue -- and is blue again on the floor.
      The century keeps its own ceremony (the square opening, the mark rising);
      an ink flood through that would be two thesis statements at once. */
-  const source=connected?sourceCard.querySelector('.su-mascot'):null;
-  const hero=o.querySelector('.ddhero .su-mascot');
+  const source=connected?sourceCard.querySelector('.su-mascot,.su-companion'):null;
+  const hero=o.querySelector('.ddhero .su-mascot')||o.querySelector('.dd-numrow>.dd-companion');
   const inky=connected&&!mile&&!!source&&!!hero&&!!origins[0]?.width;
   if(inky){
-    /* dd-inked stays for the life of the overlay (it holds ddin off);
-       dd-ink is only the flood phase and comes off at the landing */
+    /* v4.6.379: EVERY CREW TAKES THE CROSSING, AND IT RUNS ON THE COMPOSITOR.
+       (1) Kettle and the rest stood still: the entrance looked for Pip's lockup
+       on both ends and found a companion, so nothing flew. The companion now
+       flies the same path, goes white for the blue (a silhouette filter -- its
+       art has no white twin), hops with its own squash on the take-off and the
+       landing, and is its colour again under the last of the drain.
+       (2) Pip stuttered. The flood and the drain animated clip-path on a
+       full-screen layer, which WebKit repaints on the main thread every frame,
+       at 3x, while the count climbs, the card's 3D Pip keeps rendering behind
+       the overlay, and the tint swapped in a PNG that had never been decoded.
+       Now the ink is a disc that only scales (a transform: the compositor runs
+       it even when the main thread is busy), the card's renderer is held for
+       the life of the overlay, and both tints are decoded before anything moves. */
+    const comp=hero.classList.contains('su-companion');
     o.classList.add('dd-connected','dd-inked','dd-ink');
+    if(comp)o.classList.add('dd-comp');
     const ink=document.createElement('i');ink.className='ddink';ink.setAttribute('aria-hidden','true');o.prepend(ink);
     const from=origins[0],to=hero.getBoundingClientRect();
     /* the source mascot steps aside for its own double, so the two are never
        on screen together during the 180ms the overlay would have faded in */
-    source.style.visibility='hidden';
-    const restore=()=>{source.style.visibility='';};
+    const restore=()=>{source.style.visibility='';if(!comp&&typeof mascotHold==='function')mascotHold(source,false);};
     o.addEventListener('dd-left',restore,{once:true});
+    const tint=tone=>{if(comp)hero.classList.toggle('dd-white',tone==='white');else if(typeof mascotTint==='function')mascotTint(hero,tone);};
     if(!to.width||!to.height){o.classList.remove('dd-ink');restore();countUpEl(o.querySelector('.ddn'),1100);}
     else{
       const cx=from.left+from.width/2,cy=from.top+from.height*.62;
-      const reach=Math.hypot(Math.max(cx,innerWidth-cx),Math.max(cy,innerHeight-cy));
+      const far=(x,y)=>Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y))+2;
+      const reach=far(cx,cy);
       const land=to.left+to.width/2,landY=to.top+to.height*.62;
-      /* the flood is what the TAP does, so it starts on the tap -- and the
-         mascot goes white in the same breath, before anything is animating.
-         An earlier cut waited 300ms and then cued the colour off a second
-         animation; two promises that finish in one starved frame resolve in
-         creation order, not in time order, and the mascot crossed the blue
-         still blue. Nothing here is ordered by a race any more: white is set
-         before the first keyframe, blue comes back on the drain's own end. */
-      if(typeof mascotTint==='function')mascotTint(hero,'white');
-      ink.animate([{clipPath:`circle(0px at ${cx}px ${cy}px)`},{clipPath:`circle(${reach}px at ${cx}px ${cy}px)`}],
-        {duration:900,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
+      /* the ink is a 480px disc that scales: small enough to rasterise once at
+         3x, and scaled no more than ~5x, so its edge stays crisp */
+      const R0=240,disc=(x,y,k)=>{ink.style.cssText=`inset:auto;left:${x-R0}px;top:${y-R0}px;width:${2*R0}px;height:${2*R0}px;border-radius:50%;clip-path:none;will-change:transform;transform:scale(${k})`;};
+      disc(cx,cy,.001);
+      hero.style.animation='none';hero.style.transformOrigin='0 0';hero.style.willChange=comp?'translate,scale':'transform';
       const dx=from.left-to.left,dy=from.top-to.top,k=from.width/to.width;
       const apex=Math.min(1.05,(k+1)/2+.18);
-      hero.style.animation='none';hero.style.transformOrigin='0 0';
+      /* hold the first frame at the card until the tints are decoded (capped:
+         a slow decode never holds the tap for more than 140ms) */
+      /* a crew's art is locked against transforms (transform:none!important -- the
+         approved renders are never stretched), so a crew flies on the separate
+         translate and scale properties: the same path, uniform scale, composited */
+      const at=(x,y,z)=>comp?{translate:`${x}px ${y}px`,scale:`${z}`}:{transform:`translate(${x}px,${y}px) scale(${z})`};
+      Object.assign(hero.style,at(dx,dy,k));
+      const decoded=comp?Promise.resolve():Promise.all(['white','blue'].map(t=>{const im=new Image();im.src='assets/mascot-'+t+'-body.png';return im.decode?im.decode().catch(()=>{}):null;}));
+      Promise.race([decoded,new Promise(r=>setTimeout(r,140))]).then(()=>{
+      if(!o.isConnected)return;
+      /* the card's mascot hands over to its double in the frame the flood starts:
+         until then it stays where it is, so nothing blinks while the tints decode */
+      source.style.visibility='hidden';
+      if(!comp&&typeof mascotHold==='function')mascotHold(source,true);
+      /* the flood is what the TAP does, so it starts on the tap -- and the
+         mascot goes white in the same breath, before anything is animating.
+         White is set before the first keyframe, blue comes back on the drain's
+         own end: nothing here is ordered by a race. */
+      tint('white');
+      const flood=ink.animate([{transform:'scale(.001)'},{transform:`scale(${reach/R0})`}],
+        {duration:900,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
       const flight=hero.animate([
-        {transform:`translate(${dx}px,${dy}px) scale(${k})`,offset:0,easing:'linear'},
-        {transform:`translate(${dx}px,${dy}px) scale(${k})`,offset:600/1400,easing:'cubic-bezier(.2,.75,.25,1)'},
-        {transform:`translate(${dx/2}px,-44px) scale(${apex})`,offset:1000/1400,easing:'cubic-bezier(.4,0,1,1)'},
-        {transform:'translate(0,0) scale(1)',offset:1}],
+        {...at(dx,dy,k),offset:0,easing:'linear'},
+        {...at(dx,dy,k),offset:600/1400,easing:'cubic-bezier(.2,.75,.25,1)'},
+        {...at(dx/2,-44,apex),offset:1000/1400,easing:'cubic-bezier(.4,0,1,1)'},
+        {...at(0,0,1),offset:1}],
         {duration:1400,easing:'linear',fill:'both'});
+      if(comp){hero.style.translate='';hero.style.scale='';}else hero.style.transform='';
+      /* a crew moves on its own approved celebration render (crew-motion plays its 'medal' moment); only the path is ours */
       /* the overlay's own surface returns at the landing, UNDER the ink that
          is still covering everything -- so the drain is what reveals it, and
          nothing of the summary is ever painted over the flood */
       flight.finished.then(()=>{
         if(!o.isConnected)return;
+        hero.style.willChange='';
         o.classList.remove('dd-ink');
         /* THE DRAIN IS TWO MOVES, AND THE COLOUR CHANGES BETWEEN THEM. The ink
            collapses towards the mascot, so the mascot is the last thing the
-           blue leaves -- which leaves exactly one moment where the swap can
-           happen unseen: while the last of the flood still covers it whole.
-           Before that is blue on blue for the length of the drain; after it is
-           a white mascot on the white summary and then a pop into colour.
-           Both of those are what the maker saw and called a blink.
-           So the flood shrinks to a disc that still covers the mascot, the
-           colour goes back to blue underneath it, and the rest of the disc
-           peels away to reveal a mascot nobody watched change.
-           It is chained on the first move's own finish, not on a clock: a
-           timer or a second animation can land out of order on a busy phone,
-           and this is the one frame that must not be missed. */
-        const hide=Math.max(160,Math.hypot(to.width,to.height)*.56);
-        const drain=ink.animate([{clipPath:`circle(${reach}px at ${cx}px ${cy}px)`},{clipPath:`circle(${hide}px at ${land}px ${landY}px)`}],
+           blue leaves: the colour goes back under a disc that still covers it,
+           then the disc peels away. The disc is re-centred on the landing at a
+           size that still covers the screen, in the same frame the flood is
+           cancelled, so no frame shows anything but blue. Chained on each
+           move's own finish, not on a clock. */
+        const hide=Math.max(160,Math.hypot(to.width,to.height)*.56),cover=far(land,landY);
+        flood.cancel();disc(land,landY,cover/R0);
+        const drain=ink.animate([{transform:`scale(${cover/R0})`},{transform:`scale(${hide/R0})`}],
           {duration:300,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});
         drain.finished.then(()=>{
           if(!o.isConnected)return;
-          if(typeof mascotTint==='function')mascotTint(hero,'blue');
-          const reveal=ink.animate([{clipPath:`circle(${hide}px at ${land}px ${landY}px)`},{clipPath:`circle(0px at ${land}px ${landY}px)`}],
+          tint('blue');
+          const reveal=ink.animate([{transform:`scale(${hide/R0})`},{transform:'scale(.001)'}],
             {duration:150,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
           reveal.finished.then(()=>{if(o.isConnected&&typeof showupppAnimate==='function')showupppAnimate(o);}).catch(()=>{});
         }).catch(()=>{});
         o.classList.add('dd-copy');
         countUpEl(o.querySelector('.ddn'),1100);
       }).catch(()=>{});
+      });
     }
   }else if(connected){
     o.classList.add('dd-connected');
-    ['.ddhero .su-mascot','.ddn'].forEach((selector,i)=>{const el=o.querySelector(selector),from=origins[i];if(!el||!from||!from.width)return;el.style.animation='none';const to=el.getBoundingClientRect();if(!to.width||!to.height)return;el.style.transformOrigin='0 0';el.animate([{transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`},{transform:'translate(0,0) scale(1)'}],{duration:620,easing:'cubic-bezier(.2,.75,.25,1)'});});
+    ['.ddhero .su-mascot,.dd-numrow>.dd-companion','.ddn'].forEach((selector,i)=>{const el=o.querySelector(selector),from=origins[i];if(!el||!from||!from.width)return;el.style.animation='none';const to=el.getBoundingClientRect();if(!to.width||!to.height)return;el.style.transformOrigin='0 0';el.animate([{transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`},{transform:'translate(0,0) scale(1)'}],{duration:620,easing:'cubic-bezier(.2,.75,.25,1)'});});
   }else countUpEl(o.querySelector('.ddn'),1100);
   if(!connected&&typeof showupppAnimate==='function')showupppAnimate(o);
   o.querySelector('[data-dd="milestone"],[data-dd="done"]').focus({preventScroll:true});

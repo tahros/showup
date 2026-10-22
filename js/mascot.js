@@ -322,7 +322,7 @@ for(const tone of ['white','chrome']){
   async function mount(el){
     if(el.classList.contains('crew-pip'))return; // Approved pre-rendered 3D crew owns its lifecycle.
     if(el.closest('.showuppp-c'))return; // This one-shot lockup owns its motion.
-    if(pending.has(el)||live.has(el)||!visible.has(el)||document.hidden||live.size>=2||el.dataset.failed)return;
+    if(pending.has(el)||live.has(el)||!visible.has(el)||document.hidden||live.size>=2||el.dataset.failed||el.dataset.mascotHold)return;
     // Static fallbacks are intentional for reduced-motion and the Still setting.
     if(still())return;
     pending.add(el);
@@ -392,6 +392,8 @@ for(const tone of ['white','chrome']){
     });
   }
   function queue(){if(!scheduled){scheduled=true;queueMicrotask(reconcile);}}
+  /* v4.6.379: a renderer can be held -- the day-done overlay holds the card's Pip while it covers it, so one 3D scene is not drawing behind the ceremony */
+  window.mascotHold=(el,on)=>{if(!el)return;if(on){el.dataset.mascotHold='1';remove(el);}else{delete el.dataset.mascotHold;queue();}};
   new MutationObserver(queue).observe(document.body,{childList:true,subtree:true});
   new MutationObserver(queue).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','data-appearance']});
   document.addEventListener('visibilitychange',queue);

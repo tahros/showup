@@ -62,7 +62,7 @@ const seed=`
 
       const start=await p.evaluate(()=>{const o=document.getElementById('dayDone'),ink=o.querySelector('.ddink');
         const hero=o.querySelector('.ddhero .su-mascot');
-        const clip=getComputedStyle(ink).clipPath;
+        const ir=ink.getBoundingClientRect(),clip=`at ${ir.left+ir.width/2}px ${ir.top+ir.height/2}px`;   /* v4.6.379: the ink is a scaling disc; its centre is the flood's origin */
         return {cls:o.className,bg:getComputedStyle(o).backgroundColor,
           innerHidden:getComputedStyle(o.querySelector('.ddinner')).visibility==='hidden',
           heroVisible:getComputedStyle(hero).visibility==='visible',
@@ -99,10 +99,10 @@ const seed=`
         'the entrance runs in one order: '+ev);
       /* the last of the flood peels off after the colour change, so wait for
          the ink to actually reach nothing before measuring where it went */
-      await p.waitForFunction(()=>/circle\(0(\.\d+)?px/.test(getComputedStyle(document.querySelector('#dayDone .ddink')).clipPath),
+      await p.waitForFunction(()=>{const a=document.querySelector('#dayDone .ddink').getAnimations();return a.length&&a.every(x=>x.playState==='finished')&&new DOMMatrix(getComputedStyle(document.querySelector('#dayDone .ddink')).transform).a<.01;},
         {timeout:20000,polling:50});
       const done=await p.evaluate(()=>{const o=document.getElementById('dayDone'),hero=o.querySelector('.ddhero .su-mascot');
-        const r=hero.getBoundingClientRect(),clip=getComputedStyle(o.querySelector('.ddink')).clipPath;
+        const r=hero.getBoundingClientRect(),ink=o.querySelector('.ddink'),ir=ink.getBoundingClientRect(),clip=`circle(${new DOMMatrix(getComputedStyle(ink).transform).a<.01?0:1}px at ${ir.left+ir.width/2}px ${ir.top+ir.height/2}px)`;
         return {clip,heroCx:r.left+r.width/2,heroCy:r.top+r.height*.62,
           n:o.querySelector('.ddn').textContent,copy:getComputedStyle(o.querySelector('.dddate')).animationName};});
       const end=done.clip.match(/circle\(([\d.]+)px at ([\d.]+)px ([\d.]+)px\)/);
@@ -118,8 +118,11 @@ const seed=`
       const moves=await p.evaluate(()=>{const o=document.getElementById('dayDone'),hero=o.querySelector('.ddhero .su-mascot');
         const r=hero.getBoundingClientRect();
         return {cover:Math.hypot(r.width,r.height)/2,half:Math.min(innerWidth,innerHeight)/2,
+          clipAnimated:o.querySelector('.ddink').getAnimations().some(a=>a.effect.getKeyframes().some(k=>'clipPath' in k)),
           radii:o.querySelector('.ddink').getAnimations().map(a=>a.effect.getKeyframes()
-            .map(k=>+((k.clipPath||'').match(/circle\(([\d.]+)px/)||[0,NaN])[1]))};});
+            .map(k=>{const m=(k.transform||'').match(/scale\(([\d.]+)\)/);if(!m)return NaN;const v=+m[1]*240;return v<1?0:Math.round(v);}))};});
+      /* v4.6.379: the ink only scales -- a transform the compositor runs on its own; clip-path repaints on the main thread every frame */
+      assert(!moves.clipAnimated,'the ink never animates clip-path');
       /* the browser drops the first move once the second covers the same
          property, so what is left to read is the LAST one -- and that is the
          one that carries the claim: it begins from a small disc, which means
