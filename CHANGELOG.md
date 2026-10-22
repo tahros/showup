@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.379 — Every crew makes the entrance; Pip's runs smooth
+- **Reported (screen recordings):** tapping the day's card, Pip's flight stuttered here and there; Kettle had no animation at all.
+- **Kettle and every crew:** the entrance looked for Pip on the card and on the summary, so a crew found nothing to fly -- and the rule that keeps crew art from being stretched (transform:none!important) also froze its hop. A crew now takes the same crossing: the flood opens at it on the card, it flies on the translate and scale properties (uniform, never stretched), crosses the blue in its own shaded white render (assets/crew/white), lands by the number and is its colour again under the last of the drain.
+- **Pip's stutters:** the flood and drain animated clip-path on a full-screen layer, which WebKit repaints on the main thread every frame at 3x, while the card's 3D Pip kept rendering behind the overlay and the white tint loaded mid-flight. The ink is now a disc that only scales (a compositor transform), the card's renderer is held while the overlay covers it, and the tints are decoded before anything moves.
+- Checks: check-ink-entrance.cjs follows the disc (and asserts no clip-path animation); check-crew-entrance.cjs (new) flies Kettle, Plato and Bag.
+
 ## v4.6.378 — Your routine is a number of days, with an Extra day
 - **Asked:** days shift, so setting which weekdays you train doesn't fit; choose how many days the routine takes, add or remove days on the Routine screen, and keep an extra day that isn't a main day.
 - First-run Basics asks **How many days a week?** (2 to 7) instead of weekday circles. The Routine screen's sessions read Day 1, Day 2...; **+ Add a day** under the list and **Remove day** in each day's handle menu (an untouched template grows or shortens the way it would have been made).
