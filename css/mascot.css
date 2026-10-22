@@ -187,6 +187,10 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 /* One card height whoever is on it (Sungjee, 2026-10-15): Pip's art is wide and short, the crew's
    square, so Pip gets the difference above it and stands on the same floor over the number. */
 .card.dayclosed>.su-mascot{margin-top:14px}
+/* v4.6.377: approved +60% Pip, confined to the completed-day card. Scale the
+   existing slot uniformly about the artwork's floor; keep card/count/header
+   layout, the pinned WebKit child, and every other Crew/mascot slot unchanged. */
+.card.dayclosed>.su-mascot{scale:1.6;transform-origin:50% 66.6%}
 .crew-pip{pointer-events:auto}
 .club-avatar.crew-avatar .club-pip-img{width:100%;height:100%;margin:0;animation:none!important}
 .su-companion .club-avatar{width:100%;height:100%}

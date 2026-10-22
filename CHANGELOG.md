@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.377 — Pip, 60% larger on the completed-day card
+- Applies the approved +60% width and height to Pip above the days-of-showing-up count on Today, preserving his proportions and the card's layout.
+- Sip, Duffy, other Crew, other Pip placements, and the header are unchanged. Existing still, animated, reduced-motion, and hidden-mascot behavior is retained.
+- Targeted browser regression covers size, layout, themes, narrow screens, and animation replay.
+
 ## v4.6.376 — Your routine plans the week, in Plan
 - **Asked:** after first-run setup only today had a plan; nothing said the rest of the week needed planning.
 - For whoever sets up a routine in first-run setup, each training day in the next seven is saved into Plan from the routine: your own exercises at your last weights, starters until you have them. Plan and Today read the same days. A week you already plan by hand is not touched.
