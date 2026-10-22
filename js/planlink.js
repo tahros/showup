@@ -362,13 +362,23 @@ function plOutcomeMark(ex,a,last,target,outcome){
 }
 const plWarmMark=t=>plWarm(t)?'<span class="sc-warm-mark" aria-label="Planned warm-up">W</span>':'';
 function plSessionGroups(rows){
-  const shape=s=>s?[s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||'']:null,groups=[];
+  /* v4.6.381: A SET WITH NOTHING BESIDE IT DOES NOT SPLIT A RUN. Sets 3-5 at 175
+     with a planned 175, then a sixth set last time that today's plan does not
+     have, read as two rows ("3-5" and "6") although last time was one run at one
+     weight. A column with no set at a position no longer breaks the group; the
+     shorter column simply lists fewer reps (Last 175 x 6 4 4 3 / Plan 175 x 6 6 6).
+     Only at the END of a column: once a column runs out inside a group it stays
+     out, so no column ever has a hole in the middle of its reps. A real change of
+     weight, unit, warm-up or bodyweight still starts a new row. */
+  const shape=s=>s?JSON.stringify([s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||'']):null,groups=[];
   for(const row of rows){
-    const key=JSON.stringify([shape(row.last),shape(row.target),row.last||row.target?null:row.actual.map(shape),!!row.unlinked]);
-    const prev=groups.at(-1);
+    const cols=[shape(row.last),shape(row.target)],solo=row.last||row.target?null:JSON.stringify(row.actual.map(shape)),prev=groups.at(-1);
+    const fits=!!prev&&prev.unlinked===!!row.unlinked&&(solo!==null
+      ? prev.solo===solo   // sets logged with nothing to read them against group by their own shape, as before
+      : prev.solo===null&&cols.every((c,i)=>c===null||(!prev.out[i]&&prev.seen[i]&&prev.cols[i]===c)));
     // Consecutive only: returning to a weight later remains a separate group.
-    if(prev&&prev.key===key)prev.rows.push(row);
-    else groups.push({key,rows:[row]});
+    if(fits){prev.rows.push(row);cols.forEach((c,i)=>{if(c===null&&prev.seen[i])prev.out[i]=true;});}
+    else groups.push({rows:[row],cols,seen:cols.map(Boolean),out:[false,false],solo,unlinked:!!row.unlinked});
   }
   return groups;
 }
