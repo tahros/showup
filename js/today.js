@@ -281,8 +281,8 @@ function onbWallStart(){
   const weeks=onbWallWeeks(),P=30,still=matchMedia('(prefers-reduced-motion: reduce)').matches,H=wall.clientHeight,eye=H*.56;
   wall.innerHTML='';const rows=[];const make=w=>{const r=document.createElement('div');r.className='ob-wall-row';r.innerHTML=weeks[w%weeks.length].map(v=>`<i class="${v<0?'fut':v?'yes':''}"></i>`).join('');wall.appendChild(r);return r;};
   const vis=Math.ceil(H/P)+2;let next=0;
-  for(let k=0;k<vis;k++)rows.push({el:make(next++),y:H-P*(vis-1-k)-(still?0:H*.5)});
-  if(still){rows.forEach(r=>{r.el.style.transform=`translateY(${r.y}px)`;r.el.classList.add('read');});return;}
+  for(let k=0;k<vis;k++){const y=P*(k-1),r={el:make(next++),y,read:y<eye||still};if(r.read)r.el.classList.add('read');r.el.style.transform=`translateY(${y}px)`;rows.push(r);}   // the rows already past the crew start read
+  if(still)return;
   let t0=performance.now();const speed=P/0.34;   // a row about every third of a second
   const tick=t=>{if(!wall.isConnected)return;const dt=Math.min(64,t-t0);t0=t;
     for(const r of rows){r.y-=speed*dt/1000;if(r.y<eye&&!r.read){r.read=true;r.el.classList.add('read');}r.el.style.transform=`translateY(${r.y.toFixed(1)}px)`;}
