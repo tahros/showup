@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.378 — Your routine is a number of days, with an Extra day
+- **Asked:** days shift, so setting which weekdays you train doesn't fit; choose how many days the routine takes, add or remove days on the Routine screen, and keep an extra day that isn't a main day.
+- First-run Basics asks **How many days a week?** (2 to 7) instead of weekday circles. The Routine screen's sessions read Day 1, Day 2...; **+ Add a day** under the list and **Remove day** in each day's handle menu (an untouched template grows or shortens the way it would have been made).
+- **Extra day**, under "When you have time": a dashed card with its own body parts (Biceps + Triceps to start), offered once the week's main days are done and never in place of one. Saved beside your order, not in it.
+- **This week** fills from today with no set weekdays: each day takes the next main session until the week has its number, then the Extra (dashed, marked optional), then rest. Skip a day and the rest move up. A routine set up with weekdays (v4.6.376) keeps them.
+- **Plan › Preferences › Your week:** Days a week (2 to 7) and an Extra day switch with its body parts replace the weekday picker. Choosing a number replaces weekdays picked before; Dates then opens with the next free days, as many as your days a week. Saving other preferences leaves existing weekdays alone.
+- **Dragging a session on the Routine screen moves the whole card:** it lifts with its title and chips, a dashed slot stays behind, the others slide aside, and each shows the day it would land on. Chips keep their capsule.
+- Tests: test-onboarding-paths.js, test-routine-week.js and test-planner-flow.js cover the count, Add/Remove day, the Extra and the flexible week; check-routine-drag.cjs (new) and check-plan-prefs.cjs drive them in Chromium.
+
 ## v4.6.377 — Pip, 60% larger on the completed-day card
 - Applies the approved +60% width and height to Pip above the days-of-showing-up count on Today, preserving his proportions and the card's layout.
 - Sip, Duffy, other Crew, other Pip placements, and the header are unchanged. Existing still, animated, reduced-motion, and hidden-mascot behavior is retained.

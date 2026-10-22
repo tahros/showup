@@ -74,7 +74,7 @@ const PF_SPLITS=[['body','Body part','',null],
  ['none','No split','Choose body parts day by day',null]];   /* v4.6.209: the way back to no split is a choice you can see, not a second tap on a lit tile */
 function pfRotClean(r){if(!r||!Array.isArray(r.sessions))return null;const mine=myPartsSet(),ok=x=>x==='Run'||(BODY_PARTS.includes(x)&&mine.has(x)),ses=r.sessions.map(x=>({name:String(x?.name||'').slice(0,24),parts:[...new Set((x?.parts||[]).filter(ok))]})).filter(x=>x.parts.length);
  return ses.length?{preset:r.preset!=='none'&&PF_SPLITS.some(z=>z[0]===r.preset)?r.preset:'own',sessions:ses}:null;}
-/* v4.6.377: THE EXTRA DAY. A session for when you have time: offered once the
+/* v4.6.378: THE EXTRA DAY. A session for when you have time: offered once the
    week's days are done, never standing in for one, and outside your order */
 function pfExtraClean(x){if(!x||!Array.isArray(x.parts))return null;const mine=myPartsSet(),parts=[...new Set(x.parts.filter(t=>t==='Run'||(BODY_PARTS.includes(t)&&mine.has(t))))];return parts.length?{name:String(x.name||'').slice(0,24),parts}:null;}
 function pfDaysAWeek(p){return p.trainDays&&p.trainDays.length?p.trainDays.length:Math.max(1,Math.min(7,+p.frequency||3));}
@@ -1132,7 +1132,7 @@ pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
    it opens with those picked across the next seven days, from the day it
    would have opened on. */
 function pfPickTrainDays(){const s=pw(),P=pfPrefs(),t=P.trainDays,n=Array.isArray(t)&&!t.length?(+P.frequency||0):0;if((!t||!t.length)&&!n||!s.active)return;const out=[],d0=new Date(s.active+'T12:00');
- for(let k=0;k<7;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);const iso=d.toLocaleDateString('en-CA');if(n?out.length<n:t.includes(d.getDay()))if(!pfSkipDay(iso))out.push(iso);}   /* v4.6.377: no weekdays set: the next free days, as many as your days a week */
+ for(let k=0;k<7;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);const iso=d.toLocaleDateString('en-CA');if(n?out.length<n:t.includes(d.getDay()))if(!pfSkipDay(iso))out.push(iso);}   /* v4.6.378: no weekdays set: the next free days, as many as your days a week */
  if(!out.length)return;s.dates=out;s.active=out[0];s.month=out[0].slice(0,7)+'-01';out.forEach(x=>pwDay(x));}
 pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();delete s.rotStart;delete s.startPick;/* v4.6.354: a fresh visit starts from Next up again */j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else{const had=s.dates.some(x=>x>=todayISO);pwFreshenDates();if(!had)pfPickTrainDays();}/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
 pwApply=function(add=false){if(!pfOn())return pfLegacy.apply(add);const c=pw().candidate;if(!c)return;const generated=c.type==='generate',adjust=c.type==='adjust';if(c.type==='paste'&&c.index===undefined&&pfState().pasteAll){const one=Object.values(c.days)[0];c.days=Object.fromEntries(pfDates().map(d=>[d,pwCopy(one)]));}pfLegacy.apply(add);for(const d of Object.keys(c.days)){pwDay(d).target=null;}pfAnchor();pfMotion={kind:'arrive'};pfNavigate(generated?'days':'edit');};
@@ -1229,7 +1229,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
   s.objective=p.goal;DB.settings.objective=p.goal;DB.settings.weekStart=p.weekStart;
   if(p.parts&&p.parts.length)DB.settings.myParts=p.parts.slice();
   const {goal:_g,weekStart:_w,parts:_p,avoidAdd:_a,avoidDel:_b,holdAdd:_c,holdDel:_d,hold:_h,freq:_f,freqSet:_fs,extraOn:_xo,extraParts:_xp,...keep}=p;
-  /* v4.6.377: a number of days, not weekdays: choosing one replaces the weekdays you used to pick; the Extra day is kept beside the order */
+  /* v4.6.378: a number of days, not weekdays: choosing one replaces the weekdays you used to pick; the Extra day is kept beside the order */
   keep.frequency=p.freq;if(p.freqSet||!(p.trainDays&&p.trainDays.length))keep.trainDays=[];keep.extra=p.extraOn?pfExtraClean({name:p.extra?.name||'',parts:p.extraParts}):null;keep.avoid=exPrefNames('avoid');   /* the legacy copy says what the one source says */{const r=p.rotation,mine=pfRotClean(r&&r.sessions&&r.sessions.length?{preset:r.preset||'own',sessions:r.sessions}:null),kept=pfRotClean({preset:'own',sessions:(r&&(r.sessions&&r.sessions.length?r.sessions:r.own))||[]});keep.orderMode=p.orderMode==='own'&&mine?'own':'log';keep.rotation=keep.orderMode==='own'?mine:null;keep.rotOwn=kept?kept.sessions:[];}   /* v4.6.255: a rotation is stored only when you set your own; the sessions you made are kept for Set my own */   /* v4.6.209: your own sessions are kept behind a preset or No split, so My own brings them back */
   DB.settings.plannerPreferences=pwCopy(keep);DB.settingsAt=Date.now();save(true);j.prefs=null;if(j.prefOrigin==='settings'){j.prefOrigin=null;lift.plan=null;view='sync';render();return;}pfNavigate(j.prefOrigin||'dates');return;}
  else if(a==='pf-dates'){pfNavigate('dates');return;}

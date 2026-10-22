@@ -37,7 +37,7 @@ async function app(){
     ok('then You\'re in, asking how you are starting', a.run('onbStep')==='fork'&&/You're in/.test(a.q('.ob-in').textContent)&&!!a.q('.ob-jump'));
         ok('two ways in, plus Just looking around', /How are you starting/.test(a.q('.ob-q').textContent)&&!!a.q('[data-onbact="path"][data-v="have"]')&&!!a.q('[data-onbact="path"][data-v="fresh"]')&&!!a.q('[data-onbact="look"]'));
     await a.tap('[data-onbact="path"][data-v="fresh"]');
-    ok('Basics: the goal and how many days (v4.6.377: a number, not weekdays)', a.run('onbStep')==='basics'&&!!a.q('.pf-segb[data-v="grow"].on')&&a.w.document.querySelectorAll('#onb .pf-dowb.on').length===1&&a.q('.pf-dowb.on').dataset.v==='3'&&!a.q('#onbName'));
+    ok('Basics: the goal and how many days (v4.6.378: a number, not weekdays)', a.run('onbStep')==='basics'&&!!a.q('.pf-segb[data-v="grow"].on')&&a.w.document.querySelectorAll('#onb .pf-dowb.on').length===1&&a.q('.pf-dowb.on').dataset.v==='3'&&!a.q('#onbName'));
     ok('one bar for the whole setup: 04 / 05', /04 \/ 05/.test(a.q('.ob-stepn').textContent));
     a.run(`window.__seg=document.querySelector('#onb .pf-seg')`);
     await a.tap('[data-onbact="fgoal"][data-v="strength"]');
@@ -99,7 +99,7 @@ async function app(){
     const miss=a.run(`Object.entries(TRAIN_STARTERS).flatMap(([p,l])=>l.filter(e=>!catFor(p).includes(e)))`);
     ok('every starter is in the catalog', miss.length===0, miss);
   }
-  /* v4.6.377: days are a number you can change on the Routine screen, and an Extra day sits apart */
+  /* v4.6.378: days are a number you can change on the Routine screen, and an Extra day sits apart */
   { const a=await app(); await a.toFork();await a.tap('[data-onbact="path"][data-v="fresh"]');await a.tap('[data-onbact="fcount"][data-v="5"]');await a.tap('[data-onbact="frt"]');
     ok('five days: Push / Pull / Legs on Day 1 to Day 5', a.run(`onbF.cards.map(c=>c.name).join()`)==='Push,Pull,Legs,Push,Pull'&&a.w.document.querySelectorAll('#onb .ob-rt-list .ob-rt-day')[4].textContent==='Day 5'&&/5 days · any days/.test(a.q('.ob-rt-plan').textContent));
     await a.tap('[data-onbact="faddses"]');

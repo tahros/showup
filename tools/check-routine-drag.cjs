@@ -1,5 +1,5 @@
 // PW_PORT=8978 node tools/check-routine-drag.cjs   (serve dist/ or the repo root on that port)
-// v4.6.377: dragging a session on "Your week, your way" lifts the whole card
+// v4.6.378: dragging a session on "Your week, your way" lifts the whole card
 // (title and chips), leaves a dashed slot, slides the others aside, shows the
 // day it would land on, and drops it there.
 const {chromium}=require('playwright'),assert=require('assert');

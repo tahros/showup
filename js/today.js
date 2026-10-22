@@ -142,7 +142,7 @@ const ONB_GOALS=[['grow','Build muscle'],['strength','Get stronger'],['lose','Lo
 const ONB_TRAY=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack','Run'];
 const ONB_TPLS=[['full','Full body','A little of everything, each session.'],['ul','Upper / Lower','Alternate upper-body and lower-body sessions.'],['ppl','Push / Pull / Legs','Group pushing, pulling and leg work.'],['body','Body-part days','Give each session its own focus.'],['own','My own','Arrange your own body-part combinations.']];
 function onbDayOrder(){return onbF.weekStart==='monday'?[1,2,3,4,5,6,0]:[0,1,2,3,4,5,6];}
-/* v4.6.377: A ROUTINE IS A NUMBER OF DAYS, NOT A SET OF WEEKDAYS. Days shift,
+/* v4.6.378: A ROUTINE IS A NUMBER OF DAYS, NOT A SET OF WEEKDAYS. Days shift,
    so first-run asks how many days a week, the sessions read Day 1, Day 2..., the
    Routine screen adds and removes days, and an optional Extra day sits apart: it
    is offered once the week's main days are done and never stands in for one. */
@@ -663,7 +663,7 @@ function dayCountUp(){
 function rtSessions(){try{const r=typeof pfOrderRot==='function'?pfOrderRot():null;return r&&r.sessions&&r.sessions.length?r.sessions:null;}catch(e){return null;}}
 function rtTrainDays(){const p=DB.settings.plannerPreferences||{};return Array.isArray(p.trainDays)?p.trainDays:[];}
 function rtFreq(){return Math.max(0,Math.min(7,+(DB.settings.plannerPreferences||{}).frequency||0));}
-/* v4.6.377: no set weekdays -- the week fills from today: the next main session
+/* v4.6.378: no set weekdays -- the week fills from today: the next main session
    each day until the week has its number, then the Extra once, then rest */
 function rtFlex(){return !rtTrainDays().length&&rtFreq()>0;}
 function rtExtra(){const x=(DB.settings.plannerPreferences||{}).extra;return x&&x.parts&&x.parts.length?x:null;}
@@ -1547,7 +1547,7 @@ document.addEventListener('pointerdown',e=>{
   if(el.dataset.rtdrag&&!onbF.edit)return;
   onbDrag={x:e.clientX,y:e.clientY,id:e.pointerId,part:el.dataset.rtdrag||null,from:el.dataset.rtfrom!=null?+el.dataset.rtfrom:null,card:el.dataset.rthandle!=null?+el.dataset.rthandle:null,on:false,ghost:null,src:el};
 });
-/* v4.6.377: A SESSION MOVES AS ITSELF. Dragging a session lifted a small
+/* v4.6.378: A SESSION MOVES AS ITSELF. Dragging a session lifted a small
    capsule with its name, so nothing on screen said "this card is moving". Now
    the whole card lifts -- title, chips and all -- tilted and raised under the
    finger; where it came from stays as a dashed slot; the other sessions slide

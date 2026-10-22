@@ -31,7 +31,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  ok(`${tag} six cards: goal, week, body parts, split, session, exercises -- and the rules`,d.h3.join('|')==='What are you training for?|Your week|Body parts you train|Your order|Each session|Exercises'&&d.rules===6,d.h3);
  ok(`${tag} days a week, minutes, sliders, the sets range and split are gone`,d.old===0,d.old);
  ok(`${tag} it opens on what is true now: Grow, Monday, Auto, warm-up on`,d.goal.join()==='grow'&&d.ws.join()==='monday'&&d.size.join()==='auto'&&d.warm==='true'&&!d.max&&/8 to 12 reps/.test(d.cap),d);
- ok(`${tag} days a week: the number of weekdays you have trained on is offered (v4.6.377: a number, not weekdays)`,d.dow==='2 3 4 5* 6 7',d.dow);
+ ok(`${tag} days a week: the number of weekdays you have trained on is offered (v4.6.378: a number, not weekdays)`,d.dow==='2 3 4 5* 6 7',d.dow);
  ok(`${tag} Avoid and Hold list what is already set, Hold with its weight`,d.avoid.join()==='Romanian Deadlift'&&d.hold.length===1&&/^Barbell Bench Press 135 lb$/.test(d.hold[0]),d);
  ok(`${tag} no system dropdown on the page: two + Add buttons`,d.selects===0&&d.adds===2,d);
  ok(`${tag} nothing overflows a card or the screen`,!d.over.length&&d.sw<=d.vw,d);
@@ -102,7 +102,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  ok(`${tag} ...and returns to Dates`,x.page==='dates',x.page);
  /* the Dates step now opens on your week */
  await p.evaluate(async()=>{pw().dates=[];pw().active=null;pwOpen(null,'dates');await new Promise(r=>setTimeout(r,500));});x=await st();
- ok(`${tag} with nothing selected, Dates opens on the next six free days (v4.6.377: days a week, not weekdays)`,x.dates.join()==='2026-10-03,2026-10-04,2026-10-05,2026-10-06,2026-10-07,2026-10-08',x.dates);
+ ok(`${tag} with nothing selected, Dates opens on the next six free days (v4.6.378: days a week, not weekdays)`,x.dates.join()==='2026-10-03,2026-10-04,2026-10-05,2026-10-06,2026-10-07,2026-10-08',x.dates);
  const sel=await p.evaluate(()=>document.querySelectorAll('.pf-calendar .selected').length);
  ok(`${tag} ...six days lit on the calendar`,sel===6,sel);
  await p.evaluate(async()=>{pw().dates=['2026-10-12'];pw().active='2026-10-12';pwOpen(null,'dates');await new Promise(r=>setTimeout(r,400));});x=await st();
