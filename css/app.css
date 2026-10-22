@@ -5301,3 +5301,6 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-read-quick{margin-top:22px}
 @media(prefers-reduced-motion:reduce){#onb .ob-read-crew .ob-read-comp,#onb .ob-mug .ob-steam,#onb .ob-read-line.in{animation:none}#onb .ob-mug .ob-steam{opacity:.6}}
 #onb .ob-read-quick[hidden]{display:none}
+/* v4.6.390: import review -- one answer for every duplicate */
+#imp .im-bulk{border:1.5px solid color-mix(in srgb,var(--accent) 40%,var(--line))}
+#imp .im-more{margin:4px 4px 8px;font:400 13px var(--body);color:var(--muted);text-align:center}

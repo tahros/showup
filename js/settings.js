@@ -699,6 +699,7 @@ function impParse(text){
   if(!real.length)return {error:'No sets with weight, reps, time or distance were found.'};
   return {src,sets:real,unitKnown};
 }
+const IMP_DUP_SHOW=20;   // v4.6.390: past this, the bulk answer speaks for the rest
 function impOpen(from){
   imp={step:'source',from:from||'settings'};impRender();
 }
@@ -797,14 +798,20 @@ function impRender(){
         <span class="im-btns"><button type="button" class="im-b pri" data-imp="confirm" data-name="${k}">${n.open?'Use this':'Confirm match'}</button>${n.open?'':`<button type="button" class="im-b" data-imp="change" data-name="${k}">Change</button>`}</span></span></div>`;};
     const dupCard=d=>{const day=DB.days[d],ps=[...new Set((day.w||[]).map(e=>partLabel(e.part)))].join(' + '),v=I.dups[d];
       if(v!=='ask')return `<div class="im-item im-ok"><span class="im-dot ok">${IMP_ICON.ok}</span><span class="im-it"><b>${v==='keep'?'Kept your workout':'Both kept'}</b><span>${hesc(pwDate?pwDate(d):d)} · ${hesc(ps)}</span></span><button type="button" class="im-mini" data-imp="dupre" data-date="${d}">Change</button></div>`;
-      return `<div class="im-item"><span class="im-dot bad">${IMP_ICON.warn}</span><span class="im-it"><b>Possible duplicate</b><span>${hesc(typeof pwDate==='function'?pwDate(d):d)} · you already logged ${hesc(ps)}</span><span class="im-btns"><button type="button" class="im-b pri" data-imp="keep" data-date="${d}">Keep existing</button><button type="button" class="im-b" data-imp="both" data-date="${d}">Import another</button></span></span></div>`;};
+      return `<div class="im-item"><span class="im-dot bad">${IMP_ICON.warn}</span><span class="im-it"><b>Possible duplicate</b><span>${hesc(typeof pwDate==='function'?pwDate(d):d)} · you already logged ${hesc(ps)}</span><span class="im-btns"><button type="button" class="im-b pri" data-imp="keep" data-date="${d}">Keep existing</button><button type="button" class="im-b" data-imp="both" data-date="${d}">Keep both</button></span></span></div>`;};
     const nAsk=Object.values(I.names).filter(n=>!n.done&&n.state==='ask').length;
+    /* v4.6.390: ONE ANSWER FOR EVERY DUPLICATE. Re-importing a history you already log here asks the
+       same question hundreds of times; it is asked once, at the top, and each day can still differ */
+    const dupAsk=dupList.filter(d=>I.dups[d]==='ask'),dupDone=dupList.filter(d=>I.dups[d]!=='ask');
+    const dupBulk=dupAsk.length>=2?`<div class="im-item im-bulk"><span class="im-dot bad">${IMP_ICON.warn}</span><span class="im-it"><b>${fmt(dupAsk.length)} possible duplicates</b><span>Days in this file that you already logged here.</span><span class="im-btns"><button type="button" class="im-b pri" data-imp="dupall" data-v="keep">Keep all existing</button><button type="button" class="im-b" data-imp="dupall" data-v="both">Keep both for all</button></span></span></div>`:'';
+    const nKeep=dupDone.filter(d=>I.dups[d]==='keep').length,nBoth=dupDone.length-nKeep;
+    const dupDoneRow=`<div class="im-item im-ok"><span class="im-dot ok">${IMP_ICON.ok}</span><span class="im-it"><b>${fmt(dupDone.length)} duplicates answered</b><span>${nKeep?`${fmt(nKeep)} kept as you logged them`:''}${nKeep&&nBoth?' · ':''}${nBoth?`${fmt(nBoth)} kept both`:''}</span></span><button type="button" class="im-mini" data-imp="dupreset">Change</button></div>`;
     b=`${top('Review import')}<h1 class="im-h">Here’s what we found.</h1><p class="im-sub2">${fmt(I.workouts)} workouts · ${hesc(impMonths(I.dates))} · from ${hesc(I.src)}</p>
       ${I.unitKnown?'':`<div class="im-unit"><span>Weights in this file are</span><span class="im-seg" role="group" aria-label="Weight unit"><button type="button" class="${I.unit==='kg'?'on':''}" data-imp="unit" data-u="kg">kg</button><button type="button" class="${I.unit==='lb'?'on':''}" data-imp="unit" data-u="lb">lb</button></span></div>`}
-      ${pend?`<div class="im-att"><span class="im-dot warn">!</span>${pend} item${pend===1?' needs':'s need'} attention${nAsk>2?`<button type="button" class="im-mini" data-imp="confirmall">Confirm all ${nAsk} matches</button>`:''}</div>`:''}
-      <div class="im-list">${Object.entries(I.names).filter(([,n])=>!n.done||n.reopen).map(nameCard).join('')}${dupList.filter(d=>I.dups[d]==='ask').map(dupCard).join('')}
-      ${Object.entries(I.names).filter(([,n])=>n.done&&!n.reopen&&n.state!=='sure').map(nameCard).join('')}${dupList.filter(d=>I.dups[d]!=='ask').map(dupCard).join('')}</div>
-      <div class="im-item im-ready"><span class="im-dot ok">${IMP_ICON.ok}</span><span class="im-it"><b>${fmt(ready)} day${ready===1?'':'s'} ready</b><span>${fmt(Object.values(I.names).filter(n=>n.state==='sure').length)} exercise names matched on their own</span></span></div>
+      ${pend?`<div class="im-att"><span class="im-dot warn">!</span>${pend} item${pend===1?' needs':'s need'} attention${nAsk>=2?`<button type="button" class="im-mini" data-imp="confirmall">Confirm all ${nAsk} matches</button>`:''}</div>`:''}
+      <div class="im-list">${Object.entries(I.names).filter(([,n])=>!n.done||n.reopen).map(nameCard).join('')}${dupBulk}${dupAsk.slice(0,IMP_DUP_SHOW).map(dupCard).join('')}${dupAsk.length>IMP_DUP_SHOW?`<p class="im-more">…and ${fmt(dupAsk.length-IMP_DUP_SHOW)} more. The buttons above answer them all.</p>`:''}
+      ${Object.entries(I.names).filter(([,n])=>n.done&&!n.reopen&&n.state!=='sure').map(nameCard).join('')}${dupDone.length>5?dupDoneRow:dupDone.map(dupCard).join('')}</div>
+      <div class="im-item im-ready"><span class="im-dot ok">${IMP_ICON.ok}</span><span class="im-it"><b>${fmt(ready)} day${ready===1?'':'s'} ready</b><span>${(n=>`${fmt(n)} exercise ${n===1?'name':'names'} matched on ${n===1?'its':'their'} own`)(Object.values(I.names).filter(n=>n.state==='sure').length)}</span></span></div>
       <div class="im-sp"></div><button type="button" class="im-go" data-imp="toconfirm" ${pend||!ready?'disabled':''}>${pend?`Resolve ${pend} item${pend===1?'':'s'} to continue`:'Continue'}</button><p class="im-foot">Nothing has been saved yet.</p>`;
   }else if(I.step==='confirm'){
     const inc=impIncluded(),wk=new Set(I.sets.filter(s=>inc.includes(s.iso)).map(s=>s.wk)).size,kept=Object.values(I.dups).filter(v=>v==='keep').length,newN=Object.values(I.names).filter(n=>!n.choice).length;
@@ -842,6 +849,8 @@ document.addEventListener('click',e=>{
   else if(a==='reopen'&&n){n.reopen=true;n.done=false;if(n.state==='sure')n.state='ask';n.open=true;n.alts=n.alts||[];}
   else if(a==='confirmall'){for(const x of Object.values(I.names))if(!x.done&&x.state==='ask'){x.choice=x.ex;x.part=homePartOf(x.ex)||x.part;x.done=true;}}
   else if(a==='keep'){I.dups[b.dataset.date]='keep';}
+  else if(a==='dupall'){const v=b.dataset.v==='both'?'both':'keep';for(const d of Object.keys(I.dups))if(I.dups[d]==='ask')I.dups[d]=v;}
+  else if(a==='dupreset'){for(const d of Object.keys(I.dups))I.dups[d]='ask';}
   else if(a==='both'){I.dups[b.dataset.date]='both';}
   else if(a==='dupre'){I.dups[b.dataset.date]='ask';}
   else if(a==='toconfirm'){if(!impPending())I.step='confirm';}
