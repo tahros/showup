@@ -792,3 +792,17 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 :root .pf-workspace .pw-exercise.pf-cardio:not(.pf-cg) .pf-ex-summary{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 :root .pf-workspace .pw-exercise.pf-cardio:not(.pf-cg) .pf-ex-summary>div{display:flex;align-items:center;gap:8px}
 :root .pf-workspace .pw-exercise.pf-cardio:not(.pf-cg) .pf-cardio-line{margin:0;font-size:13px;color:var(--chalk)}
+/* v4.6.383: a real change, shown as what changed */
+:root .pf-workspace .pf-conflict h3{margin:0 0 4px}
+.pw-cf{display:flex;flex-direction:column;margin:12px 0 2px}
+.pw-cf-row{padding:12px 0;border-top:1px solid var(--line)}
+.pw-cf-row:first-child{border-top:0;padding-top:4px}
+.pw-cf-name{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 6px}
+.pw-cf-name b{font:600 15px/1.25 var(--body);font-size:15px;color:var(--chalk)}
+.pw-cf-tag{flex:none;font:600 10px var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.pw-cf-tag.mine{color:var(--accent-ink)}
+.pw-cf-line{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;align-items:baseline;padding:2px 0}
+.pw-cf-line span{font:500 11px var(--body);font-size:11px;color:var(--muted)}
+.pw-cf-line em{font:400 13px/1.4 var(--mono);font-size:13px;font-style:normal;color:var(--muted)}
+.pw-cf-line.mine span,.pw-cf-line.mine em{color:var(--chalk)}
+.pw-cf-same,.pw-cf-none{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line);font:400 12px/1.4 var(--body);font-size:12px;color:var(--muted)}

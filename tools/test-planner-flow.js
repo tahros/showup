@@ -105,7 +105,7 @@ test('more exercises than the maximum: whole exercises come out, last first, and
 run(`DB.settings.plannerPreferences={...pfPrefs(),mode:'time',avoid:[]};`);
 test('nothing usable back: says so, the draft stays',`(()=>{try{pfValidateCandidate({days:{}},['2026-09-15']);return false;}catch(e){return /did not return a usable plan/.test(e.message);}})()`);
 test('an extra date is dropped, a missing one is listed, and the days that came back are kept',`(()=>{const c={type:'generate',days:{'2026-09-15':{rows:pwRead('Leg Press\\n300 lb × 10 10 10'),notes:[]},'2026-09-20':{rows:pwRead('Leg Press\\n300 lb × 10'),notes:[]}}};pfValidateCandidate(c,['2026-09-15','2026-09-16']);return Object.keys(c.days).join()==='2026-09-15'&&c.missing.join()==='2026-09-16';})()`);
-run(`DB.settings.plannerPreferences.avoid=[];DB.week.days['2026-09-15'].title='Remote change';`);
+run(`DB.settings.plannerPreferences.avoid=[];DB.week.days['2026-09-15'].note='Remote change';   /* v4.6.383: a change to the workout, not a rename */`);
 test('newer saved plan is not silently overwritten',`(()=>{try{pfSave(true);return false;}catch(e){return !!pw().conflict;}})()`);
 run(`pw().conflict=null;pwDay('2026-09-15').base=pwFingerprint('2026-09-15');pw().dates=['2026-09-15','2026-09-16'];pw().active='2026-09-15';pwDay('2026-09-16');pfState().pasteAll=true;pw().candidate={type:'paste',days:{'2026-09-15':{rows:pwRead('Dip\\nBW × 8 8'),notes:[]}}};pwApply();`);
 test('explicit paste-all populates each selected draft, not the saved plans',`pwDay('2026-09-16').rows[0].ex==='Dip'&&!pwSaved('2026-09-16')&&pfMatch()`);

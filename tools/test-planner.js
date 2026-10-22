@@ -10,7 +10,7 @@ w.HTMLCanvasElement.prototype.getContext=()=>new Proxy({measureText:()=>({width:
 for(const m of html.matchAll(/src="(js\/[^?"]+)\?v=/g)){
   let source=fs.readFileSync(path.join(dir,m[1]),'utf8');
   if(m[1]==='js/planner.js'&&process.env.PW_MUTATION){
-    const probes={conflict:['if(b.base!==pwFingerprint(d))','if(false)'],neighbors:['pwCopy(DB.week?.days||{})','{}'],locks:['dst.locks.push(c.index+i)','void 0'],reorder:['b.locks=order.flatMap((i,j)=>locks.has(i)?[j]:[])','b.locks=[]'],disclosure:["box.classList.toggle('is-open',s.upcomingOpen)",'void 0']};
+    const probes={conflict:['if(!pwSameBase(b.base,d)&&!pwSameAsMine(d))','if(false)'],neighbors:['pwCopy(DB.week?.days||{})','{}'],locks:['dst.locks.push(c.index+i)','void 0'],reorder:['b.locks=order.flatMap((i,j)=>locks.has(i)?[j]:[])','b.locks=[]'],disclosure:["box.classList.toggle('is-open',s.upcomingOpen)",'void 0']};
     const probe=probes[process.env.PW_MUTATION];if(!probe||!source.includes(probe[0]))throw Error('Unknown or ineffective mutation probe');source=source.replace(probe[0],probe[1]);
   }
   vm.runInContext(source,ctx,{filename:m[1]});

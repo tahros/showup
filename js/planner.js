@@ -79,7 +79,22 @@ function planShift(dates,delta){
    free day. A plan for next Monday, with a gap before it, stays put. */
 function planRunFrom(d){const run=[];for(let x=d;pwSaved(x)?.items?.length;x=pwShiftISO(x,1))run.push(x);return run;}
 
-function pwFingerprint(d){return JSON.stringify(pwSaved(d));}
+/* v4.6.383: A DAY CHANGED WHEN ITS WORKOUT CHANGED (Sungjee, 2026-10-22: "it's super
+   confusing. What changed?"). The draft's base was the saved plan's raw record.
+   A day's plan is kept twice -- in the day slot (DB.plan, stamped with its date)
+   and in the week (stamped with its title) -- and which copy pwSaved reads
+   depends on which day was last saved on its own. Save today, and Saturday read
+   from the other copy: the same exercises, other bookkeeping fields, so "Sat,
+   Oct 24 changed on another device" fired when nothing had changed anywhere.
+   The base is now the workout itself -- exercises, sets, loads, the note (where
+   a run line lives) -- so only a real change stops a save. A base saved by an
+   older version (the raw record) is read the same way, so drafts already open
+   do not raise a last false alarm. */
+function pwContent(p){if(!p)return 'c1:';return 'c1:'+JSON.stringify({i:(p.items||[]).map(planItemShape).map(it=>[it.ex,(it.lines||[]).map(l=>[+(+l.w||0).toFixed(3),!!l.bw,!!l.nw,l.su||'',(l.reps||[]).join(' '),l.qual||'',l.tag||''])]),n:String(p.note||'').trim()});}
+function pwFingerprint(d){return pwContent(pwSaved(d));}
+function pwSameBase(base,d){const now=pwFingerprint(d);if(base===now)return true;if(typeof base==='string'&&!base.startsWith('c1:')){try{return pwContent(JSON.parse(base))===now;}catch(e){}}return false;}
+/* your edits already say what is saved: nothing to ask */
+function pwSameAsMine(d){try{const {items,note}=planItemsFrom(pwDay(d).rows||[]);return pwContent({items,note})===pwFingerprint(d);}catch(e){return false;}}
 /* v4.6.192: A WEIGHT ON A BODYWEIGHT EXERCISE IS WEIGHT ADDED TO THE BODY. The
    writer answered "Dip / 50 lb x 10 10 10 10" and the plan showed "50 lb"
    under a last time of "BW+45 lb" -- the same thing said two ways, one of them
@@ -181,6 +196,24 @@ function pwCalendarIcon(){return icon('calendar',ICON_SZ.sm,0,'pw-calendar-icon'
 function pwAction(action,label,glyph,cls='',extra=''){return pwButton(action,icon(glyph,ICON_SZ.sm)+label,cls,extra);}
 function pwDatesButton(action='open'){return pwButton(action,pwCalendarIcon()+'Dates '+icon('chevron',ICON_SZ.sm),'pw-text','aria-label="Choose dates"');}
 function pwTabs(){const s=pw();return `<div class="pw-days" aria-label="Days being planned">${s.dates.map(d=>pwButton('day',hesc(new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'numeric',day:'numeric'})),s.active===d?'selected':'',`data-date="${d}" aria-pressed="${s.active===d}"`)).join('')}</div>`;}
+/* v4.6.383: WHEN A DAY REALLY CHANGED, SAY WHAT CHANGED. The old card showed
+   only the saved plan, titled "Newer plan", with "Use newer plan" / "Keep my
+   draft": no way to see your edits or the difference. Now: the exercises that
+   differ, each with the saved version and yours; the ones only in one of them,
+   tagged; the rest folded into one line. Two buttons that say what they do. */
+function pwConflictRowText(r){if(!r)return '';if(r.kind==='cardio'||(typeof pfIsCardioRow==='function'&&pfIsCardioRow(r)))return String(r.raw||'').split(/\s+[—–]\s+/).slice(1).join(' — ')||'by feel';
+  const t=planTextFromRows([r]).trim().split('\n').slice(1).map(x=>x.trim()).filter(Boolean);return (typeof pfOneLine==='function'?pfOneLine(t):t).join(' · ');}
+function pwConflictKey(r){return r.kind==='cardio'?'cardio:'+r.ex:(r.ex||r.name||r.raw||'');}
+function pwConflictHTML(d){
+  const sp=pwSaved(d),fromRaw=(()=>{try{if(!sp?.raw)return null;const {items,note}=planItemsFrom(parsePlan(sp.raw));return pwContent({items,note})===pwContent(sp)?sp.raw:null;}catch(e){return null;}})(),saved=pwRead(fromRaw||planToText(sp)).filter(r=>r.kind==='ex'||r.kind==='cardio'),mine=(pwDay(d).rows||[]).filter(r=>r.kind==='ex'||r.kind==='cardio');
+  const S=new Map(saved.map(r=>[pwConflictKey(r),r])),M=new Map(mine.map(r=>[pwConflictKey(r),r])),keys=[...new Set([...mine.map(pwConflictKey),...saved.map(pwConflictKey)])];
+  let same=0;const rows=[];
+  for(const k of keys){const a=S.get(k),b=M.get(k),name=(a||b).ex||(a||b).name||k;
+    const ta=pwConflictRowText(a),tb=pwConflictRowText(b);
+    if(a&&b&&ta===tb){same++;continue;}
+    rows.push(`<div class="pw-cf-row"><div class="pw-cf-name"><b>${hesc(name)}</b>${!a?'<small class="pw-cf-tag mine">Only in your edits</small>':!b?'<small class="pw-cf-tag saved">Only in the saved plan</small>':''}</div>${a?`<div class="pw-cf-line"><span>Saved</span><em>${hesc(ta)}</em></div>`:''}${b?`<div class="pw-cf-line mine"><span>Yours</span><em>${hesc(tb)}</em></div>`:''}</div>`);}
+  return `<div class="pw-cf">${rows.join('')||'<p class="pw-cf-none">The exercises match; only notes differ.</p>'}${same?`<p class="pw-cf-same">${same} ${same===1?'exercise is':'exercises are'} the same in both.</p>`:''}</div>`;
+}
 function pwRowsHTML(rows,editable=false,marks=false){
   const s=pw(),day=s.active?pwDay(s.active):null;
   return `<div class="pw-exercises">${(rows||[]).map((r,i)=>{
@@ -307,7 +340,7 @@ function pwRender(){
   const panel=['paste','editrow','adjust','candidate','busy'].includes(s.step),hasRows=!!day?.rows.length;
   let html=`<section class="pw-workspace pw-step-edit pw-single ${entering?'pw-enter':''}" aria-label="Planning workspace"><div class="pw-editor-head"><button type="button" class="icobtn pw-back" data-pw="back" aria-label="Back">←</button><h1>${hasRows?'Edit your plan':'Build your plan'}</h1>${hasRows&&!panel?pwAction('clear-day','Clear','clear','pw-text pw-clear'):'<span class="pw-small">Draft</span>'}</div>`;
   if(s.error)html+=`<div class="pw-message" role="alert">${hesc(s.error)}</div>`;
-  if(s.conflict){const d=s.conflict;html+=`<div class="card pw-card"><strong>Newer plan · ${hesc(pwDate(d))}</strong>${pwRowsHTML(pwRead(planText(pwSaved(d))))}<div class="pw-actions">${pwButton('load-newer','Use newer plan')}${pwButton('replace-newer','Keep my draft')}</div></div>`;}
+  if(s.conflict){const d=s.conflict;html+=`<div class="card pw-card"><strong>${hesc(pwDate(d))} changed while you were editing</strong>${pwConflictHTML(d)}<div class="pw-actions">${pwButton('load-newer','Use the saved one')}${pwButton('replace-newer','Keep my edits','primary')}</div></div>`;}
   html+=`<fieldset class="pw-context" ${panel||s.conflict?'disabled':''}><div class="pw-datebar">${pwTabs()}${pwDatesButton('dates-toggle')}</div>`;
   if(s.datesOpen)html+=pwCalendarHTML();
   if(day&&!s.datesOpen){
@@ -817,7 +850,7 @@ async function pwGenerate(adjust=false,rewrite=false){
 }
 function pwSave(){
   const s=pw();
-  for(const d of s.dates){if(d<todayISO)throw Error('A draft date has passed. Choose a current or future date.');const b=pwDay(d);if(!b.rows.length&&!b.cleared)throw Error(`${pwDate(d)} is still empty. Add a routine or remove that date.`);if(b.base!==pwFingerprint(d)){s.conflict=d;throw Error(`${pwDate(d)} changed since you opened it, possibly on another device. Compare the newer plan below before saving. Your draft is safe.`);}}
+  for(const d of s.dates){if(d<todayISO)throw Error('A draft date has passed. Choose a current or future date.');const b=pwDay(d);if(!b.rows.length&&!b.cleared)throw Error(`${pwDate(d)} is still empty. Add a routine or remove that date.`);if(!pwSameBase(b.base,d)&&!pwSameAsMine(d)){s.conflict=d;throw Error(`${pwDate(d)} changed while you were editing. Pick which to keep.`);}}
   // Merge ONLY reviewed dates; unlike weekSave, preserve all other blocks and
   // a separately saved today/tomorrow plan. Existing timestamps drive cloud sync.
   const days=pwCopy(DB.week?.days||{}),at=Date.now();
