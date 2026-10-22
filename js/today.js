@@ -329,22 +329,26 @@ function onbRender(){
   }else if(onbStep==='routine'){
     const t=ONB_TPLS.find(x=>x[0]===onbF.template)||ONB_TPLS[0],E=onbF.edit,sel=onbF.sel,X=icon('close',ICON_SZ.sm),GR=icon('grip',ICON_SZ.sm);
     const chip=(p,i)=>E?`<button type="button" class="pf-rot-tag ob-rt-chip${p==='Run'?' cardio':''}" data-rtdrag="${p}" data-rtfrom="${i}" data-onbact="frm" data-v="${i}" data-p="${p}" aria-label="Remove ${hesc(partLabel(p))} from ${hesc(onbCardAt(i).name)}; drag to move">${hesc(partLabel(p))}${X}</button>`:`<span class="pf-rot-tag${p==='Run'?' cardio':''}">${hesc(partLabel(p))}</span>`;
-    const restCard=(c,i)=>`<section class="ob-rt-ses ob-rt-rest" data-rtcard="${i}" aria-label="${onbDayLab(i)}, rest day"><div class="ob-rt-head"><span class="ob-rt-day">${onbDayLab(i)}</span><b>Rest</b><button type="button" class="ob-rt-grip" data-rthandle="${i}" data-onbact="fmenu" data-v="${i}" aria-label="Move the rest day. Drag, or choose up or down." aria-expanded="${onbF.menu===i}">${GR}</button></div>
-      <p class="ob-rt-restnote">A day off. Nothing to log.</p>
-      ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button><button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}">Remove rest day</button></div>`:''}</section>`;
-    const cards=onbF.cards.map((c,i)=>c.rest?restCard(c,i):`<section class="ob-rt-ses" data-rtcard="${i}" aria-label="${onbDayLab(i)}, ${hesc(c.name)}"><div class="ob-rt-head"><span class="ob-rt-day">${onbDayLab(i)}</span><b>${hesc(c.name)}</b><button type="button" class="ob-rt-grip" data-rthandle="${i}" data-onbact="fmenu" data-v="${i}" aria-label="Move ${hesc(c.name)}. Drag, or choose up or down." aria-expanded="${onbF.menu===i}">${GR}</button></div>
-      <div class="ob-rt-chips">${(E?c.parts:c.parts.slice(0,3)).map(p=>chip(p,i)).join('')}${!E&&c.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${c.parts.length-3}</button>`:''}${!c.parts.length?'<em>Drop body parts here</em>':''}</div>
+    /* v4.6.384: THE DAY COLUMN IS THE HANDLE. Day N with the grip under it, down the card's left edge
+       (all of it grabs); title and chips get the full width. In Customize every chip carries grip dots. */
+    const DOTS='<i class="ob-dots" aria-hidden="true"></i>';
+    const chipE=(p,i)=>E?`<button type="button" class="pf-rot-tag ob-rt-chip${p==='Run'?' cardio':''}" data-rtdrag="${p}" data-rtfrom="${i}" data-onbact="frm" data-v="${i}" data-p="${p}" aria-label="Remove ${hesc(partLabel(p))} from ${hesc(onbCardAt(i).name)}; drag to move">${DOTS}<span>${hesc(partLabel(p))}</span>${X}</button>`:chip(p,i);
+    const side=(i,label,what)=>`<button type="button" class="ob-rt-side" data-rthandle="${i}" data-onbact="fmenu" data-v="${i}" aria-label="${onbDayLab(i)}: ${what}. Drag to move, or tap for options." aria-expanded="${onbF.menu===i}" style="--i:${i}"><span class="ob-rt-day">${onbDayLab(i)}</span><span class="ob-rt-grip" aria-hidden="true">${GR}</span></button>`;
+    const order=(i,drop)=>onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button>${drop}</div>`:'';
+    const restCard=(c,i)=>`<section class="ob-rt-ses ob-rt-rest" data-rtcard="${i}" aria-label="${onbDayLab(i)}, rest day">${side(i,'Rest','move the rest day')}<div class="ob-rt-main"><b class="ob-rt-name">Rest</b><p class="ob-rt-restnote">A day off. Nothing to log.</p>${order(i,`<button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}">Remove rest day</button>`)}</div></section>`;
+    const cards=onbF.cards.map((c,i)=>c.rest?restCard(c,i):`<section class="ob-rt-ses" data-rtcard="${i}" aria-label="${onbDayLab(i)}, ${hesc(c.name)}">${side(i,c.name,'move '+hesc(c.name))}<div class="ob-rt-main"><b class="ob-rt-name">${hesc(c.name)}</b>
+      <div class="ob-rt-chips">${(E?c.parts:c.parts.slice(0,3)).map(p=>chipE(p,i)).join('')}${!E&&c.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${c.parts.length-3}</button>`:''}${!c.parts.length?'<em>Drop body parts here</em>':''}</div>
       ${sel&&!c.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="${i}">+ Add ${hesc(partLabel(sel))}</button>`:''}
-      ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button><button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}" ${onbTrainN()<=1?'disabled':''}>Remove day</button></div>`:''}</section>`).join('');
-    const XC=onbF.extra,xcard=XC?`<section class="ob-rt-ses ob-rt-extra" data-rtcard="-1" aria-label="Extra day, ${hesc(XC.name)}"><div class="ob-rt-head"><span class="ob-rt-day">Extra</span><b>${hesc(XC.name)}</b><button type="button" class="ob-rt-grip ob-rt-xdel" data-onbact="fdropx" aria-label="Remove the extra day">${X}</button></div>
-      <div class="ob-rt-chips">${(E?XC.parts:XC.parts.slice(0,3)).map(p=>chip(p,-1)).join('')}${!E&&XC.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${XC.parts.length-3}</button>`:''}${!XC.parts.length?'<em>Drop body parts here</em>':''}</div>
+      ${order(i,`<button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}" ${onbTrainN()<=1?'disabled':''}>Remove day</button>`)}</div></section>`).join('');
+    const XC=onbF.extra,xcard=XC?`<section class="ob-rt-ses ob-rt-extra" data-rtcard="-1" aria-label="Extra day, ${hesc(XC.name)}"><div class="ob-rt-side ob-rt-side-x"><span class="ob-rt-day">Extra</span></div><div class="ob-rt-main"><div class="ob-rt-top"><b class="ob-rt-name">${hesc(XC.name)}</b><button type="button" class="ob-rt-xdel" data-onbact="fdropx" aria-label="Remove the extra day">${X}</button></div>
+      <div class="ob-rt-chips">${(E?XC.parts:XC.parts.slice(0,3)).map(p=>chipE(p,-1)).join('')}${!E&&XC.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${XC.parts.length-3}</button>`:''}${!XC.parts.length?'<em>Drop body parts here</em>':''}</div>
       ${sel&&!XC.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="-1">+ Add ${hesc(partLabel(sel))}</button>`:''}
-      <p class="ob-rt-xnote">Optional. Offered once your ${onbTrainN()} days are done.</p></section>`:`<button type="button" class="ob-rt-addses ob-rt-addx" data-onbact="faddx">+ Add an extra day</button>`;
+      <p class="ob-rt-xnote">Optional. Offered once your ${onbTrainN()} days are done.</p></div></section>`:`<button type="button" class="ob-rt-addses ob-rt-addx" data-onbact="faddx">+ Add an extra day</button>`;
     b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>
       <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${hesc(t[1])}</b><span>${onbDaysText()}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">Change</button></div>
       ${E?(()=>{   /* v4.6.384: the tray says which parts are in your week and which are not in it yet */
         const use=p=>onbF.cards.filter(c=>!c.rest&&c.parts.includes(p)).length+(onbF.extra&&onbF.extra.parts.includes(p)?1:0);
-        const pool=p=>{const n=use(p);return `<button type="button" class="pf-pal-chip ob-rt-pool ${n?'used':'fresh'}${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}" aria-label="${hesc(partLabel(p))}, ${n?`in ${n} ${n===1?'day':'days'}`:'not in your week yet'}">${icon(n?'check':'plus',ICON_SZ.sm)}<span>${hesc(partLabel(p))}</span>${n>1?`<i class="ob-rt-n">×${n}</i>`:''}</button>`;};
+        const pool=p=>{const n=use(p);return `<button type="button" class="pf-pal-chip ob-rt-pool ${n?'used':'fresh'}${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}" aria-label="${hesc(partLabel(p))}, ${n?`in ${n} ${n===1?'day':'days'}`:'not in your week yet'}"><i class="ob-dots" aria-hidden="true"></i><span>${hesc(partLabel(p))}</span>${n?`<i class="ob-rt-n">×${n}</i>`:''}</button>`;};
         const fresh=ONB_TRAY.filter(p=>!use(p)),used=ONB_TRAY.filter(p=>use(p));
         return `<div class="ob-rt-tray"><div class="ob-rt-tray-h"><b>Body parts</b><button type="button" class="ob-rt-link" data-onbact="fdone">Done</button></div><p>Drag onto a day, or tap one, then a day.</p>${fresh.length?`<span class="ob-rt-grp">Not in your week</span><div class="ob-rt-chips">${fresh.map(pool).join('')}</div>`:''}${used.length?`<span class="ob-rt-grp">In your week</span><div class="ob-rt-chips">${used.map(pool).join('')}</div>`:''}</div>`;})()
         :`<div class="ob-rt-bar"><span>Your sessions</span><button type="button" class="ob-rt-link" data-onbact="fcustom">Customize</button></div>`}
@@ -1593,24 +1597,22 @@ document.addEventListener('pointerdown',e=>{
    out of the way as it passes, and each card's day reads the day it would land
    on. Letting go settles the card into its slot. Chips keep their capsule:
    a chip is the whole of itself already. */
-function onbLiftCard(D,e){
+function onbLiftCard(D,e){   // v4.6.384: the card itself moves (no copy, no empty slot) -- what you hold is what you see
   const card=D.src.closest('.ob-rt-ses'),sc=document.getElementById('onb');if(!card||!sc)return false;
-  const list=[...sc.querySelectorAll('.ob-rt-list .ob-rt-ses[data-rtcard]')],r=card.getBoundingClientRect();
-  const g=card.cloneNode(true);g.removeAttribute('data-rtcard');g.removeAttribute('aria-label');g.setAttribute('aria-hidden','true');
-  g.querySelectorAll('[data-rtcard],[data-rthandle],[data-rtdrag],[data-onbact],[id]').forEach(n=>['data-rtcard','data-rthandle','data-rtdrag','data-onbact','id'].forEach(a=>n.removeAttribute(a)));
-  g.classList.add('ob-rt-lift');g.style.width=r.width+'px';g.style.height=r.height+'px';card.parentNode.appendChild(g);
-  Object.assign(D,{ghost:g,cardEl:card,list,tops:list.map(c=>c.getBoundingClientRect().top),hs:list.map(c=>c.offsetHeight),dx:e.clientX-r.left,dy:e.clientY-r.top,h:r.height,scroll0:sc.scrollTop,to:D.card});
-  card.classList.add('ob-rt-slot');
-  requestAnimationFrame(()=>g.classList.add('up'));
+  const list=[...sc.querySelectorAll('.ob-rt-list .ob-rt-ses[data-rtcard]')],tops=list.map(c=>c.getBoundingClientRect().top),hs=list.map(c=>c.offsetHeight);
+  const gap=list.length>1?Math.max(0,tops[1]-tops[0]-hs[0]):6;
+  Object.assign(D,{ghost:null,cardEl:card,list,tops,hs,gap,y0:e.clientY,dy:e.clientY-card.getBoundingClientRect().top,h:card.offsetHeight,scroll0:sc.scrollTop,to:D.card});
+  card.classList.add('ob-rt-moving');requestAnimationFrame(()=>card.classList.add('up'));
+  document.getElementById('onb').classList.add('ob-rt-known');onbF.moved=true;
   return true;
 }
+function onbShift(D,from,to){const sum=(a,b)=>{let t=0;for(let k=a;k<=b;k++)t+=D.hs[k]+D.gap;return t;};return to>from?sum(from+1,to):to<from?-sum(to,from-1):0;}
 function onbCardTo(D,y){
   const sc=document.getElementById('onb'),ds=sc.scrollTop-D.scroll0,mid=y-D.dy+D.h/2;let to=0,best=Infinity;
   D.tops.forEach((t,i)=>{const d=Math.abs(t-ds+D.hs[i]/2-mid);if(d<best){best=d;to=i;}});
-  if(to===D.to)return;D.to=to;const from=D.card;
+  if(to===D.to)return;D.to=to;const from=D.card,step=D.hs[from]+D.gap;
   D.list.forEach((c,j)=>{const k=j===from?to:from<to&&j>from&&j<=to?j-1:from>to&&j>=to&&j<from?j+1:j;
-    c.style.transform=k===j?'':`translateY(${D.tops[k]-D.tops[j]}px)`;const day=c.querySelector('.ob-rt-day');if(day)day.textContent=onbDayLab(k);});
-  const gd=D.ghost.querySelector('.ob-rt-day');if(gd)gd.textContent=onbDayLab(to);
+    if(j!==from)c.style.transform=k===j?'':`translateY(${k<j?-step:step}px)`;const day=c.querySelector('.ob-rt-day');if(day)day.textContent=onbDayLab(k);});
   try{navigator.vibrate&&navigator.vibrate(6);}catch(_){}
 }
 document.addEventListener('pointermove',e=>{
@@ -1619,7 +1621,7 @@ document.addEventListener('pointermove',e=>{
     if(!(D.card!=null&&onbLiftCard(D,e))){const g=document.createElement('div');g.className='ob-rt-ghost';g.textContent=D.part?partLabel(D.part):onbF.cards[D.card]?.name||'';document.getElementById('onb').appendChild(g);D.ghost=g;D.src.classList.add('ob-lifted');}
     document.documentElement.classList.add('ob-dragging');}
   e.preventDefault();
-  if(D.cardEl){D.ghost.style.translate=`${e.clientX-D.dx}px ${e.clientY-D.dy}px`;onbCardTo(D,e.clientY);}
+  if(D.cardEl){D.cardEl.style.translate=`0 ${e.clientY-D.y0+document.getElementById('onb').scrollTop-D.scroll0}px`;onbCardTo(D,e.clientY);}
   else{D.ghost.style.transform=`translate(${e.clientX-30}px,${e.clientY-28}px) rotate(-3deg)`;
     document.querySelectorAll('#onb .ob-rt-ses.ob-drop').forEach(c=>c.classList.remove('ob-drop'));
     const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('#onb [data-rtcard]');
@@ -1634,10 +1636,10 @@ function onbDragEnd(e,cancel){
   if(!D.on)return;
   onbDragJust=true;setTimeout(()=>{onbDragJust=false;},250);
   if(D.cardEl){
-    const to=cancel?D.card:D.to,g=D.ghost,slot=D.cardEl.getBoundingClientRect(),still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const land=()=>{g.remove();if(to!==D.card)onbMove(D.card,to);else onbRender();};
-    if(still||!g.animate){land();return;}
-    g.classList.remove('up');g.style.transition='translate .2s var(--settle),scale .2s,rotate .2s,box-shadow .2s';g.style.translate=`${slot.left}px ${slot.top}px`;setTimeout(land,210);return;
+    const to=cancel?D.card:D.to,c=D.cardEl,still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const land=()=>{if(to!==D.card)onbMove(D.card,to);else onbRender();};
+    if(still){land();return;}
+    c.classList.remove('up');c.style.transition='translate .2s var(--settle),scale .2s,rotate .2s,box-shadow .2s';c.style.translate=`0 ${onbShift(D,D.card,to)}px`;setTimeout(land,210);return;
   }
   D.ghost?.remove();D.src.classList.remove('ob-lifted');
   document.querySelectorAll('#onb .ob-rt-ses.ob-drop').forEach(c=>c.classList.remove('ob-drop'));
