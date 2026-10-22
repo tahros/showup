@@ -205,7 +205,7 @@ function onbFreshApply(){
   const prev=DB.settings.plannerPreferences||{};
   DB.settings.plannerPreferences={...prev,frequency:onbF.days.length,trainDays:onbF.days.slice(),rotation:rot,orderMode:'own',avoid:prev.avoid||[]};
   const text=(T.cardio?'Run — by feel\n':'')+T.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n');
-  try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan){ DB.plan.title=T.name; DB.plan.auto='routine'; } DB.settings.routineAutoAt=todayISO; }catch(e){}
+  try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan){ DB.plan.title=T.name; DB.plan.auto='routine'; } DB.settings.routineAutoAt=todayISO; DB.settings.routineWrote={[todayISO]:text}; DB.settings.routineAuto=true; }catch(e){}
   if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
 }
 /* v4.6.375: Basics changes in place. A tap used to redraw the screen, so the
@@ -638,10 +638,12 @@ function dayCountUp(){
    nothing: the session waits for the next training day. What you save yourself
    (Plan, Paste, the writer) always wins. Today shows the week ahead, each day
    tappable to see what it holds, and a rest day offers Train anyway. Preferences
-   can switch it off (routineAuto:false). */
+   can switch it off (routineAuto:false). v4.6.376: it is on for whoever sets up a
+   routine in first-run setup (routineAuto:true); a week you already plan by hand is
+   never written over. */
 function rtSessions(){try{const r=typeof pfOrderRot==='function'?pfOrderRot():null;return r&&r.sessions&&r.sessions.length?r.sessions:null;}catch(e){return null;}}
 function rtTrainDays(){const p=DB.settings.plannerPreferences||{};return Array.isArray(p.trainDays)?p.trainDays:[];}
-function rtOn(){return DB.settings.routineAuto!==false&&!!rtSessions()&&rtTrainDays().length>0;}
+function rtOn(){return DB.settings.routineAuto===true&&!!rtSessions()&&rtTrainDays().length>0;}
 function rtName(x){return x?(x.name||x.parts.filter(t=>t!=='Run').map(partLabel).join(' + ')||'Cardio'):'';}
 function rtAddDays(iso,n){const t=new Date(iso+'T12:00');t.setDate(t.getDate()+n);return t.toLocaleDateString('en-CA');}
 function rtTrained(iso){return (DB.days[iso]?.w||[]).some(s=>(s.reps||[]).length||isCardio(s));}
@@ -660,25 +662,63 @@ function rtDayText(ses){
       lines.push(`${ex}\n  ${l?`${l.load} × ${l.reps.join(' ')}`:`by feel × ${[reps,reps,reps].join(' ')}`}`);total++;}}
   return lines.join('\n');
 }
-/* the coming week: each training day takes the next session in order; a day you
-   saved yourself shows what you saved and takes its turn */
+/* v4.6.376: THE WEEK IS WRITTEN INTO PLAN. Each training day in the next seven
+   gets its session saved as a real plan the moment the week is looked at, so
+   Plan and This week are the same data. routineWrote remembers exactly what the
+   routine wrote on each day, which is how a day stays the routine's:
+     untouched (its text is still what was written) -- rewritten whenever the
+       order moves: a missed day, a day trained, new weights, a changed routine;
+     edited by you -- yours, never rewritten; it takes its turn in the order;
+     removed by you -- left empty, and the order steps round it.
+   Today's own session, once written, stays as it is until it is trained. A
+   missed day that was never touched simply leaves the plan: it is not a record
+   and nothing counts it. */
+function rtWrote(){const s=DB.settings;if(!s.routineWrote||typeof s.routineWrote!=='object')s.routineWrote={};return s.routineWrote;}
+function rtOwn(d){const b=typeof pwSaved==='function'?pwSaved(d):null,w=rtWrote()[d];
+  if(b&&b.items&&b.items.length)return w!=null&&String(b.raw||'')===w?'auto':'saved';
+  return w!=null?'gone':null;}
+function rtPut(d,x,text){
+  const {items}=planItemsFrom(parsePlan(text)),title=rtName(x),wk=DB.week&&DB.week.days?DB.week:{days:{}};
+  if(DB.plan&&DB.plan.d!==d&&DB.plan.d>=todayISO&&DB.plan.items?.length&&!wk.days[DB.plan.d])wk.days[DB.plan.d]={title:DB.plan.title||'',items:DB.plan.items,note:DB.plan.note||'',raw:DB.plan.raw||''};
+  wk.days[d]={title,items,note:'',raw:text};
+  if(d===todayISO||DB.plan?.d===d)DB.plan={d,items,note:'',raw:text,title,auto:'routine'};
+  DB.week=wk;rtWrote()[d]=text;}
+function rtDrop(d){if(DB.week?.days)delete DB.week.days[d];if(DB.plan?.d===d)DB.plan=null;delete rtWrote()[d];}
+function rtSyncWeek(o={}){
+  if(!rtOn())return false;const ses=rtSessions();if(!ses)return false;
+  const days=rtTrainDays(),wrote=rtWrote(),before=JSON.stringify([DB.week,DB.plan,wrote]);
+  /* the days behind you: a routine day you never touched or trained leaves the plan */
+  for(const d of Object.keys(wrote))if(d<todayISO){if(rtOwn(d)==='auto'&&!rtTrained(d)&&DB.week?.days)delete DB.week.days[d];delete wrote[d];}
+  let k=pfRotNext(ses);
+  for(let i=0;i<7;i++){const d=rtAddDays(todayISO,i),dow=new Date(d+'T12:00').getDay(),st=rtOwn(d);
+    if(i===0&&rtTrained(d))continue;                       // logged: frozen, and already counted in the order
+    if(st==='saved'){k++;continue;}                         // yours: takes its turn
+    if(st==='gone')continue;                                // you removed it: stepped round
+    if(i===0&&st==='auto'&&!o.today&&DB.plan?.d===d&&DB.plan.auto==='routine'){k++;continue;}   // this morning's session stays as written
+    if(!days.includes(dow)){if(st==='auto')rtDrop(d);continue;}
+    const x=ses[k%ses.length];k++;const text=rtDayText(x);if(!text)continue;
+    const cur=st==='auto'?pwSaved(d):null;
+    if(!cur||cur.raw!==text||(DB.week?.days?.[d]?.title||'')!==rtName(x))rtPut(d,x,text);}
+  if(DB.week?.days){const all=Object.keys(DB.week.days).sort();if(all.length){DB.week.from=all[0];DB.week.to=all.at(-1);DB.week.raw=DB.week.raw||'';}else DB.week=null;}
+  if(JSON.stringify([DB.week,DB.plan,wrote])===before)return false;
+  DB.weekAt=DB.planAt=Date.now();DB.settings.routineAutoAt=todayISO;
+  if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;
+}
+/* the coming week, read straight from Plan */
 function rtWeek(n=7){
-  const ses=rtSessions();if(!ses)return [];const days=rtTrainDays();let k=pfRotNext(ses);const out=[];
-  for(let i=0;i<n;i++){const d=rtAddDays(todayISO,i),dow=new Date(d+'T12:00').getDay(),saved=typeof pwSaved==='function'?pwSaved(d):null;
+  const out=[];
+  for(let i=0;i<n;i++){const d=rtAddDays(todayISO,i);
     if(i===0&&rtTrained(d)){out.push({d,kind:'done',name:'Trained'});continue;}
-    if(saved&&saved.items&&saved.items.length){const own=!(DB.plan&&DB.plan.d===d&&DB.plan.auto==='routine');
-      out.push({d,kind:own?'saved':'auto',name:saved.title||(DB.plan&&DB.plan.d===d&&DB.plan.title)||pwParts(pwRead(planText(saved))).map(partLabel).join(' + '),ses:own?null:ses[k%ses.length]});k++;continue;}
-    if(days.includes(dow)){out.push({d,kind:'auto',name:rtName(ses[k%ses.length]),ses:ses[k%ses.length]});k++;}
-    else out.push({d,kind:'rest',name:'Rest'});}
+    const st=rtOwn(d),b=pwSaved(d);
+    if(st==='auto'||st==='saved'){out.push({d,kind:st,name:(DB.week?.days?.[d]?.title)||(b.title)||pwParts(pwRead(planText(b))).map(partLabel).join(' + ')});continue;}
+    out.push({d,kind:'rest',name:'Rest'});}
   return out;
 }
-/* this morning's session, written once if today is a training day with nothing saved */
-function rtEnsureToday(force){
-  if(!rtOn()&&!force)return false;
-  if(planNow()||rtTrained(todayISO))return false;
-  if(!force&&(DB.settings.routineAutoAt===todayISO||!rtTrainDays().includes(new Date(todayISO+'T12:00').getDay())))return false;
-  const ses=rtSessions();if(!ses)return false;const x=ses[pfRotNext(ses)%ses.length],text=rtDayText(x);if(!text)return false;
-  try{const {items}=planItemsFrom(parsePlan(text));planSave(items,'',text,todayISO);if(DB.plan){DB.plan.title=rtName(x);DB.plan.auto='routine';}DB.settings.routineAutoAt=todayISO;save();return true;}catch(e){return false;}
+/* Train anyway: a rest day takes the next session, and the week moves up behind it */
+function rtTrainAnyway(){
+  const ses=rtSessions();if(!ses||planNow()||rtTrained(todayISO))return false;
+  const x=ses[pfRotNext(ses)%ses.length],text=rtDayText(x);if(!text)return false;
+  try{rtPut(todayISO,x,text);DB.weekAt=DB.planAt=Date.now();rtSyncWeek();if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;}catch(e){return false;}
 }
 let rtOpenDay=null;
 function rtWeekHTML(){
@@ -689,8 +729,8 @@ function rtWeekHTML(){
   const open=wk.find(x=>x.d===rtOpenDay&&x.d!==todayISO);
   let detail='';
   if(open&&(open.kind==='auto'||open.kind==='saved')){
-    const saved=pwSaved(open.d),text=open.kind==='saved'&&saved?planText(saved):rtDayText(open.ses),rows=pwRead(text).filter(r=>r.kind==='ex'||pfIsCardioRow(r));
-    detail=`<div class="tw-detail"><div class="tw-detail-h"><b>${hesc(wd(open.d))} · ${hesc(open.name)}</b><span>${open.kind==='saved'?'Saved by you':'From your routine · written that morning'}</span></div>
+    const saved=pwSaved(open.d),text=saved?planText(saved):'',rows=pwRead(text).filter(r=>r.kind==='ex'||pfIsCardioRow(r));
+    detail=`<div class="tw-detail"><div class="tw-detail-h"><b>${hesc(wd(open.d))} · ${hesc(open.name)}</b><span>${open.kind==='saved'?'Edited by you · stays put':'In your plan · from your routine'}</span></div>
       ${rows.map(r=>pfIsCardioRow(r)?`<div class="tw-ex"><span>${hesc(String(r.raw||'').split(/\s+[—–]\s+/)[0])}</span><em>${hesc(String(r.raw||'').split(/\s+[—–]\s+/).slice(1).join(' '))}</em></div>`:`<div class="tw-ex"><span>${hesc(r.ex)}</span><em>${hesc(typeof pfLoadText==='function'?pfLoadText(r.lines[0]):'')} × ${hesc(r.lines.flatMap(l=>l.reps).length)} sets</em></div>`).join('')}
       <div class="tw-detail-a"><button type="button" class="pw-btn" data-pw="open-date" data-date="${open.d}">${icon('edit',ICON_SZ.sm)}Edit this day</button></div></div>`;
   }
@@ -698,11 +738,11 @@ function rtWeekHTML(){
     <div class="tw-days" role="list">${wk.map((x,i)=>`<button type="button" role="listitem" class="tw-day tw-${x.kind}${i===0?' today':''}${x.d===rtOpenDay&&i>0?' open':''}" data-rtday="${x.d}" ${x.kind==='rest'&&i>0?'disabled':''} aria-label="${wd(x.d)}: ${hesc(x.name)}"><small>${i===0?'Today':wd(x.d)}</small><b>${dn(x.d)}</b><span>${hesc(x.kind==='rest'?'Rest':x.name)}</span>${x.kind==='saved'?'<i aria-hidden="true"></i>':''}</button>`).join('')}</div>
     ${restToday?`<div class="tw-restline"><span>Rest day.${next?` Next up: <b>${hesc(wd(next.d))} · ${hesc(next.name)}</b>`:''}</span><button type="button" class="btn ghost tw-anyway" data-rtanyway>Train anyway</button></div>`:''}
     ${detail}
-    <p class="tw-foot">Each training day is written from your routine that morning. Miss one and the next session waits.</p></section>`;
+    <p class="tw-foot">Your routine writes these days into Plan. Miss one and the rest move up; days you edit stay put.</p></section>`;
 }
 document.addEventListener('click',e=>{
   const d=e.target.closest('[data-rtday]');if(d){const v=d.dataset.rtday;if(v===todayISO)return;rtOpenDay=rtOpenDay===v?null:v;render();return;}
-  if(e.target.closest('[data-rtanyway]')){if(rtEnsureToday(true))render();return;}
+  if(e.target.closest('[data-rtanyway]')){if(rtTrainAnyway())render();return;}
 });
 function todayRotationHTML(){
   if(!DB.settings.onbRoutine||SEED.totals.sessions>0)return '';
@@ -722,7 +762,7 @@ function todayFirstHTML(items){
   return `<div class="today-focus-next"><div><small>First up</small><b>${hesc(it.ex)}</b></div><button class="btn" data-ex="${hesc(it.ex)}" data-part="${hesc(part||'')}">Start →</button></div>`;
 }
 function focusedTodayHTML(){
-  rtEnsureToday();   // v4.6.376: a training day with nothing saved is written from the routine
+  rtSyncWeek();   // v4.6.376: the routine keeps the coming week written into Plan
   const now=planNow(),items=(now?.items||[]).map(planItemShape),fresh=SEED.totals.sessions===0;
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
@@ -734,7 +774,7 @@ function focusedTodayHTML(){
   /* v4.6.287: "Just looking around" -- sample data lives here now, not on the first screen */
   const sampleLink=fresh&&DB.settings.lookAround&&!DB.settings.demo?`<button type="button" class="today-sample" data-onbact="demo">See it with sample data</button>`:'';
   h+='</div>';
-  if(future.length){
+  if(future.length&&!rtOn()){
     const first=future[0];const later=d=>pwLaterDayHTML(d).replace('</summary>',`${icon('chevron',ICON_SZ.sm)}</summary>`).replace('class="pw-later-day"','class="pw-later-day today-focus-later"');/* v4.6.148: ONE LINE FOR THE FUTURE. Tomorrow's row plus an "N more planned
        days" fold made two lines about days that are not today. One plan ahead
        keeps its own row; two or more fold into a single line that names the
