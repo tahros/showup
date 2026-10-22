@@ -1516,29 +1516,64 @@ document.addEventListener('pointerdown',e=>{
   if(el.dataset.rtdrag&&!onbF.edit)return;
   onbDrag={x:e.clientX,y:e.clientY,id:e.pointerId,part:el.dataset.rtdrag||null,from:el.dataset.rtfrom!=null?+el.dataset.rtfrom:null,card:el.dataset.rthandle!=null?+el.dataset.rthandle:null,on:false,ghost:null,src:el};
 });
+/* v4.6.377: A SESSION MOVES AS ITSELF. Dragging a session lifted a small
+   capsule with its name, so nothing on screen said "this card is moving". Now
+   the whole card lifts -- title, chips and all -- tilted and raised under the
+   finger; where it came from stays as a dashed slot; the other sessions slide
+   out of the way as it passes, and each card's day reads the day it would land
+   on. Letting go settles the card into its slot. Chips keep their capsule:
+   a chip is the whole of itself already. */
+function onbLiftCard(D,e){
+  const card=D.src.closest('.ob-rt-ses'),sc=document.getElementById('onb');if(!card||!sc)return false;
+  const list=[...sc.querySelectorAll('.ob-rt-ses[data-rtcard]')],r=card.getBoundingClientRect();
+  const g=card.cloneNode(true);g.removeAttribute('data-rtcard');g.removeAttribute('aria-label');g.setAttribute('aria-hidden','true');
+  g.querySelectorAll('[data-rtcard],[data-rthandle],[data-rtdrag],[data-onbact],[id]').forEach(n=>['data-rtcard','data-rthandle','data-rtdrag','data-onbact','id'].forEach(a=>n.removeAttribute(a)));
+  g.classList.add('ob-rt-lift');g.style.width=r.width+'px';g.style.height=r.height+'px';card.parentNode.appendChild(g);
+  Object.assign(D,{ghost:g,cardEl:card,list,tops:list.map(c=>c.getBoundingClientRect().top),hs:list.map(c=>c.offsetHeight),dx:e.clientX-r.left,dy:e.clientY-r.top,h:r.height,scroll0:sc.scrollTop,to:D.card});
+  card.classList.add('ob-rt-slot');
+  requestAnimationFrame(()=>g.classList.add('up'));
+  return true;
+}
+function onbCardTo(D,y){
+  const sc=document.getElementById('onb'),ds=sc.scrollTop-D.scroll0,mid=y-D.dy+D.h/2;let to=0,best=Infinity;
+  D.tops.forEach((t,i)=>{const d=Math.abs(t-ds+D.hs[i]/2-mid);if(d<best){best=d;to=i;}});
+  if(to===D.to)return;D.to=to;const from=D.card;
+  D.list.forEach((c,j)=>{const k=j===from?to:from<to&&j>from&&j<=to?j-1:from>to&&j>=to&&j<from?j+1:j;
+    c.style.transform=k===j?'':`translateY(${D.tops[k]-D.tops[j]}px)`;const day=c.querySelector('.ob-rt-day');if(day)day.textContent=onbDayLab(k);});
+  const gd=D.ghost.querySelector('.ob-rt-day');if(gd)gd.textContent=onbDayLab(to);
+  try{navigator.vibrate&&navigator.vibrate(6);}catch(_){}
+}
 document.addEventListener('pointermove',e=>{
   const D=onbDrag;if(!D||e.pointerId!==D.id)return;
   if(!D.on){if(Math.hypot(e.clientX-D.x,e.clientY-D.y)<=7)return;D.on=true;
-    const g=document.createElement('div');g.className='ob-rt-ghost';g.textContent=D.part?partLabel(D.part):onbF.cards[D.card]?.name||'';document.getElementById('onb').appendChild(g);D.ghost=g;D.src.classList.add('ob-lifted');document.documentElement.classList.add('ob-dragging');}
+    if(!(D.card!=null&&onbLiftCard(D,e))){const g=document.createElement('div');g.className='ob-rt-ghost';g.textContent=D.part?partLabel(D.part):onbF.cards[D.card]?.name||'';document.getElementById('onb').appendChild(g);D.ghost=g;D.src.classList.add('ob-lifted');}
+    document.documentElement.classList.add('ob-dragging');}
   e.preventDefault();
-  D.ghost.style.transform=`translate(${e.clientX-30}px,${e.clientY-28}px) rotate(-3deg)`;
-  document.querySelectorAll('#onb .ob-rt-ses.ob-drop').forEach(c=>c.classList.remove('ob-drop'));
-  const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('#onb [data-rtcard]');
-  if(t&&!(D.part&&+t.dataset.rtcard===D.from)&&!(D.card!=null&&+t.dataset.rtcard===D.card))t.classList.add('ob-drop');
+  if(D.cardEl){D.ghost.style.translate=`${e.clientX-D.dx}px ${e.clientY-D.dy}px`;onbCardTo(D,e.clientY);}
+  else{D.ghost.style.transform=`translate(${e.clientX-30}px,${e.clientY-28}px) rotate(-3deg)`;
+    document.querySelectorAll('#onb .ob-rt-ses.ob-drop').forEach(c=>c.classList.remove('ob-drop'));
+    const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('#onb [data-rtcard]');
+    if(t&&!(D.part&&+t.dataset.rtcard===D.from))t.classList.add('ob-drop');}
   /* keep a long list in reach: scroll the page near its edges */
   const sc=document.getElementById('onb'),r=sc.getBoundingClientRect();if(e.clientY>r.bottom-70)sc.scrollTop+=8;else if(e.clientY<r.top+90)sc.scrollTop-=8;
+  if(D.cardEl)onbCardTo(D,e.clientY);
 },{passive:false});
 function onbDragEnd(e,cancel){
   const D=onbDrag;if(!D||e.pointerId!==D.id)return;onbDrag=null;
   document.documentElement.classList.remove('ob-dragging');
   if(!D.on)return;
+  onbDragJust=true;setTimeout(()=>{onbDragJust=false;},250);
+  if(D.cardEl){
+    const to=cancel?D.card:D.to,g=D.ghost,slot=D.cardEl.getBoundingClientRect(),still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const land=()=>{g.remove();if(to!==D.card)onbMove(D.card,to);else onbRender();};
+    if(still||!g.animate){land();return;}
+    g.classList.remove('up');g.style.transition='translate .2s var(--settle),scale .2s,rotate .2s,box-shadow .2s';g.style.translate=`${slot.left}px ${slot.top}px`;setTimeout(land,210);return;
+  }
   D.ghost?.remove();D.src.classList.remove('ob-lifted');
   document.querySelectorAll('#onb .ob-rt-ses.ob-drop').forEach(c=>c.classList.remove('ob-drop'));
-  onbDragJust=true;setTimeout(()=>{onbDragJust=false;},250);
   if(cancel)return;
   const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('#onb [data-rtcard]');if(!t)return;
-  const to=+t.dataset.rtcard;
-  if(D.part)onbPut(D.part,to,D.from);else onbMove(D.card,to);
+  onbPut(D.part,+t.dataset.rtcard,D.from);
 }
 document.addEventListener('pointerup',e=>onbDragEnd(e,false));
 document.addEventListener('pointercancel',e=>onbDragEnd(e,true));
