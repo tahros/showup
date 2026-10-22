@@ -1,5 +1,9 @@
 # ShowUppp — changelog
 
+## v4.6.381 — Your sets keeps a run together; Today mid-workout points at the red bar
+- **Asked (Your sets):** last time's six sets at 175 showed as "3–5" and "6" because today's plan had five. A column with no set at a position no longer splits a row: it reads 3–6, Last 175 × 6 4 4 3, Plan 175 × 6 6 6 -- the plan's shorter list still shows the set it does not have. Only at the end of a column (no holes mid-reps, no column starting partway in); a real change of weight, unit, warm-up or bodyweight still starts a new row. Test: test-set-rows.js (new).
+- **Asked (Today during a workout):** the big blue Next button is gone; the card ends at its progress, and Logged today sits under it as before. A dotted tip at the top -- an up arrow at the red bar, "Tap the red bar to go back to <the exercise in the bar>" -- with Don't show again (remembered). test-livetoday.js follows.
+
 ## v4.6.380 — Your routine's days show as planned days
 - **Asked:** the This week card repeated what Plan already holds.
 - The This week card is gone. Since v4.6.376 the routine writes its days into Plan, so Today shows them the way it shows anyone's plans: the planned-days fold under today's workout, opening to each day.
