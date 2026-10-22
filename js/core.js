@@ -1009,6 +1009,7 @@ async function load(){
   /* v4.6.164: one look. Settings no longer offers Retro or Classic, so a record
      that still holds one moves to Minimal here, or it would be stuck with no way back. */
   if(['retro','classic'].includes(DB.settings.skin)) DB.settings.skin='minimal';
+  delete DB.settings.mascotMotion;   // v4.6.388: no Mascot setting any more -- a stored Still or Off would have no way back
   if(!DB.days) DB.days={};
   migrateExNames();           // v3.3.167: before anything derives or renders
   migrateCanon();             // v3.3.191: ids assigned before anything groups
