@@ -205,7 +205,7 @@ function onbFreshApply(){
   const prev=DB.settings.plannerPreferences||{};
   DB.settings.plannerPreferences={...prev,frequency:onbF.days.length,trainDays:onbF.days.slice(),rotation:rot,orderMode:'own',avoid:prev.avoid||[]};
   const text=(T.cardio?'Run — by feel\n':'')+T.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n');
-  try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan) DB.plan.title=T.name; }catch(e){}
+  try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan){ DB.plan.title=T.name; DB.plan.auto='routine'; } DB.settings.routineAutoAt=todayISO; }catch(e){}
   if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
 }
 /* v4.6.375: Basics changes in place. A tap used to redraw the screen, so the
@@ -631,6 +631,79 @@ function dayCountUp(){
    run in the last three weeks and not yet today; everyone else starts on the
    plan's first exercise not yet done. */
 /* v4.6.372: until the first workout, Today shows the rotation onboarding made, with Edit (Preferences) */
+/* v4.6.376: THE ROUTINE PLANS EVERY TRAINING DAY. The routine says what comes
+   next; the days you train say when. A training day with nothing saved gets
+   its next session written the morning it arrives -- your own exercises at your
+   last weights, starters by feel until you have them -- and a missed day moves
+   nothing: the session waits for the next training day. What you save yourself
+   (Plan, Paste, the writer) always wins. Today shows the week ahead, each day
+   tappable to see what it holds, and a rest day offers Train anyway. Preferences
+   can switch it off (routineAuto:false). */
+function rtSessions(){try{const r=typeof pfOrderRot==='function'?pfOrderRot():null;return r&&r.sessions&&r.sessions.length?r.sessions:null;}catch(e){return null;}}
+function rtTrainDays(){const p=DB.settings.plannerPreferences||{};return Array.isArray(p.trainDays)?p.trainDays:[];}
+function rtOn(){return DB.settings.routineAuto!==false&&!!rtSessions()&&rtTrainDays().length>0;}
+function rtName(x){return x?(x.name||x.parts.filter(t=>t!=='Run').map(partLabel).join(' + ')||'Cardio'):'';}
+function rtAddDays(iso,n){const t=new Date(iso+'T12:00');t.setDate(t.getDate()+n);return t.toLocaleDateString('en-CA');}
+function rtTrained(iso){return (DB.days[iso]?.w||[]).some(s=>(s.reps||[]).length||isCardio(s));}
+/* a session as plan text: Cardio as last logged, then per body part your most
+   recent exercises at their last line, or the starters by feel */
+function rtDayText(ses){
+  const parts=ses.parts,lifts=parts.filter(t=>t!=='Run'),main=lifts.filter(t=>t!=='Sixpack'),lines=[];
+  /* core is one exercise when it shares the day; the rest of the six go to the main parts */
+  const perOf=t=>t==='Sixpack'?(main.length?1:3):Math.max(1,Math.min(3,Math.ceil((6-(lifts.includes('Sixpack')&&main.length?1:0))/Math.max(1,main.length))));
+  if(parts.includes('Run')&&typeof pfCardioLine==='function')lines.push(pfCardioLine());
+  const goal=DB.settings.objective||'grow',reps=goal==='lose'?12:goal==='strength'?8:10;let total=0;
+  for(const p of lifts){if(total>=7)break;
+    const mine=(typeof pwDoneFor==='function'?pwDoneFor([p]):[]).filter(ex=>!(typeof isAvoided==='function'&&isAvoided(ex))&&pwLastLine(ex)).slice(0,perOf(p));
+    const pool=mine.length?mine:(TRAIN_STARTERS[p]||[]).filter(e=>!/Plank/.test(e)&&catFor(p).includes(e)).slice(0,perOf(p));
+    for(const ex of pool){if(total>=7)break;const l=mine.includes(ex)?pwLastLine(ex):null;
+      lines.push(`${ex}\n  ${l?`${l.load} × ${l.reps.join(' ')}`:`by feel × ${[reps,reps,reps].join(' ')}`}`);total++;}}
+  return lines.join('\n');
+}
+/* the coming week: each training day takes the next session in order; a day you
+   saved yourself shows what you saved and takes its turn */
+function rtWeek(n=7){
+  const ses=rtSessions();if(!ses)return [];const days=rtTrainDays();let k=pfRotNext(ses);const out=[];
+  for(let i=0;i<n;i++){const d=rtAddDays(todayISO,i),dow=new Date(d+'T12:00').getDay(),saved=typeof pwSaved==='function'?pwSaved(d):null;
+    if(i===0&&rtTrained(d)){out.push({d,kind:'done',name:'Trained'});continue;}
+    if(saved&&saved.items&&saved.items.length){const own=!(DB.plan&&DB.plan.d===d&&DB.plan.auto==='routine');
+      out.push({d,kind:own?'saved':'auto',name:saved.title||(DB.plan&&DB.plan.d===d&&DB.plan.title)||pwParts(pwRead(planText(saved))).map(partLabel).join(' + '),ses:own?null:ses[k%ses.length]});k++;continue;}
+    if(days.includes(dow)){out.push({d,kind:'auto',name:rtName(ses[k%ses.length]),ses:ses[k%ses.length]});k++;}
+    else out.push({d,kind:'rest',name:'Rest'});}
+  return out;
+}
+/* this morning's session, written once if today is a training day with nothing saved */
+function rtEnsureToday(force){
+  if(!rtOn()&&!force)return false;
+  if(planNow()||rtTrained(todayISO))return false;
+  if(!force&&(DB.settings.routineAutoAt===todayISO||!rtTrainDays().includes(new Date(todayISO+'T12:00').getDay())))return false;
+  const ses=rtSessions();if(!ses)return false;const x=ses[pfRotNext(ses)%ses.length],text=rtDayText(x);if(!text)return false;
+  try{const {items}=planItemsFrom(parsePlan(text));planSave(items,'',text,todayISO);if(DB.plan){DB.plan.title=rtName(x);DB.plan.auto='routine';}DB.settings.routineAutoAt=todayISO;save();return true;}catch(e){return false;}
+}
+let rtOpenDay=null;
+function rtWeekHTML(){
+  if(!rtOn())return '';
+  const wk=rtWeek(),wd=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}),dn=d=>+d.slice(8);
+  const next=wk.find((x,i)=>i>0&&(x.kind==='auto'||x.kind==='saved'));
+  const restToday=wk[0]&&wk[0].kind==='rest'&&!planNow();
+  const open=wk.find(x=>x.d===rtOpenDay&&x.d!==todayISO);
+  let detail='';
+  if(open&&(open.kind==='auto'||open.kind==='saved')){
+    const saved=pwSaved(open.d),text=open.kind==='saved'&&saved?planText(saved):rtDayText(open.ses),rows=pwRead(text).filter(r=>r.kind==='ex'||pfIsCardioRow(r));
+    detail=`<div class="tw-detail"><div class="tw-detail-h"><b>${hesc(wd(open.d))} · ${hesc(open.name)}</b><span>${open.kind==='saved'?'Saved by you':'From your routine · written that morning'}</span></div>
+      ${rows.map(r=>pfIsCardioRow(r)?`<div class="tw-ex"><span>${hesc(String(r.raw||'').split(/\s+[—–]\s+/)[0])}</span><em>${hesc(String(r.raw||'').split(/\s+[—–]\s+/).slice(1).join(' '))}</em></div>`:`<div class="tw-ex"><span>${hesc(r.ex)}</span><em>${hesc(typeof pfLoadText==='function'?pfLoadText(r.lines[0]):'')} × ${hesc(r.lines.flatMap(l=>l.reps).length)} sets</em></div>`).join('')}
+      <div class="tw-detail-a"><button type="button" class="pw-btn" data-pw="open-date" data-date="${open.d}">${icon('edit',ICON_SZ.sm)}Edit this day</button></div></div>`;
+  }
+  return `<section class="tw"><div class="tw-h"><span>This week</span><button type="button" class="tw-edit" data-onbact="rotedit">Routine</button></div>
+    <div class="tw-days" role="list">${wk.map((x,i)=>`<button type="button" role="listitem" class="tw-day tw-${x.kind}${i===0?' today':''}${x.d===rtOpenDay&&i>0?' open':''}" data-rtday="${x.d}" ${x.kind==='rest'&&i>0?'disabled':''} aria-label="${wd(x.d)}: ${hesc(x.name)}"><small>${i===0?'Today':wd(x.d)}</small><b>${dn(x.d)}</b><span>${hesc(x.kind==='rest'?'Rest':x.name)}</span>${x.kind==='saved'?'<i aria-hidden="true"></i>':''}</button>`).join('')}</div>
+    ${restToday?`<div class="tw-restline"><span>Rest day.${next?` Next up: <b>${hesc(wd(next.d))} · ${hesc(next.name)}</b>`:''}</span><button type="button" class="btn ghost tw-anyway" data-rtanyway>Train anyway</button></div>`:''}
+    ${detail}
+    <p class="tw-foot">Each training day is written from your routine that morning. Miss one and the next session waits.</p></section>`;
+}
+document.addEventListener('click',e=>{
+  const d=e.target.closest('[data-rtday]');if(d){const v=d.dataset.rtday;if(v===todayISO)return;rtOpenDay=rtOpenDay===v?null:v;render();return;}
+  if(e.target.closest('[data-rtanyway]')){if(rtEnsureToday(true))render();return;}
+});
 function todayRotationHTML(){
   if(!DB.settings.onbRoutine||SEED.totals.sessions>0)return '';
   const p=DB.settings.plannerPreferences||{},r=p.rotation,days=(p.trainDays||[]).slice();if(!r||!r.sessions||!r.sessions.length||!days.length)return '';
@@ -649,6 +722,7 @@ function todayFirstHTML(items){
   return `<div class="today-focus-next"><div><small>First up</small><b>${hesc(it.ex)}</b></div><button class="btn" data-ex="${hesc(it.ex)}" data-part="${hesc(part||'')}">Start →</button></div>`;
 }
 function focusedTodayHTML(){
+  rtEnsureToday();   // v4.6.376: a training day with nothing saved is written from the routine
   const now=planNow(),items=(now?.items||[]).map(planItemShape),fresh=SEED.totals.sessions===0;
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
@@ -674,7 +748,7 @@ function focusedTodayHTML(){
   // Keep rescheduling available without putting a second call-to-action card on Today.
   if(items.length&&planShiftable(planRunFrom(todayISO),1).ok)h+=`<div class="pw-home"><button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button></div>`;
   if(!fresh)h+='<button class="btn ghost restbtn today-focus-rest" id="restBtn">Rest day</button>';
-  h+=todayRotationHTML();   // v4.6.372
+  h+=rtOn()?rtWeekHTML():todayRotationHTML();   // v4.6.376: the week ahead, from your routine
   h+=sampleLink;
   const template=document.createElement('template');template.innerHTML=h+'</section>';
   template.content.querySelectorAll('details').forEach(d=>{const s=d.querySelector(':scope > summary');if(s){s.classList.add('pw-fold-summary');s.setAttribute('aria-expanded',String(d.open));}});

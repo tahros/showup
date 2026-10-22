@@ -5137,3 +5137,36 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 /* v4.6.375: an open sheet redrawn in place does not play its entrance again */
 #onb.ob-sheet-still .ob-sheet,#onb.ob-sheet-still .ob-sheet-wrap{animation:none}
 #onb .ob-tpl{transition:border-color .2s ease,background-color .2s ease,box-shadow .2s ease}
+
+/* v4.6.376: This week -- the routine laid over the next seven days */
+.tw{margin:14px 0 0;padding:14px 14px 12px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow)}
+.tw-h{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px}
+.tw-h span{font:500 10px var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.tw-edit{min-height:36px;padding:0 4px;border:0;background:none;color:var(--accent-ink);font:500 13px var(--body);font-size:13px}
+.tw-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.tw-day{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;min-height:74px;padding:8px 2px;border:1px solid transparent;border-radius:13px;background:var(--surface2);color:var(--chalk);cursor:pointer;transition:border-color .18s ease,background-color .18s ease}
+.tw-day small{font:500 10px var(--mono);font-size:10px;color:var(--muted)}
+.tw-day b{font:600 15px var(--body);font-size:15px;font-variant-numeric:tabular-nums}
+.tw-day span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 10px var(--body);font-size:10px;color:var(--chalk)}
+.tw-day.tw-rest{background:none;border-style:dashed;border-color:var(--line);cursor:default}
+.tw-day.tw-rest span,.tw-day.tw-rest b{color:var(--faint)}
+.tw-day.today{background:var(--accent);color:#fff}
+.tw-day.today small,.tw-day.today span{color:rgba(255,255,255,.85)}
+.tw-day.today.tw-rest{background:none;color:var(--chalk);border-color:var(--accent)}
+.tw-day.today.tw-rest small{color:var(--accent-ink)}
+.tw-day.tw-done.today{background:color-mix(in srgb,var(--accent) 16%,var(--surface2));color:var(--chalk)}
+.tw-day.open{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface2))}
+.tw-day i{position:absolute;top:6px;right:6px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.tw-restline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 2px 0;font:400 12px var(--body);font-size:12px;color:var(--muted)}
+.tw-restline b{color:var(--chalk);font-weight:600}
+.tw-anyway{margin:0;min-height:38px;padding:0 14px;width:auto;flex:none}
+.tw-detail{margin:10px 0 0;padding:12px 12px 6px;border-radius:14px;background:var(--surface2);animation:twIn .22s ease-out}
+.tw-detail-h b{display:block;font:600 14px var(--body);font-size:14px;color:var(--chalk)}
+.tw-detail-h span{display:block;margin:2px 0 6px;font:400 11px var(--body);font-size:11px;color:var(--muted)}
+.tw-ex{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font:400 13px var(--body);font-size:13px;color:var(--chalk)}
+.tw-ex em{font:400 11px var(--mono);font-size:11px;font-style:normal;color:var(--muted);white-space:nowrap}
+.tw-detail-a{display:flex;justify-content:flex-end;padding:6px 0 4px}
+.tw-detail-a .pw-btn{display:inline-flex;align-items:center;gap:6px}
+.tw-foot{margin:10px 2px 0;font:400 11px var(--body);font-size:11px;color:var(--muted)}
+@keyframes twIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.tw-detail{animation:none}}
