@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.380 — Your routine's days show as planned days
+- **Asked:** the This week card repeated what Plan already holds.
+- The This week card is gone. Since v4.6.376 the routine writes its days into Plan, so Today shows them the way it shows anyone's plans: the planned-days fold under today's workout, opening to each day.
+- A day the routine wrote is called by its session's name (Pull, Legs, Push, Extra · Biceps + Triceps) on that list and on the fold's "Tomorrow · ..." line; plans made any other way still read their body parts.
+- Gone with the card: its Routine link and Train anyway on a rest day (Preferences stays in Plan and Settings; Start works on any day).
+- Tests: test-routine-week.js and test-onboarding-paths.js read the planned-days list instead of the card.
+
 ## v4.6.379 — Every crew makes the entrance; Pip's runs smooth
 - **Reported (screen recordings):** tapping the day's card, Pip's flight stuttered here and there; Kettle had no animation at all.
 - **Kettle and every crew:** the entrance looked for Pip on the card and on the summary, so a crew found nothing to fly -- and the rule that keeps crew art from being stretched (transform:none!important) also froze its hop. A crew now takes the same crossing: the flood opens at it on the card, it flies on the translate and scale properties (uniform, never stretched), crosses the blue in its own shaded white render (assets/crew/white), lands by the number and is its colour again under the last of the drain.
