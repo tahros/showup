@@ -5172,3 +5172,6 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 @media(prefers-reduced-motion:reduce){.tw-detail{animation:none}}
 /* v4.6.376: no weight yet -- the Train tab's dumbbell in outline, at the size of the text it replaces */
 .feel-ic{width:1.35em;height:1.35em;vertical-align:-.3em;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;flex:none}
+/* v4.6.376: a card where nothing has a weight yet (a new user's first week) has no numbers to line up: the dumbbell sits under the name */
+:root[data-flow="refined"] #view[data-flow-view="today"] .plancard.allfeel .planrow .pl{grid-template-columns:auto 12px minmax(0,1fr)}
+.plancard.allfeel .planrow .pv{text-align:left}

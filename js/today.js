@@ -674,8 +674,13 @@ function rtDayText(ses){
    missed day that was never touched simply leaves the plan: it is not a record
    and nothing counts it. */
 function rtWrote(){const s=DB.settings;if(!s.routineWrote||typeof s.routineWrote!=='object')s.routineWrote={};return s.routineWrote;}
+/* a day is still the routine's while it holds what the routine wrote -- compared
+   by content, not by text: Plan's Save writes the same sets back in its own
+   words, and saving a day unchanged does not make it yours */
+function rtSig(items){return (items||[]).map(i=>i.ex+':'+(i.lines||[]).map(l=>[l.nw?'f':l.bw?'b'+(+l.w||0):+l.w||0,l.su||'',(l.reps||[]).join(' ')].join('@')).join(',')).join('|');}
 function rtOwn(d){const b=typeof pwSaved==='function'?pwSaved(d):null,w=rtWrote()[d];
-  if(b&&b.items&&b.items.length)return w!=null&&String(b.raw||'')===w?'auto':'saved';
+  if(b&&b.items&&b.items.length){if(w==null)return 'saved';if(String(b.raw||'')===w)return 'auto';
+    try{return rtSig(b.items)===rtSig(planItemsFrom(parsePlan(w)).items)?'auto':'saved';}catch(e){return 'saved';}}
   return w!=null?'gone':null;}
 function rtPut(d,x,text){
   const {items}=planItemsFrom(parsePlan(text)),title=rtName(x),wk=DB.week&&DB.week.days?DB.week:{days:{}};
@@ -694,14 +699,15 @@ function rtSyncWeek(o={}){
     if(i===0&&rtTrained(d))continue;                       // logged: frozen, and already counted in the order
     if(st==='saved'){k++;continue;}                         // yours: takes its turn
     if(st==='gone')continue;                                // you removed it: stepped round
-    if(i===0&&st==='auto'&&!o.today&&DB.plan?.d===d&&DB.plan.auto==='routine'){k++;continue;}   // this morning's session stays as written
+    if(i===0&&st==='auto'&&!o.today&&DB.settings.routineAutoAt===todayISO){k++;continue;}   // this morning's session, once written today, stays as written
     if(!days.includes(dow)){if(st==='auto')rtDrop(d);continue;}
     const x=ses[k%ses.length];k++;const text=rtDayText(x);if(!text)continue;
     const cur=st==='auto'?pwSaved(d):null;
     if(!cur||cur.raw!==text||(DB.week?.days?.[d]?.title||'')!==rtName(x))rtPut(d,x,text);}
   if(DB.week?.days){const all=Object.keys(DB.week.days).sort();if(all.length){DB.week.from=all[0];DB.week.to=all.at(-1);DB.week.raw=DB.week.raw||'';}else DB.week=null;}
-  if(JSON.stringify([DB.week,DB.plan,wrote])===before)return false;
-  DB.weekAt=DB.planAt=Date.now();DB.settings.routineAutoAt=todayISO;
+  const fresh=DB.settings.routineAutoAt!==todayISO;DB.settings.routineAutoAt=todayISO;
+  if(JSON.stringify([DB.week,DB.plan,wrote])===before){if(fresh)save(true);return false;}
+  DB.weekAt=DB.planAt=Date.now();
   if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;
 }
 /* the coming week, read straight from Plan */
@@ -718,7 +724,7 @@ function rtWeek(n=7){
 function rtTrainAnyway(){
   const ses=rtSessions();if(!ses||planNow()||rtTrained(todayISO))return false;
   const x=ses[pfRotNext(ses)%ses.length],text=rtDayText(x);if(!text)return false;
-  try{rtPut(todayISO,x,text);DB.weekAt=DB.planAt=Date.now();rtSyncWeek();if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;}catch(e){return false;}
+  try{rtPut(todayISO,x,text);DB.settings.routineAutoAt=todayISO;DB.weekAt=DB.planAt=Date.now();rtSyncWeek();if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;}catch(e){return false;}
 }
 let rtOpenDay=null;
 function rtWeekHTML(){

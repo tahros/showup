@@ -33,6 +33,10 @@ run(`todayISO='2026-10-23';SEED=deriveAll();render();`);   // Thursday was misse
 ok('a missed day: the session waits', run(`DB.plan.d===todayISO&&DB.plan.title==='Upper'`), run('DB.plan&&DB.plan.title'));
 ok('...the rest of the week moves up in Plan', run(`['2026-10-26','2026-10-27','2026-10-29'].map(d=>DB.week.days[d]?.title).join()`)==='Lower,Upper,Lower', run(`JSON.stringify(Object.fromEntries(Object.entries(DB.week.days).map(([d,v])=>[d,v.title])))`));
 ok('...and the missed day leaves the plan', !run(`DB.week.days['2026-10-22']`));
+/* Plan's Save writes the same sets back in its own words: still the routine's */
+setup('2026-10-22');
+run(`{const d='2026-10-26',b=DB.week.days[d];DB.week.days[d]={...planItemsFrom(parsePlan(b.raw)),raw:b.raw.replace(/\\n  /g,'\\n    ')+'\\n',title:'Chest + Back'};}render();`);
+ok('a day saved unchanged from Plan is still the routine\'s: no dot, its name kept', run(`rtWeek().find(x=>x.d==='2026-10-26').kind`)==='auto'&&run(`DB.week.days['2026-10-26'].title`)==='Upper', run(`JSON.stringify(rtWeek().find(x=>x.d==='2026-10-26'))`));
 /* a day you edit stays put; the order steps round it */
 setup('2026-10-22');
 run(`{const t="Deadlift\\n  155 lb x 5";const {items}=planItemsFrom(parsePlan(t));DB.week.days['2026-10-26']={title:'Mine',items,note:'',raw:t};}render();`);

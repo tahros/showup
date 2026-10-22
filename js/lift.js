@@ -69,10 +69,10 @@ function planCardHTML(_pl, live){
   const _ln=_rows.reduce((a,r)=>a.concat(r.map(x=>x.l)),[]);
   const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
   const _mhtml=x=>isHold(x.l.su)?_rhtml(x.l,x.sp):x.l.reps.map((r,k)=>`<i class="rp${x.fl[k]?' rspent':''}">${r}</i>`).join(' ');
-  return `<div class="card plancard${live?'':' dayplan'}" style="--planw:${_cw(_wtx,2)}ch;--planr:${_cw(_rtx,1)}ch">
+  return `<div class="card plancard${live?'':' dayplan'}${_ln.length&&_ln.every(l=>l.nw)?' allfeel':''}" style="--planw:${_cw(l=>_wtx(l).replace(FEEL_WORD,'##'),2)}ch;--planr:${_cw(_rtx,1)}ch">
     ${(_pl.items||[]).map((i,ii)=>{const _dn=live&&planLoggedToday(i.ex); return `<button class="planrow${_dn?' pdone':''}" data-planex="${i.ex}">
         <span class="pn">${i.ex}<i class="pk">${_dn?'\u2713':(exIsNew(i.ex)?'<span class="ptag">NEW</span>':'')}${refinedFlow()&&!_dn?icon('chevron',ICON_SZ.sm):''}</i></span>
-        <span class="pl">${_rows[ii].map(x=>`<span class="pv pw mono">${_wtx(x.l)}</span><span class="px mono" aria-hidden="true">×</span><span class="pr mono">${_mhtml(x)}</span>`).join('')}</span>
+        <span class="pl">${_rows[ii].map(x=>`<span class="pv pw mono">${loadHTML(_wtx(x.l))}</span><span class="px mono" aria-hidden="true">×</span><span class="pr mono">${_mhtml(x)}</span>`).join('')}</span>
       </button>`;}).join('')}
     ${_pl.note?planNoteHTML(_pl.note):''}
   </div>`;
