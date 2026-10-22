@@ -104,6 +104,8 @@ const ok=(n,c,g)=>{console.log((c?'PASS ':'FAIL ')+n+(g!==undefined?' → '+g:''
   ok('entitlements: row-level security, one read-own policy', pol.join()==='read own' && (await db.query(`select relrowsecurity from pg_class where oid='public.entitlements'::regclass`)).rows[0].relrowsecurity===true);
   err=null; try{ await db.query(`insert into public.entitlements(user_id,status,source) values('${A(1)}','lifetime','apple')`); }catch(e){ err=e.message; }
   ok('entitlements: unknown status refused', /check/i.test(err||''), err);
+  // Finish the embedded database's workers before process.exit (Windows libuv).
+  await db.close();
  }
- console.log(fails?`\n${fails} FAILED`:'\nall passed'); process.exit(fails?1:0);
-})().catch(e=>{console.error(e);process.exit(1);});
+ console.log(fails?`\n${fails} FAILED`:'\nall passed'); process.exitCode=fails?1:0;
+})().catch(e=>{console.error(e);process.exitCode=1;});

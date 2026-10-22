@@ -259,23 +259,14 @@ function onbBubble(){
   return n?`<span class="ob-hi">Hi, ${hesc(n)}!</span><span class="ob-hi2">Nice to meet you.</span>`:`<span class="ob-hi">Hi there!</span><span class="ob-hi2">I'm Pip. Who are you?</span>`;
 }
 function onbRender(){
+  if(typeof onbWorldStop==='function')onbWorldStop();
   const el=onbEl(); el.hidden=false;
   if(!onbSel) onbSel=new Set(Object.keys(SEED0.catalog));
   const replay=onbShown!==onbStep; onbShown=onbStep;
   const d=s=>`style="--ob-d:${s}s"`;
   let b='';
   if(onbStep===1){
-    const apple=true;   // v4.6.266: always on the door; until the App Store build turns it on, a tap says so
-    b=`<div class="ob ob-door">
-      <div class="ob-days" aria-hidden="true">${ONB_DAYS.map((on,i)=>`<i class="${on?'on':''}" style="--i:${i}"></i>`).join('')}</div>
-      <div class="ob-hero"><div class="ob-lock">${onbLockup()}</div>
-        <p class="ob-motto"><span>Life happens.</span><span>Show up anyway.</span></p></div>
-      <div class="ob-door-btns">
-        ${apple?`<button type="button" class="ob-btn ob-apple" data-onbact="apple">${ONB_APPLE}Continue with Apple</button>`:''}
-        <button type="button" class="ob-btn ob-google" data-onbact="signin">${ONB_GOOGLE}Continue with Google</button>
-        <button type="button" class="ob-btn ob-local" data-onbact="local">Continue without an account</button>
-        <p class="ob-note">Sign in to sync. Or keep it on this device.</p>
-      </div></div>`;
+    b=onbWorldHTML();
   }else if(onbStep==='crew'){
     /* v4.6.312: THE COMPANION, IN SETUP -- kept (v4.6.372): Pip has met you; now one of the crew comes along. */
     const n=onbName.trim();
@@ -354,9 +345,7 @@ function onbRender(){
   el.innerHTML=b;
   if(!replay)el.scrollTop=keepY;
   if(onbStep==='crew'&&typeof adoptBind==='function'){const r=el.querySelector('.ob-adopt');if(r)adoptBind(r,()=>{onbGo('fork');});}
-  if(onbStep===1&&replay&&typeof showupppAnimate==='function'){
-    const host=el.querySelector('.ob-lock');setTimeout(()=>{ if(host&&host.isConnected) showupppAnimate(host); },1500);
-  }
+  if(onbStep===1)onbWorldMount(el);
   if(onbStep==='you'||onbStep==='basics'){
     const nm=el.querySelector('#onbName'), bw=el.querySelector('#onbBw'), bb=el.querySelector('#onbBubble');
     nm?.addEventListener('input',()=>{ onbName=nm.value.slice(0,40); nm.classList.toggle('filled',!!onbName); if(bb){ bb.innerHTML=onbBubble(); bb.classList.remove('bump'); void bb.offsetWidth; bb.classList.add('bump'); } });

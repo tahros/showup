@@ -36,7 +36,9 @@ const PORT=process.env.PW_PORT||8784;
   const m=await p.evaluate(()=>{
     const measure=f=>{const s=document.createElement('span');
       s.style.cssText=`position:absolute;visibility:hidden;white-space:pre;font:600 40px ${f}`;
-      s.textContent='ShowUp 1,000 days';document.body.appendChild(s);
+      // Narrow letters distinguish proportional Sans from Windows monospace;
+      // the old sentence happened to have almost equal widths in both fonts.
+      s.textContent='iiiiiiiiii WWW';document.body.appendChild(s);
       const w=s.getBoundingClientRect().width;s.remove();return w;};
     /* fall back to a DELIBERATELY dissimilar generic: if the face loaded the
        two differ a lot, and if it silently failed they are identical. A

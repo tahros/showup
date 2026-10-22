@@ -1,5 +1,15 @@
 # ShowUppp — changelog
 
+## v4.6.386 (2026-10-22) — A world of gyms at the first welcome
+
+- The first sign-up screen uses the approved Editorial v8 design: twelve gym interiors rotate behind Pip, with “Life happens. / You show up.” in bold IBM Plex Sans, 10% smaller and vertically centered between the official logo and Pip.
+- Pip breathes, rocks and blinks using the approved transparent animation frames. Solid pause/play controls, reduced-motion support and cleanup when leaving the screen keep the motion contained to this welcome.
+- The existing Apple, Google and account-free entry actions remain connected to the same authentication and setup handlers. Their buttons have subtle entrance and press feedback; city captions sit at the lower right.
+- All welcome artwork, animation and fonts are bundled for offline use. Failed optional artwork falls back to the first city and still mascot. Workout history, later setup steps, account sync and the v4.6.385 membership changes are preserved.
+- Updated the obsolete onboarding browser check to cover the current setup flow, six phone/theme combinations, authentication handoffs, motion controls and asset failures. The new offline check verifies the cached welcome and continued access to setup. The font check now uses text that distinguishes Plex from Windows fallback fonts; its old sample produced a false failure on the unchanged release.
+- This web release inherits v4.6.385's native `Purchases` plugin requirement. Older iPhone binaries still need the membership-capable native rebuild before accepting its OTA bundle.
+- Closed the RevenueCat test's temporary database before process exit, preventing a Windows worker shutdown crash after its assertions had passed. No membership production code changed.
+
 ## v4.6.385 (2026-10-22) — The membership goes on sale in the iPhone app
 
 - **The paywall is on in the iPhone app, off on the web.** After 20 logged days, a new day and the session writer need membership, bought through the App Store (Yearly $29.99, Monthly $4.99; the paywall shows the App Store's price in your own currency once it loads). The web stays the free try-it app: it has no way to pay. Founding members (anyone who logged before launch) stay free for good; founding is marked until 2026-11-15 (`FOUNDING_UNTIL`), then nobody new.

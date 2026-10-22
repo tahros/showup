@@ -8,7 +8,7 @@ const dir = process.argv[2] || "stage";
 
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const order = [...html.matchAll(/src="(js\/[^?"]+)\?v=/g)].map(m => m[1]);
-if (order.length !== 31) { console.error("expected 31 scripts, got", order.length); process.exit(1); }   // + day-review: whole-day comparison, no storage writes
+if (order.length !== 32) { console.error("expected 32 scripts, got", order.length); process.exit(1); }   // + day-review: whole-day comparison, no storage writes
 
 const dom = new JSDOM(html.replace(/<script[^>]*src=[^>]*><\/script>/g, ""), {
   runScripts: "outside-only",
