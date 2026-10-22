@@ -475,7 +475,7 @@ function pfLineText(ex,line){return pwText([{kind:'ex',ex,lines:[line]}]).split(
    on this page: a qualifier a plan was pasted with is kept on the line but
    not shown or asked for. */
 const pfMD=d=>{const [,m,dd]=String(d).split('-').map(Number);return m+'/'+dd;};
-function pfLoadText(line){const unit=line.unit||U(),w=+Number(line.w||0).toFixed(4);return line.nw?'By feel':line.bw?(w?`BW+${w} ${unit}`:'BW'):`${line.est?'≈':''}${w} ${unit}`;}
+function pfLoadText(line){const unit=line.unit||U(),w=+Number(line.w||0).toFixed(4);return line.nw?FEEL_WORD:line.bw?(w?`BW+${w} ${unit}`:'BW'):`${line.est?'≈':''}${w} ${unit}`;}
 function pfLastGroups(ex){
  const last=typeof lastFor==='function'&&typeof SEED!=='undefined'?lastFor(ex):null;if(!last?.sets?.length)return null;
  const groups=[];
@@ -486,12 +486,12 @@ function pfLastGroups(ex){
 function pfSpineLine(load,reps,cls,ref,tail='',compare=false){
  const wup=compare&&!ref;                       // no line at this load last time: the load is the change
  const rs=reps.map((r,i)=>`<i${ref&&(i>=ref.reps.length||ref.reps[i]!==r)?' class="pe-up"':''}>${hesc(String(r))}</i>`).join('');
- return `<div class="pe-line ${cls}"><span class="pe-w${wup?' pe-up':''}">${hesc(load)}</span><span class="pe-x" aria-hidden="true">×</span><span class="pe-r"><span class="pe-reps">${rs}</span>${tail}</span></div>`;
+ return `<div class="pe-line ${cls}"><span class="pe-w${wup?' pe-up':''}">${loadHTML(load)}</span><span class="pe-x" aria-hidden="true">×</span><span class="pe-r"><span class="pe-reps">${rs}</span>${tail}</span></div>`;
 }
 function pfChipOpen(i,k,field,rep){const c=pfState().chip;return !!c&&c.row===i&&c.line===k&&c.field===field&&(field==='w'||c.rep===rep);}
 function pfChip(i,k,field,rep,text,aria,step){
  if(pfChipOpen(i,k,field,rep))return `<input id="peInput" class="pe-chip pe-in${field==='w'?' pe-cw':''}" type="number" inputmode="${field==='r'?'numeric':'decimal'}" step="${field==='r'?1:step}" min="0" value="${hesc(String(text))}" aria-label="${aria}">`;
- return `<button type="button" class="pe-chip${field==='w'?' pe-cw':''}" data-pw="pf-chip" data-index="${i}" data-line="${k}" data-field="${field}"${field==='r'?` data-rep="${rep}"`:''} aria-label="${aria}">${hesc(String(text))}</button>`;
+ return `<button type="button" class="pe-chip${field==='w'?' pe-cw':''}" data-pw="pf-chip" data-index="${i}" data-line="${k}" data-field="${field}"${field==='r'?` data-rep="${rep}"`:''} aria-label="${aria}">${loadHTML(String(text))}</button>`;
 }
 function pfEditLine(ex,i,k,g){
  const c=pfState().chip,open=c&&c.row===i&&c.line===k,line=g.line,unit=line.unit||U();

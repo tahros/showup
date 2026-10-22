@@ -932,14 +932,14 @@ ${(PART_MUSCLES[lift.part]||[]).length>1?`<label class="mono muted" style="font-
         const rowHTML=(r,next)=>`<button class="planrow2${next?' next':''}"
             data-planload data-lw2="${r.l.w}" data-lr2="${(r.l.reps||[])[Math.min(r.got,r.want-1)]||''}">
             ${dial(r.want?r.got/r.want:0)}
-            <span class="p2w">${planWtx(r.l)}</span><span class="p2x">×</span>
+            <span class="p2w">${loadHTML(planWtx(r.l))}</span><span class="p2x">×</span>
             <span class="p2r">${(r.l.reps||[]).join(' ')}</span>
             ${r.l.note?`<span class="p2n">· ${hesc(r.l.note)}</span>`:''}</button>`;
         let body='';
         if(folded.length&&!open)
           body+=`<button class="planrow2 fold" data-planfold2="${hesc(ex)}">
               ${dial(1)}<span class="p2done">${folded.length} done</span>
-              <span class="p2list">${folded.map(r=>`${planWtx(r.l)} × ${(r.l.reps||[])[0]}`).join('  ·  ')}</span>
+              <span class="p2list">${folded.map(r=>`${loadHTML(planWtx(r.l))} × ${(r.l.reps||[])[0]}`).join('  ·  ')}</span>
               <span class="p2show">show</span></button>`;
         else body+=folded.map(r=>rowHTML(r,false)).join('');
         body+=live.map((r,i)=>rowHTML(r,i===0)).join('');
@@ -1265,7 +1265,7 @@ function planScreenHTML(){
       const _new=exIsNew(r.ex), _est=r.lines.some(l=>l.est);
       h+=`<div class="planpv ok" data-planrow="${i}"><span class="pi">\u2713</span>
         <span class="pb"><b>${hesc(r.ex)}${_new?`<i class="mono ptag">NEW</i>`:''}</b>
-          ${r.lines.map(l=>`<i class="mono">${l.tag?`${hesc(l.tag)} \u00b7 `:''}${l.est?'<span class="pest">\u2248':''}${l.nw?'by feel':l.bw?(l.w>0?`BW+${l.w}${l.unit||''}`:'BW'):l.w+(l.unit||'')}${l.est?'</span>':''} ${isHold(l.su)
+          ${r.lines.map(l=>`<i class="mono">${l.tag?`${hesc(l.tag)} \u00b7 `:''}${l.est?'<span class="pest">\u2248':''}${l.nw?feelIcon():l.bw?(l.w>0?`BW+${l.w}${l.unit||''}`:'BW'):l.w+(l.unit||'')}${l.est?'</span>':''} ${isHold(l.su)
               ? `${secLabel(l.reps[0])} \u00d7 ${l.reps.length}`
               : `\u00d7 ${l.reps.join(', ')}`}${l.qual?` \u00b7 ${hesc(l.qual)}`:''}</i>`).join('')}${
           _new?`<i class="mono pest">new \u00b7 nothing on record in 8 weeks</i>`:''}${

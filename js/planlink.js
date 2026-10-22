@@ -162,7 +162,7 @@ function plLog(set){
 }
 function plTargetText(t){
   const weight=Math.round(toU(t.w)).toLocaleString('en-US');
-  const load=t.nw?'By feel':t.bw?(t.w?'BW + '+weight+' '+U():'BW'):(t.est?'≈':'')+weight+' '+U();
+  const load=t.nw?FEEL_WORD:t.bw?(t.w?'BW + '+weight+' '+U():'BW'):(t.est?'≈':'')+weight+' '+U();
   return load+' × '+t.reps+(isHold(t.su)?' sec':'');
 }
 function plSplitEditedSet(day,row){
@@ -382,8 +382,8 @@ function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
     const runs=[];
     for(const set of sets){const key=JSON.stringify([set.w,set.su||'',!!set.bw,!!set.nw,!!set.est]);const prev=runs.at(-1);if(prev?.key===key)prev.sets.push(set);else runs.push({key,sets:[set]});}
     if(runs.length>1)return runs.map(run=>cell(run.sets,kind,'',run.sets.includes(latest)?feedback:'')).join('');
-    const s=sets[0],load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
-    return `<div class="sc-value sc-group-value ${kind}"><button type="button" class="sc-load-weight" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps"><span class="sc-weight">${hesc((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span></button><span class="sc-reps-wrap"><span class="sc-reps">${sets.map(s=>`<button type="button" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps" class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</button>`).join('')}</span>${feedback}</span></div>`;
+    const s=sets[0],load=s.nw?FEEL_WORD:s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
+    return `<div class="sc-value sc-group-value ${kind}"><button type="button" class="sc-load-weight" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps"><span class="sc-weight">${loadHTML((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span></button><span class="sc-reps-wrap"><span class="sc-reps">${sets.map(s=>`<button type="button" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps" class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</button>`).join('')}</span>${feedback}</span></div>`;
   };
   return groups.map(({rows})=>{
     const first=rows[0],last=rows.at(-1),past=rows.map(r=>r.last).filter(Boolean),targets=rows.map(r=>r.target).filter(Boolean),actual=rows.flatMap(r=>r.actual);
@@ -407,13 +407,13 @@ function plEditBody(ex,rows){
   const w=DB.days?.[todayISO]?.w||[];
   return rows.filter(r=>r.actual.length).map(row=>row.actual.map(a=>{
     const gi=w.indexOf(a.source);
-    const load=a.nw?'By feel':(a.bw||a.source?.bw)?(a.w?'BW + '+wDisp(a.w):'BW'):wLabel(ex,a.w);
+    const load=a.nw?FEEL_WORD:(a.bw||a.source?.bw)?(a.w?'BW + '+wDisp(a.w):'BW'):wLabel(ex,a.w);
     /* v4.6.66: THE EDITOR SITS IN THE ROW. The card under the table was the old
        design's leftover; the row has the room to its right, and one field at a
        time is exactly right because a tap names the field. The x cell becomes
        [input][check] for THAT row; the tapped chip rings so the eye lands. */
     const open=lift.editSet===gi&&lift.editRep===a.ri&&(lift.editField==='w'||lift.editField==='r');
-    const chip=(field,label,aria)=>`<button type="button" class="lw-tap" data-lw-edit="${gi}" data-lw-rep="${a.ri}" data-lw-field="${field}" aria-label="${aria}" aria-pressed="${open&&lift.editField===field}"><span class="lw-chip${open&&lift.editField===field?' lw-on':''}">${hesc(label)}${PL_PEN}</span></button>`;
+    const chip=(field,label,aria)=>`<button type="button" class="lw-tap" data-lw-edit="${gi}" data-lw-rep="${a.ri}" data-lw-field="${field}" aria-label="${aria}" aria-pressed="${open&&lift.editField===field}"><span class="lw-chip${open&&lift.editField===field?' lw-on':''}">${loadHTML(label)}${PL_PEN}</span></button>`;
     const right=open
       ?`<span class="lw-inline"><input id="lwInput" type="number" inputmode="${lift.editField==='r'?'numeric':'decimal'}" step="${lift.editField==='r'?1:wStep(ex)}" min="0" value="${lift.editField==='r'?hesc(String(a.r)):hesc(String(wDisp(a.w)))}" aria-label="${lift.editField==='r'?'Reps':'Weight '+U()} for set ${row.label}"><button type="button" id="lwSave" aria-label="Save">${icon('check',15)}</button></span>`
       :`<button type="button" class="lw-del" data-lw-del="${gi}" data-lw-rep="${a.ri}" aria-label="Delete set ${row.label}">${icon('trash',ICON_SZ.sm)}</button>`;
@@ -438,9 +438,9 @@ function plEditBody(ex,rows){
 const plVtTarget=t=>'pt-'+String(t.id).replace(/[^A-Za-z0-9_-]/g,'_');
 function plPlanEditBody(ex,targets){
   return targets.map(t=>{
-    const load=t.nw?'By feel':t.bw?(t.w?'BW + '+wDisp(t.w):'BW'):wLabel(ex,t.w);
+    const load=t.nw?FEEL_WORD:t.bw?(t.w?'BW + '+wDisp(t.w):'BW'):wLabel(ex,t.w);
     const open=lift.editTarget===t.id&&(lift.editField==='w'||lift.editField==='r');
-    const chip=(field,label,aria)=>`<button type="button" class="lw-tap" data-pt-edit="${hesc(t.id)}" data-lw-field="${field}" aria-label="${aria}" aria-pressed="${open&&lift.editField===field}"><span class="lw-chip${open&&lift.editField===field?' lw-on':''}">${hesc(label)}${PL_PEN}</span></button>`;
+    const chip=(field,label,aria)=>`<button type="button" class="lw-tap" data-pt-edit="${hesc(t.id)}" data-lw-field="${field}" aria-label="${aria}" aria-pressed="${open&&lift.editField===field}"><span class="lw-chip${open&&lift.editField===field?' lw-on':''}">${loadHTML(label)}${PL_PEN}</span></button>`;
     const right=open
       ?`<span class="lw-inline"><input id="lwInput" type="number" inputmode="${lift.editField==='r'?'numeric':'decimal'}" step="${lift.editField==='r'?1:wStep(ex)}" min="0" value="${lift.editField==='r'?hesc(String(t.reps)):hesc(String(t.nw?'':wDisp(t.w)))}" aria-label="${lift.editField==='r'?'Planned reps':'Planned weight '+U()} for set ${t.ordinal}"><button type="button" id="lwSave" aria-label="Save">${icon('check',15)}</button></span>`
       :'';
@@ -463,8 +463,8 @@ function plSessionHTML(ex,last,today){
   const text=(s,target=false)=>target?plTargetText(s):wLabel(ex,s.w)+' × '+setNum(s.r,s.su);
   const value=(s,kind,attrs='')=>{
     attrs=attrs.replace(/data-sc-load="[^"]*"|data-link-slot="[^"]*"|disabled/g,'')+' '+plTapAttrs(s);
-    const r=s.r??s.reps,load=s.nw?'By feel':s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
-    return `<button type="button" class="sc-value ${kind}" ${attrs}><span class="sc-weight">${hesc((s.est?'≈':'')+load)}</span><span class="sc-times">×</span><span class="sc-rep${isHold(s.su)?' hold':''}">${hesc(String(setNum(r,s.su)))}</span></button>`;
+    const r=s.r??s.reps,load=s.nw?FEEL_WORD:s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
+    return `<button type="button" class="sc-value ${kind}" ${attrs}><span class="sc-weight">${loadHTML((s.est?'≈':'')+load)}</span><span class="sc-times">×</span><span class="sc-rep${isHold(s.su)?' hold':''}">${hesc(String(setNum(r,s.su)))}</span></button>`;
   };
   const body=rows.map(row=>{
     const t=row.target,pending=t&&!t.preview&&!row.actual.length;

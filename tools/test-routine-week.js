@@ -27,6 +27,7 @@ ok('the whole week is in Plan: every training day is a saved plan', run(`['2026-
 ok('...rest days are not', !run(`pwSaved('2026-10-24')||pwSaved('2026-10-25')`));
 ok('...and Today does not repeat them as a planned-days list', !q('.today-focus-more')&&!q('.today-focus-upcoming'));
 q('[data-rtday="2026-10-23"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+ok('a weight not known yet is the hollow dumbbell, not words', !!q('.tw-detail .feel-ic')&&!/by feel/i.test(q('.tw-detail').textContent), q('.tw-detail')?.innerHTML.slice(0,300));
 ok('tapping a day shows what it holds, with Edit this day', /Fri · Lower/.test(q('.tw-detail')?.textContent||'')&&!!q('.tw-detail [data-pw="open-date"][data-date="2026-10-23"]'));
 run(`todayISO='2026-10-23';SEED=deriveAll();render();`);   // Thursday was missed
 ok('a missed day: the session waits', run(`DB.plan.d===todayISO&&DB.plan.title==='Upper'`), run('DB.plan&&DB.plan.title'));

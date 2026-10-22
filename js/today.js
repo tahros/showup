@@ -731,7 +731,7 @@ function rtWeekHTML(){
   if(open&&(open.kind==='auto'||open.kind==='saved')){
     const saved=pwSaved(open.d),text=saved?planText(saved):'',rows=pwRead(text).filter(r=>r.kind==='ex'||pfIsCardioRow(r));
     detail=`<div class="tw-detail"><div class="tw-detail-h"><b>${hesc(wd(open.d))} · ${hesc(open.name)}</b><span>${open.kind==='saved'?'Edited by you · stays put':'In your plan · from your routine'}</span></div>
-      ${rows.map(r=>pfIsCardioRow(r)?`<div class="tw-ex"><span>${hesc(String(r.raw||'').split(/\s+[—–]\s+/)[0])}</span><em>${hesc(String(r.raw||'').split(/\s+[—–]\s+/).slice(1).join(' '))}</em></div>`:`<div class="tw-ex"><span>${hesc(r.ex)}</span><em>${hesc(typeof pfLoadText==='function'?pfLoadText(r.lines[0]):'')} × ${hesc(r.lines.flatMap(l=>l.reps).length)} sets</em></div>`).join('')}
+      ${rows.map(r=>pfIsCardioRow(r)?`<div class="tw-ex"><span>${hesc(String(r.raw||'').split(/\s+[—–]\s+/)[0])}</span><em>${hesc(String(r.raw||'').split(/\s+[—–]\s+/).slice(1).join(' '))}</em></div>`:`<div class="tw-ex"><span>${hesc(r.ex)}</span><em>${loadHTML(typeof pfLoadText==='function'?pfLoadText(r.lines[0]):'')} × ${hesc(r.lines.flatMap(l=>l.reps).length)} sets</em></div>`).join('')}
       <div class="tw-detail-a"><button type="button" class="pw-btn" data-pw="open-date" data-date="${open.d}">${icon('edit',ICON_SZ.sm)}Edit this day</button></div></div>`;
   }
   return `<section class="tw"><div class="tw-h"><span>This week</span><button type="button" class="tw-edit" data-onbact="rotedit">Routine</button></div>

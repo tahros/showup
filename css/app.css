@@ -5170,3 +5170,5 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .tw-foot{margin:10px 2px 0;font:400 11px var(--body);font-size:11px;color:var(--muted)}
 @keyframes twIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.tw-detail{animation:none}}
+/* v4.6.376: no weight yet -- the Train tab's dumbbell in outline, at the size of the text it replaces */
+.feel-ic{width:1.35em;height:1.35em;vertical-align:-.3em;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;flex:none}

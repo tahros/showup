@@ -23,7 +23,7 @@ test('a plain weight on Dip is read as added weight',`R[0].lines[0].bw===true&&R
 test('...and the Edit page says BW+50 lb',`pfLoadText(R[0].lines[0])==='BW+50 lb'`);
 test('...and the plan is saved as BW +50 lb',`/Dip\\n  BW \\+50 lb × 10 10 10 10/.test(pwText(R))`);
 test('a line already BW stays BW',`pfLoadText(R[1].lines[0])==='BW'`);
-test('a by-feel line stays by feel',`R[2].lines[0].nw&&!R[2].lines[0].bw&&pfLoadText(R[2].lines[0])==='By feel'`);
+test('a by-feel line stays by feel',`R[2].lines[0].nw&&!R[2].lines[0].bw&&pfLoadText(R[2].lines[0])===FEEL_WORD&&loadHTML(pfLoadText(R[2].lines[0])).includes('feel-ic')`);
 test('a barbell lift is untouched',`!R[3].lines[0].bw&&pfLoadText(R[3].lines[0])==='135 lb'`);
 test('a timed hold keeps its seconds',`/Plank\\n  BW × 60 sec × 2/.test(pwText(R))`);
 test('reading it back changes nothing more',`pwText(pwRead(pwText(R)))===pwText(R)`);

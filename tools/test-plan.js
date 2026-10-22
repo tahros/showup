@@ -1144,8 +1144,10 @@ run(`(function(){view='today'; lift.ex=null; render();})()`);
     /* v3.3.396: the card's reader moved to util.js as planWtx (one function
        for card, preview and width probe), so the two sites span two files */
     const src=fs.readFileSync(path.join(dir,"js/lift.js"),"utf8")+fs.readFileSync(path.join(dir,"js/util.js"),"utf8");
-    ok("a no-load line reads \"by feel\", never BW and never 0",
-       /l\.nw\?'by feel'/.test(src) && (src.match(/l\.nw\?'by feel'/g)||[]).length>=2);
+    /* v4.6.376: on screen it is the hollow dumbbell (FEEL_WORD to a screen
+       reader); written out as plan text it is still "by feel" */
+    ok("a no-load line reads as no load named, never BW and never 0",
+       /l\.nw\?feelIcon\(\)/.test(src) && /l\.nw\?FEEL_WORD/.test(src) && /l\.nw\?'by feel'/.test(src));
   }
 
   /* THE LINE THE BUILD DEFENDS. No count, fraction or percentage of a plan

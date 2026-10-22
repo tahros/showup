@@ -188,6 +188,16 @@ function setBw(iso,kg){
 }
 /* user-entered text lands in innerHTML — escape it once, here. */
 function hesc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+/* v4.6.376: NO WEIGHT YET IS A HOLLOW DUMBBELL. "by feel" sat on every row of a
+   new user's first week and said nothing they could act on. The row shows the
+   Train tab's own dumbbell in outline instead -- the same grammar as Today's
+   square, hollow while open -- and once a set is logged the real weight takes
+   its place. Only what you see changes: plan text still says "by feel", so
+   saved plans, Paste and Copy read exactly as before. Screen readers hear
+   FEEL_WORD. Cardio's own "By feel" is a choice, not a blank, and keeps it. */
+const FEEL_WORD='Start light';
+function feelIcon(){ return `<svg class="feel-ic" viewBox="0 0 24 24" role="img" aria-label="${FEEL_WORD}"><rect x="7.5" y="10.6" width="9" height="2.8" rx="1.2"/><rect x="3" y="6" width="4" height="12" rx="1.4"/><rect x="17" y="6" width="4" height="12" rx="1.4"/></svg>`; }
+function loadHTML(s){ return hesc(s).replace(FEEL_WORD,feelIcon()); }
 const firstName=()=>hesc((DB.settings.name||'').trim().split(/\s+/)[0]||'');
 
 /* suggestion overrides: "use THESE sets as the plan for exercise X, today" */
@@ -1097,10 +1107,10 @@ const wLabel=(ex,kg)=>!isBody(ex)?`${wDisp(kg)}`:kg<=0.01?'BW':`BW+${wDisp(kg)}`
 const wTxt=(ex,kg)=>!isBody(ex)?`${wDisp(kg)}${U()}`:kg<=0.01?'BW':`BW+${wDisp(kg)}${U()}`;
 /* v3.3.396: the plan's own weight text, one function for the card, the
    preview and the column-width probe. Reads a plan LINE, not an exercise:
-   nw -> "by feel" (no load named, v3.3.394); bw -> "BW" or "BW+10 lb" (the
+   nw -> FEEL_WORD, drawn as the hollow dumbbell (no load named, v3.3.394; v4.6.376); bw -> "BW" or "BW+10 lb" (the
    belt, v3.3.393, in wLabel's grammar with the card's unit space); else the
    load in the display unit. */
-const planWtx=l=>(l.est?'\u2248':'')+(l.nw?'by feel':l.bw?(l.w>0.01?`BW+${wDisp(l.w)} ${U()}`:'BW'):l.w<=0?'BW':`${wDisp(l.w)} ${U()}`);
+const planWtx=l=>(l.est?'\u2248':'')+(l.nw?FEEL_WORD:l.bw?(l.w>0.01?`BW+${wDisp(l.w)} ${U()}`:'BW'):l.w<=0?'BW':`${wDisp(l.w)} ${U()}`);
 const PLATES_KG=[25,20,15,10,5,2.5,1.25];
 const PLATES_LB=[45,35,25,10,5,2.5];
 /* greedy plate breakdown for ONE side */
