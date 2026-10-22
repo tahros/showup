@@ -655,8 +655,8 @@ function dayCountUp(){
    its next session written the morning it arrives -- your own exercises at your
    last weights, starters by feel until you have them -- and a missed day moves
    nothing: the session waits for the next training day. What you save yourself
-   (Plan, Paste, the writer) always wins. Today shows the week ahead, each day
-   tappable to see what it holds, and a rest day offers Train anyway. Preferences
+   (Plan, Paste, the writer) always wins. Today shows the coming days as it shows
+   anyone's plans (v4.6.380: the This week card is gone). Preferences
    can switch it off (routineAuto:false). v4.6.376: it is on for whoever sets up a
    routine in first-run setup (routineAuto:true); a week you already plan by hand is
    never written over. */
@@ -741,7 +741,7 @@ function rtSyncWeek(o={}){
   DB.weekAt=DB.planAt=Date.now();
   if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;
 }
-/* the coming week, read straight from Plan */
+/* the coming week, read straight from Plan (the read model the checks use) */
 function rtWeek(n=7){
   const out=[];
   for(let i=0;i<n;i++){const d=rtAddDays(todayISO,i);
@@ -751,39 +751,6 @@ function rtWeek(n=7){
     out.push({d,kind:'rest',name:'Rest'});}
   return out;
 }
-/* Train anyway: a rest day takes the next session, and the week moves up behind it */
-function rtTrainAnyway(){
-  const ses=rtSessions();if(!ses||planNow()||rtTrained(todayISO))return false;
-  const x=ses[pfRotNext(ses)%ses.length],text=rtDayText(x);if(!text)return false;
-  try{rtPut(todayISO,x,text);DB.settings.routineAutoAt=todayISO;DB.weekAt=DB.planAt=Date.now();rtSyncWeek();if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;}catch(e){return false;}
-}
-let rtOpenDay=null;
-function rtWeekHTML(){
-  if(!rtOn())return '';
-  const wk=rtWeek(),wd=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'}),dn=d=>+d.slice(8);
-  const next=wk.find((x,i)=>i>0&&(x.kind==='auto'||x.kind==='saved'));
-  const restToday=wk[0]&&wk[0].kind==='rest'&&!planNow();
-  const open=wk.find(x=>x.d===rtOpenDay&&x.d!==todayISO);
-  let detail='';
-  if(open&&(open.kind==='auto'||open.kind==='saved'||open.kind==='extra')){
-    const saved=pwSaved(open.d),text=saved?planText(saved):'',rows=pwRead(text).filter(r=>r.kind==='ex'||pfIsCardioRow(r));
-    detail=`<div class="tw-detail"><div class="tw-detail-h"><b>${hesc(wd(open.d))} · ${hesc(open.name)}</b><span>${open.kind==='saved'?'Edited by you · stays put':open.kind==='extra'?`Optional · once your ${rtFreq()} days are done`:'In your plan · from your routine'}</span></div>
-      ${rows.map(r=>pfIsCardioRow(r)?`<div class="tw-ex"><span>${hesc(String(r.raw||'').split(/\s+[—–]\s+/)[0])}</span><em>${hesc(String(r.raw||'').split(/\s+[—–]\s+/).slice(1).join(' '))}</em></div>`:`<div class="tw-ex"><span>${hesc(r.ex)}</span><em>${loadHTML(typeof pfLoadText==='function'?pfLoadText(r.lines[0]):'')} × ${hesc(r.lines.flatMap(l=>l.reps).length)} sets</em></div>`).join('')}
-      <div class="tw-detail-a"><button type="button" class="pw-btn" data-pw="open-date" data-date="${open.d}">${icon('edit',ICON_SZ.sm)}Edit this day</button></div></div>`;
-  }
-  return `<section class="tw"><div class="tw-h"><span>This week</span><button type="button" class="tw-edit" data-onbact="rotedit">Routine</button></div>
-    <div class="tw-days" role="list">${wk.map((x,i)=>`<button type="button" role="listitem" class="tw-day tw-${x.kind}${i===0?' today':''}${x.d===rtOpenDay&&i>0?' open':''}" data-rtday="${x.d}" ${x.kind==='rest'&&i>0?'disabled':''} aria-label="${wd(x.d)}: ${hesc(x.name)}"><small>${i===0?'Today':wd(x.d)}</small><b>${dn(x.d)}</b><span>${hesc(x.kind==='rest'?'Rest':x.kind==='extra'?'Extra':x.name)}</span>${x.kind==='saved'?'<i aria-hidden="true"></i>':''}</button>`).join('')}</div>
-    ${restToday?`<div class="tw-restline"><span>Rest day.${next?` Next up: <b>${hesc(wd(next.d))} · ${hesc(next.name)}</b>`:''}</span><button type="button" class="btn ghost tw-anyway" data-rtanyway>Train anyway</button></div>`:''}
-    ${detail}
-    <p class="tw-foot">${rtFlex()?`Your routine fills the next free days: ${rtFreq()} a week${rtExtra()?', then your extra':''}. Skip a day and the rest move up.`:'Your routine writes these days into Plan. Miss one and the rest move up; days you edit stay put.'}</p></section>`;
-}
-document.addEventListener('click',e=>{
-  const d=e.target.closest('[data-rtday]');if(d){const v=d.dataset.rtday;
-    /* Today's chip opens today's workout card above rather than repeating it below */
-    if(v===todayISO){if(rtOpenDay){rtOpenDay=null;render();}const f=document.querySelector('.today-focus-plan');if(f){if(!f.open)f.querySelector('summary')?.click();f.closest('.today-focus-card')?.scrollIntoView?.({behavior:'smooth',block:'nearest'});}return;}
-    rtOpenDay=rtOpenDay===v?null:v;render();return;}
-  if(e.target.closest('[data-rtanyway]')){if(rtTrainAnyway())render();return;}
-});
 function todayRotationHTML(){
   if(!DB.settings.onbRoutine||SEED.totals.sessions>0)return '';
   const p=DB.settings.plannerPreferences||{},r=p.rotation,days=(p.trainDays||[]).slice();if(!r||!r.sessions||!r.sessions.length||!days.length)return '';
@@ -814,13 +781,13 @@ function focusedTodayHTML(){
   /* v4.6.287: "Just looking around" -- sample data lives here now, not on the first screen */
   const sampleLink=fresh&&DB.settings.lookAround&&!DB.settings.demo?`<button type="button" class="today-sample" data-onbact="demo">See it with sample data</button>`:'';
   h+='</div>';
-  if(future.length&&!rtOn()){
+  if(future.length){
     const first=future[0];const later=d=>pwLaterDayHTML(d).replace('</summary>',`${icon('chevron',ICON_SZ.sm)}</summary>`).replace('class="pw-later-day"','class="pw-later-day today-focus-later"');/* v4.6.148: ONE LINE FOR THE FUTURE. Tomorrow's row plus an "N more planned
        days" fold made two lines about days that are not today. One plan ahead
        keeps its own row; two or more fold into a single line that names the
        count and the next day, and opens to every day, tomorrow first. */
     if(future.length===1){let firstHTML=later(first);if(!items.length&&first===tomorrowISO()&&pwFoldOpen('later:'+first,true))firstHTML=firstHTML.replace('<details ','<details open ');h+=`<div class="today-focus-upcoming">${firstHTML}</div>`;}
-    else{const nx=pwSaved(first),nxParts=nx?pwParts(pwRead(planText(nx))).map(partLabel).join(' + '):'';
+    else{const nx=pwSaved(first),nxParts=nx?pwDayName(first,nx):'';
       h+=`<details class="today-focus-more" data-pw-fold="future" ${pwFoldOpen('future')?'open':''}><summary><span class="tfm-count">${future.length} planned days</span><span class="tfm-next">${first===tomorrowISO()?'Tomorrow':hesc(pwDate(first))}${nxParts?' · '+hesc(nxParts):''}</span>${icon('chevron',ICON_SZ.sm)}</summary>${future.map(later).join('')}</details>`;}
   }
   h+=`<div class="today-focus-tools">${items.length?pwAction('open-date','Edit plan','edit','',`data-date="${todayISO}"`):pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${items.length?todayISO:future[0]||todayISO}"`)}${pwDatesButton()}</div>`;
@@ -828,7 +795,10 @@ function focusedTodayHTML(){
   // Keep rescheduling available without putting a second call-to-action card on Today.
   if(items.length&&planShiftable(planRunFrom(todayISO),1).ok)h+=`<div class="pw-home"><button type="button" class="pw-push" data-pw="plan-push-ask"><span>Can’t train today?</span><b>Push the week ${icon('chevron',ICON_SZ.sm)}</b></button></div>`;
   if(!fresh)h+='<button class="btn ghost restbtn today-focus-rest" id="restBtn">Rest day</button>';
-  h+=rtOn()?rtWeekHTML():todayRotationHTML();   // v4.6.376: the week ahead, from your routine
+  /* v4.6.380: THE WEEK SHOWS AS EVERY WEEK DOES. The routine's days are real plans,
+     so Today shows them the way it shows anyone's: Tomorrow, then N more plans.
+     A second card for the same days (This week, v4.6.376) said it twice. */
+  if(!rtOn())h+=todayRotationHTML();
   h+=sampleLink;
   const template=document.createElement('template');template.innerHTML=h+'</section>';
   template.content.querySelectorAll('details').forEach(d=>{const s=d.querySelector(':scope > summary');if(s){s.classList.add('pw-fold-summary');s.setAttribute('aria-expanded',String(d.open));}});

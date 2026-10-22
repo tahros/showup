@@ -87,7 +87,7 @@ async function app(){
     ok('your routine is the planner\'s order, names kept', a.run(`(p=>p.orderMode==='own'&&p.rotation.preset==='own'&&p.rotation.sessions[0].name==='Upper'&&p.rotation.sessions[1].name==='Legs'&&p.rotation.sessions[0].parts[0]==='Run'&&p.trainDays.length===0&&p.frequency===3)(DB.settings.plannerPreferences)`)&&a.run('DB.settings.objective')==='strength');
     ok('session 1 is planned today from the starters, 5 reps on the first lift', a.run(`DB.plan.d===todayISO&&DB.plan.title==='Upper'&&/^Run/.test(DB.plan.raw)`)&&/× 5/.test(a.run('DB.plan.raw')));
     ok('04 Today: session 1 opens with its run', /Upper/.test(a.w.document.querySelector('.today-focus-title')?.textContent||'')&&a.w.document.querySelector('.today-focus-next .btn')?.dataset.ex==='Run');
-    ok('04 Today: the week ahead from your routine, with Routine to edit it (v4.6.376)', /This week/.test(a.w.document.querySelector('.tw')?.textContent||'')&&!!a.w.document.querySelector('.tw [data-onbact="rotedit"]'));
+    ok('04 Today: the coming days from your routine show as planned days -- Tomorrow, then the rest; no second card (v4.6.380)', !a.w.document.querySelector('.tw')&&!!a.w.document.querySelector('.today-focus-upcoming,.today-focus-more'));
     ok('no workout logged and no timer started', a.run(`!(DB.days[todayISO]?.w||[]).length&&!isLive()`));
     ok('no crew prompt before a finished workout', a.run('adoptDue()')===false);
   }

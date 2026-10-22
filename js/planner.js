@@ -192,8 +192,11 @@ function pwPlanTotals(plan){
   const items=(plan.items||[]).map(planItemShape),sets=items.reduce((n,item)=>n+(item.lines||[]).reduce((s,line)=>s+(line.reps||[]).length,0),0);
   return `<span class="pw-plan-totals"><strong>${sets} ${sets===1?'set':'sets'}</strong><small>${items.length} ${items.length===1?'exercise':'exercises'}</small></span>`;
 }
-function pwPlanHeading(label,plan){
-  return `<span class="pw-future-label"><span>${hesc(label)}</span><strong>${hesc(pwParts(pwRead(planText(plan))).map(partLabel).join(' + ')||'Your workout')}</strong></span>${pwPlanTotals(plan)}`;
+/* v4.6.380: a day your routine wrote is called by its session's name (Upper, Push, Extra · Arms);
+   any other plan reads its body parts, as before */
+function pwDayName(d,plan){const t=d&&typeof rtOwn==='function'&&rtOwn(d)==='auto'?DB.week?.days?.[d]?.title:'';return t||pwParts(pwRead(planText(plan))).map(partLabel).join(' + ');}
+function pwPlanHeading(label,plan,d){
+  return `<span class="pw-future-label"><span>${hesc(label)}</span><strong>${hesc(pwDayName(d,plan)||'Your workout')}</strong></span>${pwPlanTotals(plan)}`;
 }
 /* v4.6.95: THE NEXT WORKOUT IS PINNED; EVERYTHING BEHIND IT FOLDS. v4.6.94
    pinned tomorrow as well, which double-pinned it: when today is unplanned or
@@ -204,7 +207,7 @@ function pwPlanHeading(label,plan){
    It starts open, so nothing vanishes from a screen that had it yesterday;
    shut it once and it stays shut. */
 function pwLaterDayHTML(d){
-  return `<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading((d===tomorrowISO()?'Tomorrow · ':'')+pwDate(d),pwSaved(d))}</summary>${planCardHTML(pwSaved(d),false)}<div class="pw-actions pw-future-actions pw-later-actions" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}</div></details>`;
+  return `<details class="pw-later-day" data-pw-fold="later:${d}" ${pwFoldOpen('later:'+d)?'open':''}><summary>${pwPlanHeading((d===tomorrowISO()?'Tomorrow · ':'')+pwDate(d),pwSaved(d),d)}</summary>${planCardHTML(pwSaved(d),false)}<div class="pw-actions pw-future-actions pw-later-actions" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}</div></details>`;
 }
 function pwWeekdays(dates){return dates.map(d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'})).join(' · ');}
 function pwLaterPlans(html,dates){
