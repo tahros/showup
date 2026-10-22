@@ -9,7 +9,7 @@ const base=`http://127.0.0.1:${process.env.PW_PORT||8784}/`;
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base);
   await page.waitForFunction(()=>!!navigator.serviceWorker.controller,{},{timeout:60000});
-  await page.waitForSelector('.ww-ready');
+  await page.waitForFunction(()=>document.querySelector('.ww-still')?.naturalWidth===4096);
   const cached=await page.evaluate(async()=>{
    const c=await caches.open('showup-'+APP_VERSION);
    return (await c.keys()).filter(r=>r.url.includes('/assets/welcome/')).length;
@@ -17,7 +17,7 @@ const base=`http://127.0.0.1:${process.env.PW_PORT||8784}/`;
   assert.equal(cached,16,'every welcome asset is in the installed shell');
   await context.setOffline(true);
   await page.reload();
-  await page.waitForSelector('.ww-ready');
+  await page.waitForFunction(()=>document.querySelector('.ww-still')?.naturalWidth===4096);
   assert.equal(await page.locator('.ww-heading h1').innerText(),'Life happens.\nYou show up.');
   const cities=await page.evaluate(async()=>Promise.all(WORLD_GYMS.map(async([key])=>{
    const r=await fetch('assets/welcome/'+key+'.webp');return r.ok&&(await r.arrayBuffer()).byteLength>0;

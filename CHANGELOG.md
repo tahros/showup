@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.388 (2026-10-22) — The approved welcome, with grounded Pip
+
+- Ships the approved v14 first sign-up screen: raised, centered official logo at 90% size, the selected smaller bold headline, city names without captions, and the deeper 36% black overlay.
+- Pip uses the official 4096px artwork with gentle CSS breathing and rocking. Dense contact shadows under both ends and a soft floor shadow give it weight. The old low-resolution welcome sprite is removed; the smaller approved still remains an error fallback.
+- Pause, reduced motion, city rotation and offline support remain. Pausing the scene no longer interrupts the entry buttons while they appear. Apple, Google and account-free handlers are unchanged, as are the v4.6.387 routine improvements. No native dependency changes.
+- Updated onboarding and offline browser checks for the approved layout, high-resolution asset, motion lifecycle and fallback. Refreshed the older brand browser check's welcome selectors and ink-drain assertion to match the already-shipped UI and transform-based drain.
+
 ## v4.6.387 (2026-10-22) — Set up a routine later, with rest days
 
 - Today, with no routine and nothing planned: a quiet line under Choose exercise, “Want a routine? Set one up in a minute →”. It and Plan open the routine setup straight on Basics (two steps; name, units and crew are kept). Back closes it and saves nothing; a sync landing mid-setup leaves it open.

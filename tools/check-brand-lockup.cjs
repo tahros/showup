@@ -26,10 +26,10 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   for(const theme of ['light','dark'])for(const width of [320,393,768]){
    await p.setViewportSize({width,height:852});
    await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.mascotMotion='still';applyTheme();onbStep=1;onbRender();},theme);
-   // v4.6.262: the welcome door carries the approved Lifted p trio (vector letters), white on brand blue
-   await p.locator('.ob-lock .showuppp-lettering').waitFor();
-   assert.equal(await p.locator('.ob-lock [aria-label="ShowUppp"]').count(),1);
-   assert.equal(await p.locator('.ob-lock .showuppp-lettering [data-letter]').count(),8);
+   // The first-run door carries the official mascot + Lifted p trio lockup.
+   await p.locator('.ww-brand').waitFor();
+   assert.equal(await p.locator('.ww-brand[alt="ShowUppp"]').count(),1);
+   assert.equal(await p.locator('.ww-brand').getAttribute('src'),'assets/welcome/logo.png');
    assert.equal(await p.locator('[data-onbact]').count(),3,'onboarding choices unchanged');
    assert(await p.locator('[data-onbact="local"]').isVisible());
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
@@ -119,7 +119,8 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   assert.equal(await p.locator('#dayDone.dd-inked').count(),1);
   assert.equal(await p.locator('#dayDone .showuppp-ground').evaluate(e=>getComputedStyle(e).visibility),'hidden','no stranded shadow during ink flight');
   assert((await p.locator('#dayDone .su-mascot img').getAttribute('src')).endsWith('mascot-white-body.png'));
-  await p.waitForFunction(()=>!document.querySelector('#dayDone.dd-ink')&&getComputedStyle(document.querySelector('#dayDone .ddink')).clipPath.startsWith('circle(0px'));
+  // The existing ink drain now shrinks the disc by transform, not clip-path.
+  await p.waitForFunction(()=>!document.querySelector('#dayDone.dd-ink')&&new DOMMatrix(getComputedStyle(document.querySelector('#dayDone .ddink')).transform).a<.01);
   await p.waitForFunction(()=>[...document.querySelectorAll('#dayDone [data-letter]')].every(e=>e.getAnimations().length===1));
   assert.equal(await p.locator('#dayDone .showuppp-lettering').evaluate(e=>getComputedStyle(e).visibility),'visible');
   assert.equal(await p.locator('#dayDone .su-mascot').getAttribute('data-mascot-tone'),'blue');
@@ -143,8 +144,8 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   await fallback.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());
   await fallback.goto(origin,{waitUntil:'networkidle'});await fallback.waitForTimeout(700);
   await fallback.waitForTimeout(4200);   // the door's entrance
-  assert(await fallback.locator('.ob-lock .su-mascot img').isVisible());
-  assert(await fallback.locator('.ob-lock .su-mascot img').evaluate(i=>i.complete&&i.naturalWidth>0));
+  assert(await fallback.locator('.ww-still').isVisible());
+  assert(await fallback.locator('.ww-still').evaluate(i=>i.complete&&i.naturalWidth===4096));
   await fallback.close();
   const offline=await browser.newContext({reducedMotion:'reduce'}),op=await offline.newPage();
   await op.goto(origin,{waitUntil:'networkidle'});
@@ -154,7 +155,7 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
   for(const name of ['a','c'])assert(await op.evaluate(async name=>!!(await caches.match('assets/showuppp-'+name+'.svg')),name),'lettering is precached');
   for(const tone of ['blue','white'])assert(await op.evaluate(async tone=>!!(await caches.match('assets/mascot-'+tone+'-body.png')),tone),'shadow-free posters are precached');
   await offline.setOffline(true);await op.reload();
-  await op.locator('.ob-lock .showuppp-lettering').waitFor();
+  await op.locator('.ww-brand').waitFor();
   await op.evaluate(()=>{document.querySelector('#onb')?.remove();celebrateDayDone(true,12,0,true);});
   assert.equal(await op.locator('#dayDone .showuppp-lettering [data-letter]').count(),8,'offline vector available');
   await op.locator('#dayDone .su-mascot img').evaluate(i=>i.decode());
