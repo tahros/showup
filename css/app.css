@@ -5281,3 +5281,23 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .ai-cap-card .btn{margin:14px 0 0;width:100%;min-height:48px;border:0;border-radius:14px;background:var(--accent);color:#fff;font:600 15px var(--body);cursor:pointer}
 @keyframes aiCapIn{from{opacity:0}}@keyframes aiCapUp{from{transform:translateY(24px);opacity:0}}
 @media(prefers-reduced-motion:reduce){.ai-cap,.ai-cap-card{animation:none}}
+
+/* v4.6.390: reading your routine -- the crew's coffee break */
+#onb .ob-reading .ob-read-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-bottom:40px}
+#onb .ob-read-crew{position:relative;display:flex;align-items:flex-end;justify-content:center;gap:2px;height:150px;margin-bottom:18px}
+#onb .ob-read-crew .ob-read-comp{width:120px;height:120px;animation:obSip 3.4s ease-in-out infinite}
+#onb .ob-mug{width:54px;height:60px;margin-left:-14px;margin-bottom:6px;overflow:visible}
+#onb .ob-mug .ob-cup{fill:var(--surface);stroke:var(--chalk);stroke-width:3;stroke-linejoin:round}
+#onb .ob-mug .ob-handle,#onb .ob-mug .ob-saucer{fill:none;stroke:var(--chalk);stroke-width:3;stroke-linecap:round}
+#onb .ob-mug .ob-steam{fill:none;stroke:var(--muted);stroke-width:2.6;stroke-linecap:round;opacity:0;animation:obSteam 2.6s ease-out infinite}
+#onb .ob-mug .s2{animation-delay:.6s}#onb .ob-mug .s3{animation-delay:1.2s}
+@keyframes obSteam{0%{opacity:0;transform:translateY(6px)}30%{opacity:.85}100%{opacity:0;transform:translateY(-10px)}}
+@keyframes obSip{0%,70%,100%{transform:rotate(0) translateY(0)}78%{transform:rotate(-6deg) translateY(-3px)}88%{transform:rotate(-6deg) translateY(-3px)}}
+#onb .ob-read-h{margin:0}
+#onb .ob-read-line{margin:14px 0 0;min-height:22px;font:500 16px var(--body);color:var(--accent-ink)}
+#onb .ob-read-line.in{animation:obLineIn .4s ease-out}
+@keyframes obLineIn{from{opacity:0;transform:translateY(6px)}}
+#onb .ob-read-sub{margin:8px 0 0;font:400 13px var(--body);color:var(--muted)}
+#onb .ob-read-quick{margin-top:22px}
+@media(prefers-reduced-motion:reduce){#onb .ob-read-crew .ob-read-comp,#onb .ob-mug .ob-steam,#onb .ob-read-line.in{animation:none}#onb .ob-mug .ob-steam{opacity:.6}}
+#onb .ob-read-quick[hidden]{display:none}

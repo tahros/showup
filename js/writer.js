@@ -531,23 +531,6 @@ function aiCapSheet(){
 }
 document.addEventListener('click',e=>{const c=document.getElementById('aiCap');if(!c)return;if(e.target.closest('[data-aicap-ok]')||e.target===c)c.remove();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('aiCap')?.remove();});
-/* the paste lines the phone could not read, read by the AI: {line: plan text, or '' for "not an exercise"} -- null when it cannot */
-async function aiReadLines(lines){
-  if(!lines||!lines.length)return {};
-  if(aiCapped())return null;
-  if(typeof AI_READ_STUB==='function'){try{return await AI_READ_STUB(lines);}catch(e){return null;}}
-  if(typeof navigator!=='undefined'&&navigator.onLine===false)return null;
-  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),20000);
-  try{
-    const tok=(typeof freshToken==='function'?await freshToken():null)||cloudCfg().anon;
-    const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok},
-      body:JSON.stringify({action:'read',lines:lines.slice(0,40).map(l=>String(l).slice(0,200)),unit:DB.settings.unit==='lb'?'lb':'kg'})});
-    aiQuotaFrom(r);if(await aiCapFrom(r))return null;if(!r.ok)return null;
-    const j=await r.json(),out={};for(const x of (j.items||[]))if(x&&typeof x.line==='string')out[x.line]=typeof x.text==='string'?x.text:'';
-    return out;
-  }catch(e){return null;}finally{clearTimeout(t);}
-}
-
 /* ---- the call ---- */
 async function writeSession(payload){
   if(typeof writerGate==='function'&&!writerGate()) throw new Error('The plan writer is part of membership.');   // v4.6.144

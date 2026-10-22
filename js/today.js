@@ -260,40 +260,90 @@ function onbReadRoutine(text){
     sessions.push({name:named||onbSesNamed(parts),keepName:!!named,parts,text:out.join('\n')});}
   return {sessions:sessions.slice(0,7),unread};
 }
-async function onbPasteRead(){
-  const r=onbReadRoutine(onbPasteText);
-  /* only what the phone could not read goes to the AI -- and only if there is something left */
-  if(r.unread.length&&typeof aiReadLines==='function'){
-    onbReading=`Reading ${r.unread.length} ${r.unread.length===1?'line':'lines'} with AI…`;onbRender();
-    const got=await aiReadLines(r.unread.map(x=>x.line));onbReading='';
-    if(got){const still=[];for(const u of r.unread){const t=got[u.line];const s2=t?(()=>{for(let i=Math.min(u.at,r.sessions.length-1);i>=0;i--)if(!r.sessions[i].rest)return r.sessions[i];return r.sessions.find(x=>!x.rest);})():null;   // the day the line was written under
-        if(t&&s2){const it=parsePlan(t).find(x=>x.ex);if(it){s2.text=(s2.text?s2.text+'\n':'')+onbLineText(it.ex,it.lines);const pt=homePartOf(it.ex);if(pt&&!s2.parts.includes(pt))s2.parts.push(pt);if(!s2.keepName)s2.name=onbSesNamed(s2.parts);continue;}}
-        if(t==='')continue;still.push(u);}
-      r.unread=still;}}
-  const train=r.sessions.filter(x=>!x.rest);
-  if(!train.length){onbReading='';toast('Couldn’t find exercises in that. Try one exercise per line.');onbRender();return;}
-  onbFreshInit();Object.assign(onbF,{found:'paste',foundFrom:`Read from your notes: ${train.length} ${train.length===1?'day':'days'}, ${train.reduce((n,x)=>n+x.text.split('\n').filter(l=>l&&!/^\s/.test(l)).length,0)} exercises.`,
-    unread:r.unread.map(x=>x.line),cards:r.sessions.map(x=>x.rest?ONB_REST():x),count:train.length,template:'own',edited:true,goal:DB.settings.objective||'grow',notice:'Your routine, as you wrote it.'});
-  onbGo('routine');
+/* v4.6.390: READING YOUR ROUTINE. Whatever you bring is read by the AI while your crew member has a
+   coffee: a paste is understood whole (names, sets, rest days, messy lines), an import is analysed
+   for your split, your order and your days a week. If the AI cannot answer -- offline, today's
+   allowance spent, or slow -- the quick read on the phone takes over, and the screen says which. */
+const ONB_MUG='<svg class="ob-mug" viewBox="0 0 64 72" aria-hidden="true"><path class="ob-steam s1" d="M22 22c-4-5 4-8 0-14"/><path class="ob-steam s2" d="M32 22c-4-5 4-8 0-14"/><path class="ob-steam s3" d="M42 22c-4-5 4-8 0-14"/><path class="ob-cup" d="M12 30h38v18a14 14 0 0 1-14 14H26a14 14 0 0 1-14-14z"/><path class="ob-handle" d="M50 35h3a7 7 0 0 1 0 14h-3"/><path class="ob-saucer" d="M6 66h50"/></svg>';
+let onbReadToken=0,onbReadTick=null,onbReadSlow=false,onbReadSrc='paste';
+const ONB_READ_LINES={paste:['Reading your days…','Matching your exercises…','Finding your rest days…','Setting today’s numbers…'],
+  import:['Going through your workouts…','Finding your split…','Working out your order…','Setting today’s numbers…']};
+function onbCatalog(){const c={};for(const p of Object.keys(SEED.catalog||{}))c[p]=[...SEED.catalog[p]];for(const [ex,v] of Object.entries(typeof customs==='function'?customs():{}))(c[v.part]=c[v.part]||[]).push(ex);return c;}
+function onbHistorySummary(){   // eight weeks, one line per workout: the exercises and each one's top set, in the person's unit
+  const cut=rtAddDays(todayISO,-56),lb=DB.settings.unit==='lb',out=[];
+  for(const d of Object.keys(DB.days).filter(x=>x>=cut&&x<=todayISO).sort()){const by={};
+    for(const s of DB.days[d].w||[]){if(!(s.reps||[]).length&&!isCardio(s))continue;const w=lb?Math.round((s.w||0)/0.45359237):+(s.w||0).toFixed(1);const b=by[s.ex];if(!b||w>b[1])by[s.ex]=[s.ex,w,(s.reps||[])[0]||0];}
+    const ex=Object.values(by);if(ex.length)out.push({d,ex});}
+  return out.slice(-60);}
+async function aiAnalyzeRoutine(payload){
+  if(typeof aiCapped==='function'&&aiCapped())return {capped:true};
+  if(typeof AI_ANALYZE_STUB==='function'){try{return await AI_ANALYZE_STUB(payload);}catch(e){return e&&e.cap?{capped:true}:null;}}
+  if(typeof navigator!=='undefined'&&navigator.onLine===false)return null;
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),40000);onbReadAbort=ctl;
+  try{const tok=(typeof freshToken==='function'?await freshToken():null)||cloudCfg().anon;
+    const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok},body:JSON.stringify(payload)});
+    if(typeof aiQuotaFrom==='function')aiQuotaFrom(r);if(typeof aiCapFrom==='function'&&await aiCapFrom(r))return {capped:true};if(!r.ok)return null;return await r.json();
+  }catch(e){return null;}finally{clearTimeout(t);onbReadAbort=null;}}
+let onbReadAbort=null;
+/* the AI's answer, bounded on the phone: catalog names only, at most seven days and ten exercises a day */
+function onbFromAI(res){
+  if(!res||!Array.isArray(res.sessions))return null;
+  const known=new Set(Object.values(onbCatalog()).flat()),cards=[],unread=(Array.isArray(res.notes)?res.notes:[]).map(String).slice(0,6);
+  for(const s of res.sessions.slice(0,7)){
+    if(s&&s.rest){if(cards.length)cards.push(ONB_REST());continue;}
+    const lines=[],parts=[];
+    for(const e of (s&&Array.isArray(s.exercises)?s.exercises:[]).slice(0,10)){const ex=String(e&&e.ex||'');if(!known.has(ex)){if(ex)unread.push(ex);continue;}
+      const it=parsePlan(`${ex}\n  ${String(e.sets||'by feel × 10 10 10').slice(0,60)}`)[0];lines.push(onbLineText(ex,it&&it.lines));
+      const pt=e.cardio||isCardioEx(ex)?'Run':homePartOf(ex);if(pt&&!parts.includes(pt))parts.push(pt);}
+    if(!lines.length)continue;const nm=String(s.name||'').replace(/\s+day$/i,'').slice(0,24).trim();
+    cards.push({name:nm||onbSesNamed(parts),keepName:!!nm,parts,text:lines.join('\n')});}
+  return cards.some(c=>!c.rest)?{cards,unread,days:Math.max(0,Math.min(7,Math.round(+res.days_per_week||0)))}:null;}
+function onbStartReading(src){
+  onbReadSrc=src;const tok=++onbReadToken;onbReadSlow=false;
+  if(src==='import'){onbPath='have';onbHave='import';onbHist=['have'];onbStep='reading';onbShown=0;onbRender();}else onbGo('reading');
+  clearInterval(onbReadTick);let k=0;
+  onbReadTick=setInterval(()=>{if(tok!==onbReadToken||onbStep!=='reading'){clearInterval(onbReadTick);return;}k++;
+    const el=document.querySelector('#onb .ob-read-line');if(el){el.classList.remove('in');void el.offsetWidth;el.textContent=ONB_READ_LINES[src][k%4];el.classList.add('in');}
+    if(k===7&&!onbReadSlow){onbReadSlow=true;const q=document.querySelector('#onb .ob-read-quick');if(q)q.hidden=false;}},1700);
+  const payload=src==='paste'?{action:'analyze',v:1,source:'paste',text:onbPasteText.slice(0,8000),unit:DB.settings.unit==='lb'?'lb':'kg',objective:DB.settings.objective||'grow',catalog:onbCatalog(),today:todayISO}
+    :{action:'analyze',v:1,source:'import',workouts:onbHistorySummary(),unit:DB.settings.unit==='lb'?'lb':'kg',objective:DB.settings.objective||'grow',catalog:onbCatalog(),today:todayISO};
+  aiAnalyzeRoutine(payload).then(res=>{if(tok!==onbReadToken||onbStep!=='reading')return;
+    const ai=res&&!res.capped?onbFromAI(res):null;onbReadDone(src,ai,res&&res.capped);});
 }
-/* an import: your order read from the log, your days a week from the last eight weeks */
-function onbFoundImport(){
+function onbReadDone(src,ai,capped){
+  clearInterval(onbReadTick);onbReadToken++;
+  const ok=src==='paste'?onbApplyPaste(ai,capped):onbApplyImport(ai,capped);
+  if(!ok){onbStep='paste';onbHist.pop();onbShown=0;onbRender();toast('Couldn’t find exercises in that. Try one exercise per line.');return;}
+  onbStep='routine';onbShown=0;onbRender();}
+function onbQuickNote(capped){return capped?' Today’s AI reads are used up, so this is the quick read.':'';}
+function onbApplyPaste(ai,capped){
+  let cards,unread,days;
+  if(ai){cards=ai.cards;unread=ai.unread;days=ai.days;}
+  else{const r=onbReadRoutine(onbPasteText);cards=r.sessions.map(x=>x.rest?ONB_REST():x);unread=r.unread.map(x=>x.line);}
+  const train=cards.filter(x=>!x.rest);if(!train.length)return false;
+  const exN=train.reduce((n,x)=>n+x.text.split('\n').filter(l=>l&&!/^\s/.test(l)).length,0);
+  onbFreshInit();Object.assign(onbF,{found:'paste',foundBy:ai?'ai':'phone',foundFrom:`${ai?'Read from your notes with AI':'Read from your notes'}: ${train.length} ${train.length===1?'day':'days'}, ${exN} exercises.${onbQuickNote(capped)}`,
+    unread,cards,count:train.length,template:'own',edited:true,goal:DB.settings.objective||'grow',notice:'Your routine, as you wrote it.'});
+  return true;}
+function onbApplyImport(ai,capped){
   onbFreshInit();
-  const info=typeof pfRotLearn==='function'?pfRotLearn(Object.keys(SEED.catalog||{}).filter(p=>p!=='Run')):null;
   const wk={};const cut=rtAddDays(todayISO,-56);for(const d of Object.keys(DB.days))if(d>=cut&&d<=todayISO&&rtTrained(d))wk[rtWeekOf(d)]=(wk[rtWeekOf(d)]||0)+1;
-  const per=Object.values(wk).sort((a,b)=>a-b),n=per.length?Math.max(2,Math.min(7,per[Math.floor(per.length/2)])):3;
-  const read=info&&(info.kind==='log'||info.kind==='changed')&&info.sessions.length;
-  /* your cycle, starting from the session that comes next -- so Day 1 is today. Untouched, the cycle
-     itself is what gets saved (Push, Pull, Legs keeps turning over five days a week); the cards show
-     it laid over your days */
-  let cycle=read?info.sessions.map(x=>({name:onbSesNamed(x.parts),parts:x.parts.slice()})):null,ses=null;
-  if(cycle){const k=typeof pfRotNext==='function'?pfRotNext(cycle):0;cycle=[...cycle.slice(k),...cycle.slice(0,k)];
-    ses=cycle.length>=n?cycle.map(x=>({...x,parts:x.parts.slice()})):Array.from({length:n},(_,i)=>({...cycle[i%cycle.length],parts:cycle[i%cycle.length].parts.slice()}));}
+  const per=Object.values(wk).sort((a,b)=>a-b),n0=per.length?Math.max(2,Math.min(7,per[Math.floor(per.length/2)])):3;
   const workouts=Object.keys(DB.days).filter(d=>rtTrained(d)).length;
-  if(!ses){onbF.count=n;onbF.template=onbSuggest();ses=onbCards(onbF.template,n);}
-  Object.assign(onbF,{found:'import',foundFrom:read?`Read from your ${fmt(workouts)} workouts: your order, your exercises, your numbers.`:`Not enough history yet to read your order, so here’s a start built for ${n} days.`,cards:ses,cycle,touched:false,count:ses.length,template:read?'own':onbF.template,edited:!!read,goal:DB.settings.objective||'grow'});
-  onbPath='have';onbHave='import';onbHist=['have'];onbStep='routine';onbShown=0;onbRender();
-}
+  let cycle=null,read=false,n=n0;
+  if(ai){cycle=ai.cards.filter(c=>!c.rest);n=ai.days||n0;read=true;}   // the AI lists your sessions in order, today's first
+  else{const info=typeof pfRotLearn==='function'?pfRotLearn(Object.keys(SEED.catalog||{}).filter(p=>p!=='Run')):null;
+    if(info&&(info.kind==='log'||info.kind==='changed')&&info.sessions.length){read=true;cycle=info.sessions.map(x=>({name:onbSesNamed(x.parts),parts:x.parts.slice()}));
+      const k=typeof pfRotNext==='function'?pfRotNext(cycle):0;cycle=[...cycle.slice(k),...cycle.slice(0,k)];}}
+  let ses;
+  if(cycle){ses=cycle.length>=n?cycle.map(x=>({...x,parts:x.parts.slice()})):Array.from({length:n},(_,i)=>({...cycle[i%cycle.length],parts:cycle[i%cycle.length].parts.slice()}));}
+  else{onbF.count=n;onbF.template=onbSuggest();ses=onbCards(onbF.template,n);}
+  Object.assign(onbF,{found:read?'import':'start',foundBy:ai?'ai':'phone',
+    foundFrom:read?`${ai?'Read with AI from':'Read from'} your ${fmt(workouts)} workouts: your order, your exercises, your numbers.${onbQuickNote(capped)}`:`Not enough history yet to read your order, so here’s a start for ${n} days, with your own exercises where you have them.${onbQuickNote(capped)}`,
+    unread:ai?ai.unread:null,cards:ses,cycle:read?cycle:null,touched:false,count:ses.length,template:read?'own':onbF.template,edited:read,goal:DB.settings.objective||'grow'});
+  return true;}
+async function onbPasteRead(){if(!onbPasteText.trim())return;onbStartReading('paste');}
+function onbFoundImport(){onbStartReading('import');}
 function onbFreshInit(){
   const mon=!/^en-(US|CA)|^ja|^ko/i.test(navigator.language||'en-US');
   onbF={goal:'grow',weekStart:mon?'monday':'sunday',count:3,extra:null,template:null,cards:null,edited:false,edit:false,sel:null,menu:-1,hist:[],notice:'A starting point, not a commitment.',sheet:null,profileOpen:false};
@@ -364,7 +414,8 @@ function onbSheetPatch(){
 function onbGo(step){ onbHist.push(onbStep); onbStep=step; onbRender(); }
 function onbPos(){   // where this screen sits in its path, and how long the path is
   const path=onbLater?['basics','routine']:onbPath==='have'?['you','crew','fork','have',...(onbHave==='paste'?['paste','routine']:onbF&&onbF.found?['routine']:[])]:['you','crew','fork','basics','routine'];
-  return [Math.max(1,path.indexOf(onbStep)+1),path.length,!onbLater&&(onbStep==='you'||onbStep==='crew')];   // name and crew can be skipped, as before
+  const at=onbStep==='reading'?(onbReadSrc==='paste'?'paste':'have'):onbStep;   // v4.6.390: reading holds the step it was started from
+  return [Math.max(1,path.indexOf(at)+1),path.length,!onbLater&&(onbStep==='you'||onbStep==='crew')];   // name and crew can be skipped, as before
 }
 function onbChoice(act,val,title,sub,on){
   return `<button type="button" class="ob-card ob-pick ob-rise${on?' on':''}" data-onbact="${act}" data-v="${val}" aria-pressed="${!!on}"><span class="ob-ct"><b>${title}</b>${sub?`<span>${sub}</span>`:''}</span>${ONB_AR}</button>`;
@@ -403,6 +454,15 @@ function onbRender(){
       <p class="ob-sub ob-rise" ${d(.15)}>Bring it in once. Pick up where you left off.</p>
       ${[['import','In another app','Strong, Hevy or a spreadsheet: bring your history',ONB_IMPORT],['paste','In my notes or my head','Paste or type it, we turn it into your plan',ICON_PASTE_ONB],['log','I\'ll log as I go','Pick what you train and start today',ONB_PLUS]].map(([v,t,sub,ic],i)=>`<button type="button" class="ob-card ob-rise${onbHave===v?' on':''}" ${d((.3+i*.1).toFixed(2))} data-onbact="have" data-v="${v}"><span class="ob-ic">${ic}</span><span class="ob-ct"><b>${t}</b><span>${sub}</span></span>${ONB_AR}</button>`).join('')}
       <div class="ob-sp"></div></div>`;
+  }else if(onbStep==='reading'){
+    /* v4.6.390: the wait is part of the welcome -- your crew member has a coffee while the AI reads */
+    const L=ONB_READ_LINES[onbReadSrc]||ONB_READ_LINES.paste;
+    b=`<div class="ob ob-step ob-reading">${onbTop(...onbPos())}
+      <div class="ob-read-stage"><div class="ob-read-crew">${(typeof companionHTML==='function'&&companionHTML('ob-read-comp'))||(typeof mascotHTML==='function'?mascotHTML('idle','ob-read-comp'):'')}${ONB_MUG}</div>
+      <h1 class="ob-h ob-read-h">${onbReadSrc==='import'?'Reading your<br>workouts.':'Reading your<br>routine.'}</h1>
+      <p class="ob-read-line in" aria-live="polite">${L[0]}</p>
+      <p class="ob-read-sub">Your crew is on a coffee break. This takes a few seconds.</p>
+      <button type="button" class="ob-link ob-read-quick" data-onbact="rquick" ${onbReadSlow?'':'hidden'}>Taking a while? Use the quick read</button></div></div>`;
   }else if(onbStep==='paste'){
     /* v4.6.390: PASTE YOUR ROUTINE. Your days as you keep them in your notes; the app reads them on the
        phone, and only the lines it cannot read go to the AI. Nothing is logged: this is your routine. */
@@ -440,7 +500,7 @@ function onbRender(){
       <div class="ob-rt-chips">${(E?XC.parts:XC.parts.slice(0,3)).map(p=>chipE(p,-1)).join('')}${!E&&XC.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${XC.parts.length-3}</button>`:''}${!XC.parts.length?'<em>Drop body parts here</em>':''}</div>
       ${sel&&!XC.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="-1">+ Add ${hesc(partLabel(sel))}</button>`:''}
       <p class="ob-rt-xnote">Optional. Offered once your ${onbTrainN()} days are done.</p></div></section>`:`<button type="button" class="ob-rt-addses ob-rt-addx" data-onbact="faddx">+ Add an extra day</button>`;
-    b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}${onbF.found?`<h1 class="ob-h ob-rise" ${d(.05)}>We found<br>your routine.</h1><p class="ob-sub ob-rise" ${d(.12)}>${hesc(onbF.foundFrom||'Read from what you brought.')} Keep it, or make it yours.</p>`:`<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>`}
+    b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}${onbF.found?`<h1 class="ob-h ob-rise" ${d(.05)}>${onbF.found==='start'?'Here’s<br>a start.':'We found<br>your routine.'}</h1><p class="ob-sub ob-rise" ${d(.12)}>${hesc(onbF.foundFrom||'Read from what you brought.')} Keep it, or make it yours.</p>`:`<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>`}
       <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${onbF.found?'Your routine':hesc(t[1])}</b><span>${onbDaysText()}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">${onbF.found?'Start fresh':'Change'}</button></div>${onbF.unread&&onbF.unread.length?`<div class="ob-rt-unread ob-rise" ${d(.2)}><b>${onbF.unread.length} ${onbF.unread.length===1?'line':'lines'} kept as notes</b><span>${onbF.unread.slice(0,3).map(hesc).join(' · ')}${onbF.unread.length>3?' …':''}</span></div>`:''}
       ${E?(()=>{   /* v4.6.387: the tray says which parts are in your week and which are not in it yet */
         const use=p=>onbF.cards.filter(c=>!c.rest&&c.parts.includes(p)).length+(onbF.extra&&onbF.extra.parts.includes(p)?1:0);
@@ -683,6 +743,7 @@ document.addEventListener('click',e=>{
     else if(onbHave==='import'&&typeof impOpen==='function'){ impOpen('onboarding'); }
     else onbPathFinish(); }
   else if(act==='pread'){ onbPasteRead(); }
+  else if(act==='rquick'){ onbReadAbort?.abort(); onbReadDone(onbReadSrc,null,false); }
   else if(act==='ppaste'){ (async()=>{try{const t=await navigator.clipboard.readText();if(t){onbPasteText=t;const ta=document.getElementById('onbPaste');if(ta)ta.value=t;onbPasteSync();}}catch(e){toast('Paste with a long press in the box.');}})(); }
   else if(act==='fgoal'){ onbF.goal=a.dataset.v; if(!onbBasicsPatch()) onbRender(); }
   else if(act==='fcount'){ onbF.count=+a.dataset.v; if(!onbBasicsPatch()) onbRender(); }
@@ -720,7 +781,7 @@ document.addEventListener('click',e=>{
   else if(act==='notnow'){ onbBw=''; onbGo('crew'); }
   else if(act==='look'){ onbFinish(false,'look'); }
   else if(act==='rotedit'){ if(typeof pwOpen==='function'){ view='today'; render(); pwOpen(todayISO); try{ const j=pfState(); j.prefOrigin='dates'; j.prefs=pfStagePrefs(); pfNavigate('prefs'); }catch(e){} } }
-  else if(act==='back'){ if(onbHist.length){ onbStep=onbHist.pop(); onbRender(); } else if(onbLater) onbLaterClose(); }
+  else if(act==='back'){ if(onbStep==='reading'){onbReadToken++;clearInterval(onbReadTick);onbReadAbort?.abort();} if(onbHist.length){ onbStep=onbHist.pop(); onbRender(); } else if(onbLater) onbLaterClose(); }
   else if(act==='skip'){ DB.settings.companionAsked=todayISO; if(!DB.settings.companionName){DB.settings.clubAvatar='pip';DB.settings.companionFree='pip';} onbHist.push(onbStep); onbStep='fork'; onbRender(); }   // v4.6.311: skip goes past the companion too; the dealt one comes along
   else if(act==='go') onbFinish(false,a.dataset.onbgo);
   else if(act==='finish') onbFinish(false);
