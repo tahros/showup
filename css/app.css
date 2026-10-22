@@ -5177,3 +5177,17 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .today-routine svg{color:var(--accent);flex:none}
 .today-routine:active{opacity:.6}
 .today-routine:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+/* v4.6.384: the handle is a real grip -- a bigger mark, and the whole right edge of the card is the touch area */
+#onb .ob-rt-ses{position:relative;padding-right:60px}
+#onb .ob-rt-grip:not(.ob-rt-xdel){position:absolute;top:0;right:0;bottom:0;width:60px;height:auto;margin:0;border-radius:0 18px 18px 0;color:var(--muted)}
+#onb .ob-rt-grip:not(.ob-rt-xdel) svg{width:26px;height:26px}
+#onb .ob-rt-grip:not(.ob-rt-xdel):active{background:color-mix(in srgb,var(--chalk) 6%,transparent);cursor:grabbing}
+#onb .ob-rt-grip:focus-visible{outline:2px solid var(--accent);outline-offset:-4px}
+/* v4.6.384: a rest day in the order */
+#onb .ob-rt-rest{background:transparent;box-shadow:none;border:1.5px dashed var(--line)}
+#onb .ob-rt-rest .ob-rt-head b{color:var(--muted)}
+#onb .ob-rt-rest.ob-drop{border-color:var(--line);background:transparent;transform:none}
+#onb .ob-rt-restnote{margin:0 0 0 44px;font:400 13px/1.35 var(--body);color:var(--faint)}
+#onb .ob-rt-adds{display:flex;justify-content:center;gap:4px;flex-wrap:wrap}
+#onb .ob-rt-lift.ob-rt-rest{background:var(--bg)}

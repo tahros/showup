@@ -178,7 +178,14 @@ function onbDayOrder(){return onbF.weekStart==='monday'?[1,2,3,4,5,6,0]:[0,1,2,3
 function onbDayLab(i){return 'Day '+(i+1);}
 function onbCardAt(i){return i===-1?onbF.extra:onbF.cards[i];}
 function onbSuggest(){const n=onbF.count;return n<=3?'full':n===4?'ul':'ppl';}
-function onbDaysText(){const n=onbF.cards?onbF.cards.length:onbF.count;return `${n} ${n===1?'day':'days'}${onbF.extra?' + extra':''} · any days`;}
+function onbTrainN(){return onbF.cards?onbF.cards.filter(c=>!c.rest).length:onbF.count;}
+function onbRestN(){return onbF.cards?onbF.cards.filter(c=>c.rest).length:0;}
+function onbDaysText(){const n=onbTrainN(),r=onbRestN();return `${n} ${n===1?'day':'days'}${r?` + ${r} rest`:''}${onbF.extra?' + extra':''} · any days`;}
+/* v4.6.384: A REST DAY IN THE ORDER. Push, Pull, Legs, Rest, Push, Pull, Legs:
+   a rest card sits between sessions and is saved as restAfter (session index
+   -> rest days after it). The day after that session is left open; a day you
+   did not train already counts as the rest, so a missed day never adds one. */
+const ONB_REST=()=>({rest:true,name:'Rest',parts:[]});
 /* v4.6.374: a session's title is what is in it. A set that is one of the
    splits keeps that split's name (Push, Upper, Full body); anything else reads
    its body parts ("Chest + Back"), with Cardio in front when it is there. */
@@ -191,7 +198,7 @@ function onbSesNamed(parts){
 }
 function onbSesTemplate(parts){const lifts=parts.filter(t=>t!=='Run'),key=x=>x.slice().sort().join(),cur=onbF&&onbF.template;   /* the template you are in names first: Legs + Core is Legs in Push / Pull / Legs, Lower in Upper / Lower */
   for(const z of [...PF_SPLITS.filter(x=>x[0]===cur),...PF_SPLITS.filter(x=>x[0]!==cur)])if(z[3])for(const [n,ps] of z[3])if(key(ps)===key(lifts))return n;return '';}
-function onbRename(){for(const c of onbF.cards)c.name=onbSesNamed(c.parts);if(onbF.extra)onbF.extra.name=onbSesNamed(onbF.extra.parts);}
+function onbRename(){for(const c of onbF.cards)if(!c.rest)c.name=onbSesNamed(c.parts);if(onbF.extra)onbF.extra.name=onbSesNamed(onbF.extra.parts);}
 /* the sessions a template makes for n days: its own sessions in turn, one per training day */
 function onbCards(k,n){
   n=Math.max(1,n);
@@ -217,6 +224,7 @@ function onbRoutineReady(){   // the arrangement when Basics hands over: suggest
 function onbSnap(){onbF.hist.push(JSON.stringify({template:onbF.template,cards:onbF.cards,edited:onbF.edited,count:onbF.count,extra:onbF.extra}));if(onbF.hist.length>12)onbF.hist.shift();}
 function onbSay(t){onbF.notice=t;const l=document.getElementById('onbLive');if(l)l.textContent=t;}
 function onbPut(part,to,from){const c=onbCardAt(to);if(!c||from===to)return;
+  if(c.rest){onbSay('A rest day stays empty.');onbRender();return;}
   if(c.parts.includes(part)){onbSay(partLabel(part)+' is already in '+c.name+'.');onbRender();return;}
   onbSnap();if(part==='Run')c.parts.unshift(part);else c.parts.push(part);
   if(from!=null&&onbCardAt(from))onbCardAt(from).parts=onbCardAt(from).parts.filter(p=>p!==part);
@@ -237,7 +245,10 @@ function onbFreshApply(){
   DB.settings.myParts=[...BODY_PARTS.filter(p=>used.has(p)||!onbF.edited),...(used.has('Run')?['Run']:[])];
   DB.settings.objective=onbF.goal;DB.settings.weekStart=onbF.weekStart;DB.settings.onbRoutine=todayISO;
   const prev=DB.settings.plannerPreferences||{};
-  DB.settings.plannerPreferences={...prev,frequency:onbF.cards.length,trainDays:[],rotation:rot,extra:onbF.extra&&onbF.extra.parts.length?{name:onbSesTemplate(onbF.extra.parts),parts:onbF.extra.parts.slice()}:null,orderMode:'own',avoid:prev.avoid||[]};
+  const restAfter={};let si=-1;   // rests counted against the sessions that are kept (filled ones)
+  for(const c of onbF.cards){if(c.rest){const at=si<0?'last':si;restAfter[at]=(restAfter[at]||0)+1;}else if(c.parts.length)si++;}
+  if(restAfter.last){restAfter[si]=(restAfter[si]||0)+restAfter.last;delete restAfter.last;}
+  DB.settings.plannerPreferences={...prev,frequency:onbTrainN(),trainDays:[],rotation:rot,restAfter:Object.keys(restAfter).length?restAfter:null,extra:onbF.extra&&onbF.extra.parts.length?{name:onbSesTemplate(onbF.extra.parts),parts:onbF.extra.parts.slice()}:null,orderMode:'own',avoid:prev.avoid||[]};
   const text=(T.cardio?'Run — by feel\n':'')+T.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n');
   try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan){ DB.plan.title=T.name; DB.plan.auto='routine'; } DB.settings.routineAutoAt=todayISO; DB.settings.routineWrote={[todayISO]:text}; DB.settings.routineAuto=true; }catch(e){}
   if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
@@ -318,20 +329,23 @@ function onbRender(){
   }else if(onbStep==='routine'){
     const t=ONB_TPLS.find(x=>x[0]===onbF.template)||ONB_TPLS[0],E=onbF.edit,sel=onbF.sel,X=icon('close',ICON_SZ.sm),GR=icon('grip',ICON_SZ.sm);
     const chip=(p,i)=>E?`<button type="button" class="pf-rot-tag ob-rt-chip${p==='Run'?' cardio':''}" data-rtdrag="${p}" data-rtfrom="${i}" data-onbact="frm" data-v="${i}" data-p="${p}" aria-label="Remove ${hesc(partLabel(p))} from ${hesc(onbCardAt(i).name)}; drag to move">${hesc(partLabel(p))}${X}</button>`:`<span class="pf-rot-tag${p==='Run'?' cardio':''}">${hesc(partLabel(p))}</span>`;
-    const cards=onbF.cards.map((c,i)=>`<section class="ob-rt-ses" data-rtcard="${i}" aria-label="${onbDayLab(i)}, ${hesc(c.name)}"><div class="ob-rt-head"><span class="ob-rt-day">${onbDayLab(i)}</span><b>${hesc(c.name)}</b><button type="button" class="ob-rt-grip" data-rthandle="${i}" data-onbact="fmenu" data-v="${i}" aria-label="Move ${hesc(c.name)}. Drag, or choose up or down." aria-expanded="${onbF.menu===i}">${GR}</button></div>
+    const restCard=(c,i)=>`<section class="ob-rt-ses ob-rt-rest" data-rtcard="${i}" aria-label="${onbDayLab(i)}, rest day"><div class="ob-rt-head"><span class="ob-rt-day">${onbDayLab(i)}</span><b>Rest</b><button type="button" class="ob-rt-grip" data-rthandle="${i}" data-onbact="fmenu" data-v="${i}" aria-label="Move the rest day. Drag, or choose up or down." aria-expanded="${onbF.menu===i}">${GR}</button></div>
+      <p class="ob-rt-restnote">A day off. Nothing to log.</p>
+      ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button><button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}">Remove rest day</button></div>`:''}</section>`;
+    const cards=onbF.cards.map((c,i)=>c.rest?restCard(c,i):`<section class="ob-rt-ses" data-rtcard="${i}" aria-label="${onbDayLab(i)}, ${hesc(c.name)}"><div class="ob-rt-head"><span class="ob-rt-day">${onbDayLab(i)}</span><b>${hesc(c.name)}</b><button type="button" class="ob-rt-grip" data-rthandle="${i}" data-onbact="fmenu" data-v="${i}" aria-label="Move ${hesc(c.name)}. Drag, or choose up or down." aria-expanded="${onbF.menu===i}">${GR}</button></div>
       <div class="ob-rt-chips">${(E?c.parts:c.parts.slice(0,3)).map(p=>chip(p,i)).join('')}${!E&&c.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${c.parts.length-3}</button>`:''}${!c.parts.length?'<em>Drop body parts here</em>':''}</div>
       ${sel&&!c.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="${i}">+ Add ${hesc(partLabel(sel))}</button>`:''}
-      ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button><button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}" ${onbF.cards.length<=1?'disabled':''}>Remove day</button></div>`:''}</section>`).join('');
+      ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button><button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}" ${onbTrainN()<=1?'disabled':''}>Remove day</button></div>`:''}</section>`).join('');
     const XC=onbF.extra,xcard=XC?`<section class="ob-rt-ses ob-rt-extra" data-rtcard="-1" aria-label="Extra day, ${hesc(XC.name)}"><div class="ob-rt-head"><span class="ob-rt-day">Extra</span><b>${hesc(XC.name)}</b><button type="button" class="ob-rt-grip ob-rt-xdel" data-onbact="fdropx" aria-label="Remove the extra day">${X}</button></div>
       <div class="ob-rt-chips">${(E?XC.parts:XC.parts.slice(0,3)).map(p=>chip(p,-1)).join('')}${!E&&XC.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${XC.parts.length-3}</button>`:''}${!XC.parts.length?'<em>Drop body parts here</em>':''}</div>
       ${sel&&!XC.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="-1">+ Add ${hesc(partLabel(sel))}</button>`:''}
-      <p class="ob-rt-xnote">Optional. Offered once your ${onbF.cards.length} days are done.</p></section>`:`<button type="button" class="ob-rt-addses ob-rt-addx" data-onbact="faddx">+ Add an extra day</button>`;
+      <p class="ob-rt-xnote">Optional. Offered once your ${onbTrainN()} days are done.</p></section>`:`<button type="button" class="ob-rt-addses ob-rt-addx" data-onbact="faddx">+ Add an extra day</button>`;
     b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>
       <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${hesc(t[1])}</b><span>${onbDaysText()}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">Change</button></div>
       ${E?`<div class="ob-rt-tray"><div class="ob-rt-tray-h"><b>Add a body part</b><button type="button" class="ob-rt-link" data-onbact="fdone">Done</button></div><p>Drag onto a session, or tap a chip, then a session.</p><div class="ob-rt-chips">${ONB_TRAY.map((p,k)=>`<button type="button" style="--k:${k}" class="pf-pal-chip ob-rt-pool${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}">${hesc(partLabel(p))}</button>`).join('')}</div></div>`
         :`<div class="ob-rt-bar"><span>Your sessions</span><button type="button" class="ob-rt-link" data-onbact="fcustom">Customize</button></div>`}
       <div class="ob-rt-list">${cards}</div>
-      ${onbF.cards.length<7?`<button type="button" class="ob-rt-addses" data-onbact="faddses">+ Add a day</button>`:''}
+      ${onbF.cards.length<7?`<div class="ob-rt-adds"><button type="button" class="ob-rt-addses" data-onbact="faddses">+ Add a day</button>${onbTrainN()>=2?`<button type="button" class="ob-rt-addses ob-rt-addrest" data-onbact="faddrest">+ Add a rest day</button>`:''}</div>`:''}
       <div class="ob-rt-bar ob-rt-xbar"><span>When you have time</span></div>
       ${xcard}
       <div class="ob-rt-feed"><span>${hesc(onbF.notice)}</span>${onbF.hist.length?`<button type="button" class="ob-rt-link" data-onbact="fundo">Undo</button>`:''}</div>
@@ -578,13 +592,19 @@ document.addEventListener('click',e=>{
   else if(act==='faddses'){ const n=onbF.cards.length; if(n>=7)return; onbSnap();
     /* an untouched template grows the way it would have been made for one more day; anything you arranged gets an empty day to fill */
     if(!onbF.edited&&onbF.template!=='own')onbF.cards=onbCards(onbF.template,n+1); else { onbF.cards.push({name:'Empty session',parts:[]}); onbF.edit=true; }
-    onbF.count=onbF.cards.length; onbF.sel=null; onbF.menu=-1; onbSay(onbDayLab(n)+' added. '+onbF.cards.length+' days a week.'); onbRender(); }
-  else if(act==='fdrop'){ const i=+a.dataset.v,n=onbF.cards.length; if(n<=1)return; onbSnap(); const gone=onbF.cards[i];
-    if(!onbF.edited&&onbF.template!=='own')onbF.cards=onbCards(onbF.template,n-1); else onbF.cards.splice(i,1);
-    onbF.count=onbF.cards.length; onbF.menu=-1; onbSay((gone?gone.name+' removed. ':'')+onbF.cards.length+' days a week.'); onbRender(); }
+    onbF.count=onbTrainN(); onbF.sel=null; onbF.menu=-1; onbSay(onbDayLab(n)+' added. '+onbTrainN()+' days a week.'); onbRender(); }
+  else if(act==='faddrest'){ const n=onbF.cards.length,t=onbTrainN(); if(n>=7||t<2)return; onbSnap();
+    /* it goes where a rest usually sits: halfway through the order (Push, Pull, Legs, Rest, Push, Pull, Legs); drag it anywhere */
+    let seen=0,pos=n;for(let i=0;i<n;i++){if(!onbF.cards[i].rest)seen++;if(seen===Math.ceil(t/2)){pos=i+1;break;}}
+    onbF.cards.splice(pos,0,ONB_REST()); onbF.edited=true; onbF.sel=null; onbF.menu=-1;
+    onbSay('Rest day added after '+(onbF.cards[pos-1]?.name||'the last session')+'. Drag it anywhere.'); onbRender();
+    const el=document.querySelector(`#onb [data-rtcard="${pos}"]`);if(el){el.classList.remove('ob-settle');void el.offsetWidth;el.classList.add('ob-settle');} }
+  else if(act==='fdrop'){ const i=+a.dataset.v,n=onbF.cards.length,gone=onbF.cards[i]; if(!gone||(!gone.rest&&onbTrainN()<=1))return; onbSnap();
+    if(!gone.rest&&!onbF.edited&&onbF.template!=='own')onbF.cards=onbCards(onbF.template,n-1); else onbF.cards.splice(i,1);
+    onbF.count=onbTrainN(); onbF.menu=-1; onbSay(gone.rest?'Rest day removed.':(gone.name+' removed. '+onbTrainN()+' days a week.')); onbRender(); }
   else if(act==='faddx'){ onbSnap(); onbF.extra={name:'',parts:['Biceps','Triceps']}; onbRename(); onbSay('Extra day added. It never takes a main day\'s place.'); onbRender(); }
   else if(act==='fdropx'){ onbSnap(); onbF.extra=null; onbSay('Extra day removed.'); onbRender(); }
-  else if(act==='fsave'){ if(onbF.cards.some(c=>!c.parts.length)||(onbF.extra&&!onbF.extra.parts.length)){ onbSay('Add a body part to each empty session first.'); onbRender(); return; } if(onbF.edited&&onbF.template!=='own') onbF.template=onbF.template; onbPathFinish(); }
+  else if(act==='fsave'){ if(onbF.cards.some(c=>!c.rest&&!c.parts.length)||(onbF.extra&&!onbF.extra.parts.length)){ onbSay('Add a body part to each empty session first.'); onbRender(); return; } if(onbF.edited&&onbF.template!=='own') onbF.template=onbF.template; onbPathFinish(); }
   else if(act==='toCrew'){ onbGo('crew'); }
   else if(act==='notnow'){ onbBw=''; onbGo('crew'); }
   else if(act==='look'){ onbFinish(false,'look'); }
@@ -691,6 +711,8 @@ function rtFreq(){return Math.max(0,Math.min(7,+(DB.settings.plannerPreferences|
    each day until the week has its number, then the Extra once, then rest */
 function rtFlex(){return !rtTrainDays().length&&rtFreq()>0;}
 function rtExtra(){const x=(DB.settings.plannerPreferences||{}).extra;return x&&x.parts&&x.parts.length?x:null;}
+function rtRests(n){const r=(DB.settings.plannerPreferences||{}).restAfter;if(!r||typeof r!=='object')return null;const o={};let any=0;for(const [k,v] of Object.entries(r)){const i=+k;if(Number.isInteger(i)&&i>=0&&i<n&&v>0){o[i]=Math.min(3,v|0);any=1;}}return any?o:null;}
+function rtIdx(){const s=DB.settings;if(!s.routineIdx||typeof s.routineIdx!=='object')s.routineIdx={};return s.routineIdx;}
 function rtKinds(){const s=DB.settings;if(!s.routineKinds||typeof s.routineKinds!=='object')s.routineKinds={};return s.routineKinds;}
 function rtWeekOf(d){const t=new Date(d+'T12:00'),off=(t.getDay()-(DB.settings.weekStart==='monday'?1:0)+7)%7;t.setDate(t.getDate()-off);return t.toLocaleDateString('en-CA');}
 function rtOn(){return DB.settings.routineAuto===true&&!!rtSessions()&&(rtTrainDays().length>0||rtFlex());}
@@ -741,27 +763,39 @@ function rtPut(d,x,text,kind){
 function rtDrop(d){if(DB.week?.days)delete DB.week.days[d];if(DB.plan?.d===d)DB.plan=null;delete rtWrote()[d];delete rtKinds()[d];}
 function rtSyncWeek(o={}){
   if(!rtOn())return false;const ses=rtSessions();if(!ses)return false;
-  const days=rtTrainDays(),wrote=rtWrote(),before=JSON.stringify([DB.week,DB.plan,wrote,rtKinds()]);
+  const days=rtTrainDays(),wrote=rtWrote(),before=JSON.stringify([DB.week,DB.plan,wrote,rtKinds(),DB.settings.routineIdx||null]);
   /* the days behind you: a routine day you never touched or trained leaves the plan */
   for(const d of Object.keys(wrote))if(d<todayISO){if(rtOwn(d)==='auto'&&!rtTrained(d)&&DB.week?.days)delete DB.week.days[d];delete wrote[d];}
   for(const d of Object.keys(rtKinds()))if(d<todayISO)delete rtKinds()[d];
   const flex=rtFlex(),N=rtFreq(),XS=rtExtra(),cnt={},xUsed={};
   if(flex){const w0=rtWeekOf(todayISO);let n=0;for(let x=w0;x<todayISO;x=rtAddDays(x,1))if(rtTrained(x))n++;cnt[w0]=n;}
   let k=pfRotNext(ses);
+  /* v4.6.384: rest days in the order. owed = rest days still due after the session last trained;
+     each day since then that you did not train has already paid one */
+  const RA=flex?rtRests(ses.length):null,after=j=>RA?(RA[((j%ses.length)+ses.length)%ses.length]||0):0;let owed=0;
+  const n=ses.length,IX=RA?rtIdx():null,mark=(d,j)=>{if(IX)IX[d]=((j%n)+n)%n;};
+  if(RA){const last=Object.keys(DB.days).filter(x=>x<=todayISO&&rtTrained(x)).sort().at(-1);
+    /* Push, Pull, Legs, Rest, Push, Pull, Legs has two of each: the log alone cannot tell which Legs
+       was last, so the turn each written day took is kept, and the last trained day says where you are */
+    if(last&&IX[last]!=null)k=(IX[last]+1)%n;
+    for(const d of Object.keys(IX))if(d<(last||todayISO))delete IX[d];
+    if(last){owed=after(k-1);if(last<todayISO)owed=Math.max(0,owed-(Math.round((new Date(todayISO+'T12:00')-new Date(last+'T12:00'))/864e5)-1));}}
   for(let i=0;i<7;i++){const d=rtAddDays(todayISO,i),dow=new Date(d+'T12:00').getDay(),st=rtOwn(d),wk=rtWeekOf(d);cnt[wk]=cnt[wk]||0;
     if(i===0&&rtTrained(d)){cnt[wk]++;continue;}            // logged: frozen, and already counted in the order
-    if(st==='saved'){k++;cnt[wk]++;continue;}               // yours: takes its turn
+    if(st==='saved'){mark(d,k);k++;cnt[wk]++;owed=after(k-1);continue;}               // yours: takes its turn
     if(st==='gone')continue;                                // you removed it: stepped round
-    if(i===0&&st==='auto'&&!o.today&&DB.settings.routineAutoAt===todayISO){if(rtKinds()[d]==='extra')xUsed[wk]=1;else{k++;cnt[wk]++;}continue;}   // this morning's session, once written today, stays as written
+    if(i===0&&st==='auto'&&!o.today&&DB.settings.routineAutoAt===todayISO){if(rtKinds()[d]==='extra')xUsed[wk]=1;else{if(IX&&IX[d]==null)mark(d,k);k++;cnt[wk]++;owed=after(k-1);}continue;}   // this morning's session, once written today, stays as written
+    if(flex&&owed>0){owed--;if(st==='auto')rtDrop(d);rtKinds()[d]='rest';continue;}   // a rest day in your order
+    if(rtKinds()[d]==='rest')delete rtKinds()[d];
     let x,kind='main';
-    if(flex){if(cnt[wk]<N){x=ses[k%ses.length];k++;cnt[wk]++;}else if(XS&&!xUsed[wk]){x=XS;kind='extra';xUsed[wk]=1;}else{if(st==='auto')rtDrop(d);continue;}}
+    if(flex){if(cnt[wk]<N){x=ses[k%ses.length];mark(d,k);k++;cnt[wk]++;owed=after(k-1);}else if(XS&&!xUsed[wk]){x=XS;kind='extra';xUsed[wk]=1;}else{if(st==='auto')rtDrop(d);continue;}}
     else{if(!days.includes(dow)){if(st==='auto')rtDrop(d);continue;}x=ses[k%ses.length];k++;}
     const text=rtDayText(x);if(!text)continue;
     const cur=st==='auto'?pwSaved(d):null,title=kind==='extra'?'Extra · '+rtName(x):rtName(x);
     if(!cur||cur.raw!==text||(DB.week?.days?.[d]?.title||'')!==title||(rtKinds()[d]||'main')!==kind)rtPut(d,x,text,kind);}
   if(DB.week?.days){const all=Object.keys(DB.week.days).sort();if(all.length){DB.week.from=all[0];DB.week.to=all.at(-1);DB.week.raw=DB.week.raw||'';}else DB.week=null;}
   const fresh=DB.settings.routineAutoAt!==todayISO;DB.settings.routineAutoAt=todayISO;
-  if(JSON.stringify([DB.week,DB.plan,wrote,rtKinds()])===before){if(fresh)save(true);return false;}
+  if(JSON.stringify([DB.week,DB.plan,wrote,rtKinds(),DB.settings.routineIdx||null])===before){if(fresh)save(true);return false;}
   DB.weekAt=DB.planAt=Date.now();
   if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;
 }
@@ -798,11 +832,12 @@ function focusedTodayHTML(){
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const parts=items.length?(now?.title&&now.d===todayISO?now.title:pwParts(pwRead(planText(now))).map(partLabel).join(' + ')):'';   // v4.6.372: a session made from a template keeps its name
-  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${(typeof companionHTML==='function'&&companionHTML('su-hello-comp'))||mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
+  const restToday=!items.length&&rtOn()&&rtKinds()[todayISO]==='rest'&&!rtTrained(todayISO);   // v4.6.384
+  let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${(typeof companionHTML==='function'&&companionHTML('su-hello-comp'))||mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${restToday?'Rest day.':fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details>${todayFirstHTML(items)}`;
   }else{const setup=!future.length&&rtNeedsSetup();   // v4.6.384: no routine and nothing planned -- offer the routine setup, under the one set
-    h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh&&!setup?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>${setup?`<button type="button" class="today-routine" data-routine-setup><span>Want a routine? <b>Set one up in a minute</b></span>${icon('arrowR',ICON_SZ.sm)}</button>`:''}`;}
+    h+=`<p class="today-focus-copy">${restToday?'Your routine has today off. Train anyway if you like.':`Choose an exercise and log what you do.${fresh&&!setup?' No plan needed.':''}`}</p><button class="btn${restToday?' ghost':''}" id="goLift">Choose exercise →</button>${setup?`<button type="button" class="today-routine" data-routine-setup><span>Want a routine? <b>Set one up in a minute</b></span>${icon('arrowR',ICON_SZ.sm)}</button>`:''}`;}
   /* v4.6.287: "Just looking around" -- sample data lives here now, not on the first screen */
   const sampleLink=fresh&&DB.settings.lookAround&&!DB.settings.demo?`<button type="button" class="today-sample" data-onbact="demo">See it with sample data</button>`:'';
   h+='</div>';
