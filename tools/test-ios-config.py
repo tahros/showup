@@ -140,7 +140,8 @@ class KeepCustomCode { let untouched = true }
         self.assertEqual(pl["CFBundleDisplayName"], "ShowUppp")                                          # v4.6.231
         self.assertTrue(pl["NSHealthUpdateUsageDescription"].startswith("ShowUppp "))
         self.assertIn("never reads", pl["NSHealthUpdateUsageDescription"])
-        self.assertNotIn("NSHealthShareUsageDescription", pl)
+        self.assertTrue(pl["NSHealthShareUsageDescription"].startswith("ShowUppp does not read your Health data"))  # v4.6.385, ITMS-90683
+        self.assertIs(pl["ITSAppUsesNonExemptEncryption"], False)
         ent = plistlib.loads((self.root / "ios/App" / ent_rel).read_bytes())
         self.assertIs(ent["com.apple.developer.healthkit"], True)
         self.assertEqual(ent["com.apple.developer.healthkit.access"], [])

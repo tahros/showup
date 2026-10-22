@@ -155,3 +155,77 @@ create table if not exists public.apple_tokens (
   updated_at    timestamptz not null default now()
 );
 alter table public.apple_tokens enable row level security;
+
+-- ============================================================================
+-- v4.6.385 — membership (App Store runbook 9.8; spec 3.1 and 4.4).
+-- Run this section once, like the ones above. Safe to run again.
+--
+-- entitlements: what RevenueCat last said about each ShowUppp account that
+-- bought a membership. Written ONLY by the revenuecat-webhook Edge Function
+-- (service role); an account may read its own row. RevenueCat stays the source
+-- of truth -- the app asks RevenueCat, not this table. sandbox = a TestFlight
+-- purchase, kept apart so test buys never count.
+-- owner_members(): the dashboard's Members section, owner only (is_owner()).
+-- ============================================================================
+create table if not exists public.entitlements (
+  user_id            uuid primary key references auth.users(id) on delete cascade,
+  status             text not null check (status in ('active','grace','expired','cancelled')),
+  source             text not null check (source in ('apple','comp')),
+  plan               text check (plan in ('monthly','yearly')),
+  current_period_end timestamptz,
+  external_id        text,
+  sandbox            boolean not null default false,
+  updated_at         timestamptz not null default now()
+);
+alter table public.entitlements enable row level security;
+drop policy if exists "read own" on public.entitlements;
+create policy "read own" on public.entitlements for select using (auth.uid() = user_id);
+revoke insert, update, delete on public.entitlements from anon, authenticated;
+
+-- Members, for one date range (America/New_York days). Refuses anyone but the owner.
+--   now:      paying members right now (active, grace, or cancelled but paid
+--             through), by plan; MRR estimated at list price before Apple's cut.
+--   range:    new members and cancellations (from events), and per week.
+--   trial:    devices that reached their 20th logged day in the range, and how
+--             many of them subscribed within 14 days of it.
+create or replace function public.owner_members(p_from date, p_to date)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare r jsonb;
+begin
+  if not public.is_owner() then
+    raise exception 'not owner' using errcode = '42501';
+  end if;
+  with paying as (
+    select plan from public.entitlements
+    where source = 'apple' and not sandbox and status in ('active','grace','cancelled')
+      and (current_period_end is null or current_period_end > now())
+  ),
+  ev as (
+    select device_id, name, day_n, at, (at at time zone 'America/New_York')::date as d
+    from public.events where name in ('subscribed','cancelled','day_logged')
+  ),
+  d20 as (select device_id, min(at) as at from ev where name = 'day_logged' and day_n = 20 group by device_id),
+  sub as (select device_id, min(at) as at from ev where name = 'subscribed' group by device_id)
+  select jsonb_build_object(
+    'monthly',  (select count(*) from paying where plan = 'monthly'),
+    'yearly',   (select count(*) from paying where plan = 'yearly'),
+    'mrr',      (select round(coalesce(sum(case plan when 'monthly' then 4.99 when 'yearly' then 29.99/12 else 0 end),0)::numeric, 2) from paying),
+    'grace',    (select count(*) from public.entitlements where source='apple' and not sandbox and status='grace' and (current_period_end is null or current_period_end > now())),
+    'new',      (select count(*) from ev where name = 'subscribed' and d between p_from and p_to),
+    'cancelled',(select count(*) from ev where name = 'cancelled'  and d between p_from and p_to),
+    'weeks',    coalesce((select jsonb_agg(w order by w->>'week') from (
+                  select jsonb_build_object('week', date_trunc('week', d)::date,
+                    'new', count(*) filter (where name='subscribed'),
+                    'cancelled', count(*) filter (where name='cancelled')) as w
+                  from ev where name in ('subscribed','cancelled') and d between p_from and p_to
+                  group by date_trunc('week', d)) t), '[]'::jsonb),
+    'reached20', (select count(*) from d20 where (at at time zone 'America/New_York')::date between p_from and p_to),
+    'converted', (select count(*) from d20 join sub using (device_id)
+                  where (d20.at at time zone 'America/New_York')::date between p_from and p_to
+                    and sub.at between d20.at - interval '1 day' and d20.at + interval '14 days')
+  ) into r;
+  return r;
+end $$;
+revoke all on function public.owner_members(date, date) from public, anon;
+grant execute on function public.owner_members(date, date) to authenticated;

@@ -1,5 +1,5 @@
 # v3.3.401: deploys ShowUp's Edge Functions whenever they change on main:
-# the session writer, plus (v4.6.113) delete-account and (v4.6.142) track, which need no secrets of
+# the session writer, plus (v4.6.113) delete-account, (v4.6.142) track and (v4.6.385) revenuecat-webhook. Most need no secrets of
 # its own -- Supabase gives every function its URL, anon and service keys. Secrets live in the repo's settings
 # (SUPABASE_ACCESS_TOKEN, ANTHROPIC_API_KEY, ANTHROPIC_WORKSPACE_ID) and are
 # pushed to the function's environment; nothing is written into the tree.
@@ -24,6 +24,16 @@ jobs:
       - run: supabase functions deploy track --project-ref "$REF"
       - run: supabase functions deploy day-context --project-ref "$REF"
       - run: supabase functions deploy apple-link --project-ref "$REF"
+      # v4.6.385: RevenueCat -> entitlements + subscribed/cancelled events. RevenueCat cannot
+      # send a Supabase token, so the gateway's JWT check is off; the function checks its own
+      # Authorization header against REVENUECAT_WEBHOOK_AUTH and writes nothing without it.
+      - run: supabase functions deploy revenuecat-webhook --no-verify-jwt --project-ref "$REF"
+      - env:
+          REVENUECAT_WEBHOOK_AUTH: ${{ secrets.REVENUECAT_WEBHOOK_AUTH }}
+        run: |
+          if [ -n "$REVENUECAT_WEBHOOK_AUTH" ]; then
+            supabase secrets set REVENUECAT_WEBHOOK_AUTH="$REVENUECAT_WEBHOOK_AUTH" --project-ref "$REF"
+          fi
       # v4.6.145: Sign in with Apple token revocation. Pushed only once the repo has
       # the secrets (from the paid developer account's key); until then the two
       # functions skip Apple quietly.

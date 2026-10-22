@@ -149,6 +149,14 @@ async function ownerLoad(){
       body:JSON.stringify({p_from:from,p_to:to,p_ref:_o.ref||null})});
     if(!r.ok){ _o.err=r.status===404?'The metrics SQL is not in the database yet (supabase-setup.sql, v4.6.142 section).':'Could not load ('+r.status+').'; _o.data=null; return; }
     _o.data=await r.json();
+    /* v4.6.385: members, from the RevenueCat webhook's tables (supabase-setup.sql, v4.6.385 section) */
+    _o.members=null;
+    try{
+      const m=await fetch(url+'/rest/v1/rpc/owner_members',{method:'POST',
+        headers:{apikey:anon,Authorization:'Bearer '+tok,'Content-Type':'application/json'},
+        body:JSON.stringify({p_from:from,p_to:to})});
+      _o.members=m.ok?await m.json():{missing:m.status===404};
+    }catch(_e){ _o.members=null; }
   }catch(e){ _o.err='Offline. The numbers load when you are back online.'; }
 }
 async function ownerOpen(){
@@ -198,7 +206,19 @@ function ownerHTML(loading){
     <p class="o-note">Writer calls: ${oN(sum('writer'))} · Exports: ${oN(sum('exports'))}</p>
     <details class="o-table"><summary>Table</summary><table><thead><tr><th>Day</th><th>Opens</th><th>Loggers</th><th>First sets</th><th>Day 2s</th><th>Paywall</th><th>Members</th><th>Writer</th></tr></thead><tbody>${
       days.map(x=>`<tr><td>${x.d}</td><td>${oN(x.opens)}</td><td>${oN(x.loggers)}</td><td>${oN(x.first_sets)}</td><td>${oN(x.day2)}</td><td>${oN(x.paywall)}</td><td>${oN(x.subscribed)}</td><td>${oN(x.writer)}</td></tr>`).join('')||'<tr><td colspan="8">No events yet</td></tr>'}</tbody></table></details>
-    <h3>Members</h3><p class="o-note">Appears with in-app purchase (runbook 9.8). Revenue truth stays in App Store Connect and RevenueCat.</p>`;
+    <h3>Members <small>App Store, sandbox left out</small></h3>${ownerMembers(_o.members)}`;
+}
+/* v4.6.385: the Members section. Counts, not charts: the numbers are small for a long while. */
+function ownerMembers(m){
+  if(!m) return '<p class="o-note">Members did not load.</p>';
+  if(m.missing) return '<p class="o-note">The members SQL is not in the database yet (supabase-setup.sql, v4.6.385 section).</p>';
+  const now=(+m.monthly||0)+(+m.yearly||0), conv=+m.reached20?Math.round((+m.converted||0)/(+m.reached20)*100)+'%':'–';
+  const tiles=[['Members now',now],['Yearly',m.yearly],['Monthly',m.monthly],['MRR (est.)','$'+Number(m.mrr||0).toFixed(2)],
+    ['New in range',m.new],['Cancelled in range',m.cancelled]];
+  const weeks=(m.weeks||[]).map(x=>`<tr><td>${hesc(String(x.week))}</td><td>${oN(x.new)}</td><td>${oN(x.cancelled)}</td></tr>`).join('');
+  return `<div class="o-tiles">${tiles.map(([l,v])=>`<div class="o-tile"><b>${typeof v==='string'?hesc(v):oN(v)}</b><span>${l}</span></div>`).join('')}</div>
+    <p class="o-note">Trial to member: ${oN(m.converted)} of ${oN(m.reached20)} devices that reached day 20 in range subscribed within 14 days (${conv}).${+m.grace?` ${oN(m.grace)} in a billing grace period.`:''} MRR is at list price before Apple’s cut. Revenue truth stays in App Store Connect and RevenueCat.</p>
+    ${weeks?`<details class="o-table"><summary>By week</summary><table><thead><tr><th>Week of</th><th>New</th><th>Cancelled</th></tr></thead><tbody>${weeks}</tbody></table></details>`:''}`;
 }
 /* one series, one hue: loggers per day, every day in the range drawn (a gap is a zero) */
 function ownerChart(days,from,to){

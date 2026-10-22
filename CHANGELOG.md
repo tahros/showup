@@ -1,5 +1,16 @@
 # ShowUppp — changelog
 
+## v4.6.385 (2026-10-22) — The membership goes on sale in the iPhone app
+
+- **The paywall is on in the iPhone app, off on the web.** After 20 logged days, a new day and the session writer need membership, bought through the App Store (Yearly $29.99, Monthly $4.99; the paywall shows the App Store's price in your own currency once it loads). The web stays the free try-it app: it has no way to pay. Founding members (anyone who logged before launch) stay free for good; founding is marked until 2026-11-15 (`FOUNDING_UNTIL`), then nobody new.
+- **Buying, restoring, managing.** Continue opens Apple's purchase sheet (RevenueCat, `@revenuecat/purchases-capacitor`); a purchase plays the existing coin welcome. Cancelling the sheet is quiet; a failure says nothing was charged. Restore purchases finds the Apple ID's membership. Change plan, Cancel and Apple subscriptions open Apple's own subscription screen. A membership follows your account to another iPhone once you are signed in; buying does not need an account.
+- **Offline and renewals.** The app mirrors RevenueCat's answer into the same entitlement record every gate already reads, with the 7-day offline grace. It checks again on launch, when you come back to the app, and when you sign in or out. A billing issue keeps you a member (grace); a cancelled plan stays active to the end of what you paid for.
+- **Subscription numbers for the owner.** New Edge Function `revenuecat-webhook` (RevenueCat → `entitlements` table + `subscribed`/`cancelled` events; TestFlight purchases kept out of the counts). The owner dashboard's Members section shows members now by plan, estimated MRR, new and cancelled in range, by week, and trial-to-member conversion (day 20 → subscribed within 14 days). Setup: run the v4.6.385 section of supabase-setup.sql once; add the repo secret `REVENUECAT_WEBHOOK_AUTH` and the same value as the webhook's Authorization header in RevenueCat.
+- **iOS build fixes found on the first App Store upload.** The HealthKit read purpose string App Store Connect requires (ITMS-90683) — it says ShowUppp does not read Health data; the app still asks for write only. `ITSAppUsesNonExemptEncryption = false`, so uploads skip the encryption question. Sign in with Apple is on (`ios-flags.json`), now that the paid developer account exists.
+- privacy.html: the membership section names the device ID RevenueCat receives and the copy of the status our server keeps.
+- New native plugin: the iPhone app needs a rebuild (1.0 build 2) before it takes this update; older builds keep the previous version.
+- Tests: test-membership-store.js and test-revenuecat.js (new); test-ios-config.py, test-metrics-sql.js and buildcheck follow.
+
 ## v4.6.384 (2026-10-22) — Choose your Google account; sign-in opens the app; Week on Every part
 
 - **Google sign-in always asks which account.** The sign-in sheet shares Safari's cookies, so with one Google account signed in Google answered at once and the sheet closed before you could choose. The sign-in link now carries `prompt=select_account`, in the iOS app and on the web.

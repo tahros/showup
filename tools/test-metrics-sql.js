@@ -15,6 +15,7 @@ const section=sql.slice(sql.indexOf('-- v4.6.142 — usage metrics'));
 const db=new PGlite();
 await db.exec(`create role anon; create role authenticated;
  create schema auth; create table auth.users(id uuid primary key);
+ create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::jsonb->>'sub','')::uuid $$;
  create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true),''),'{}')::jsonb $$;`);
 await db.exec(section);
 const as=async(claims)=>db.exec(`select set_config('request.jwt.claims', '${JSON.stringify(claims)}', false)`);

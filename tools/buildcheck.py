@@ -623,6 +623,19 @@ for _fnf in ("write-session", "delete-account"):
     _ff = d/f"supabase/functions/{_fnf}/index.ts"
     if _ff.exists() and "capacitor://localhost" not in _ff.read_text():
         fail.append(f"supabase/functions/{_fnf} does not allow the iOS app's origin (capacitor://localhost) -- every call from the app fails CORS (v4.6.113)")
+# v4.6.385: the membership. The app ships RevenueCat's PUBLIC key only; the webhook is deployed
+# without the gateway's JWT check (RevenueCat cannot send one) and checks its own secret.
+_mbs = (d/"js/membership.js").read_text()
+if re.search(r"\b(sk|strp|rcsk)_[A-Za-z0-9]{8,}", _mbs) or "RC_API_KEY='appl_" not in _mbs:
+    fail.append("js/membership.js must carry RevenueCat's public appl_ key and no secret key (v4.6.385)")
+_dfy = (d/".github/workflows/deploy-fn.yml").read_text()
+if "functions deploy revenuecat-webhook --no-verify-jwt" not in _dfy:
+    fail.append("deploy-fn.yml must deploy revenuecat-webhook with --no-verify-jwt -- RevenueCat's calls would all be refused (v4.6.385)")
+_rcw = d/"supabase/functions/revenuecat-webhook/index.ts"
+if not _rcw.exists() or "REVENUECAT_WEBHOOK_AUTH" not in _rcw.read_text() or 'return out(401' not in _rcw.read_text():
+    fail.append("revenuecat-webhook must check its Authorization header against REVENUECAT_WEBHOOK_AUTH (v4.6.385)")
+if "paywallOn()" not in _mbs or "FOUNDING_UNTIL" not in _mbs:
+    fail.append("js/membership.js: the paywall is on in the iOS app only (paywallOn) and founding closes on FOUNDING_UNTIL (v4.6.385)")
 if "functions deploy delete-account" not in (d/".github/workflows/deploy-fn.yml").read_text():
     fail.append("deploy-fn.yml no longer deploys delete-account -- the button would answer 404 (v4.6.113)")
 if not _re.search(r"async function signOut\(\)\{.*?await forgetDevice\(\)", _core, _re.S) or \
@@ -685,8 +698,8 @@ if "webView?.scrollView.bounces = true" not in (d/"tools/ios-config.py").read_te
 # read, the only purpose string is the update one, and the web side keeps its
 # switch on the device (never in synced settings).
 _ioc = (d/"tools/ios-config.py").read_text()
-if "requestAuthorization(toShare: shareTypes, read: nil)" not in _ioc or re.search(r"read:\s*\[|HKSampleQuery|HKStatisticsQuery|NSHealthShareUsageDescription\"\]\s*=", _ioc):
-    fail.append("Apple Health must stay write-only: share permission only, read: nil, no queries, no read purpose string (v4.6.132)")
+if "requestAuthorization(toShare: shareTypes, read: nil)" not in _ioc or re.search(r"read:\s*\[|HKSampleQuery|HKStatisticsQuery", _ioc) or not re.search(r'HEALTH_READ_WHY = \("ShowUppp does not read your Health data', _ioc):
+    fail.append("Apple Health must stay write-only: share permission only, read: nil, no queries, and the read purpose string (required by App Store Connect, ITMS-90683) says it does not read (v4.6.132, v4.6.385)")
 if 'pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY' not in _ioc:
     fail.append("ios-config.py no longer sets the HealthKit purpose string -- a missing or vague one is a rejection (v4.6.132)")
 if "DB.settings" in (d/"js/health.js").read_text().split("*/",1)[-1]:

@@ -28,7 +28,17 @@
    stays free, the two prices (yearly first), Export my data, and Not now. No
    countdown anywhere: the only trace of the trial is one quiet row in
    Settings. */
-const PAYWALL_ON=false;                      // flip on launch day (spec 6.7)
+const PAYWALL_ON=false;                      // everywhere at once; the iOS app turns on below
+/* v4.6.385: ON IN THE iOS APP, OFF ON THE WEB. The App Store sells the membership
+   (runbook 9.8); the web has no way to pay and stays the try-it app (D9), so a gate
+   there would only stop people. The iOS app needs the RevenueCat plugin, which
+   ota.json requires, so a binary without it never takes this bundle. */
+const PAYWALL_IOS=true;
+/* v4.6.385: FOUNDING CLOSES. The web keeps no paywall, so without a date anyone could
+   log a day on the web, earn "founding" and carry it into the iOS app through sync.
+   Records marked before this date stay founding for good (D7); none are marked after. */
+const FOUNDING_UNTIL='2026-11-15';
+const paywallOn=()=>PAYWALL_ON||(PAYWALL_IOS&&typeof NATIVE_SHELL!=='undefined'&&NATIVE_SHELL&&!(typeof SANDBOX!=='undefined'&&SANDBOX));
 const TRIAL_DAYS=20, GRACE_MS=7*864e5;
 const MB_PRICES=[{plan:'yearly',label:'Yearly',price:'$29.99',per:'a year',note:'$2.50 a month, billed yearly',badge:'Save 50%'},
                  {plan:'monthly',label:'Monthly',price:'$4.99',per:'a month',note:'Cancel anytime'}];
@@ -38,7 +48,7 @@ const mbSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
 /* the owner's preview: localStorage showup:paywall-preview = "1" acts as a NEW
    user on this device (founding ignored), so the gates can be tried for real */
 function paywallPreview(){ return (typeof SANDBOX!=='undefined'&&SANDBOX)||mbGet('showup:paywall-preview')==='1'; }  /* v4.6.283: test mode is a new user after launch */
-function paywallLive(){ return PAYWALL_ON||paywallPreview(); }
+function paywallLive(){ return paywallOn()||paywallPreview(); }
 /* v4.6.287: sample data is not a record -- it counts toward neither the free days nor founding */
 function loggedDays(){ if(DB?.settings?.demo) return 0; return Object.values(DB.days||{}).filter(d=>d&&(d.w||[]).length).length; }
 function memberEntitled(now=Date.now()){
@@ -61,7 +71,8 @@ function writerGate(){
 }
 /* D7: mark the record a founding member while the paywall is not live */
 function foundingMark(){
-  if(PAYWALL_ON||(typeof SANDBOX!=='undefined'&&SANDBOX)||!DB?.settings||DB.settings.demo||DB.settings.founding||!loggedDays()) return false;
+  if(paywallOn()||(typeof SANDBOX!=='undefined'&&SANDBOX)||!DB?.settings||DB.settings.demo||DB.settings.founding||!loggedDays()) return false;
+  if(todayISO>=FOUNDING_UNTIL) return false;
   DB.settings.founding=todayISO; DB.settingsAt=Date.now(); save(true); return true;
 }
 setTimeout(()=>{ try{ foundingMark(); }catch(e){} },3000);
@@ -77,6 +88,7 @@ function paywallOpen(why){
   el.innerHTML=paywallHTML();
   document.body.appendChild(el);
   el.addEventListener('click',paywallClick);
+  if(rcPlugin()) rcOffering().then(o=>{ if(o&&document.getElementById('paywall')===el){ el.querySelectorAll('[data-mb-plan]').forEach(b=>{const p=MB_PRICES.find(x=>x.plan===b.dataset.mbPlan),pb=b.querySelector('.mb-opt-p b'),sm=b.querySelector('.mb-opt-l small'),bd=b.querySelector('.mb-badge');if(pb)pb.textContent=p.price;if(sm&&p.note)sm.textContent=p.note;if(bd)bd.textContent=p.badge||'';}); } }).catch(()=>{});   // v4.6.385: the App Store's own prices
   if(mbGet('showup:ev-paywall')!==todayISO){ mbSet('showup:ev-paywall',todayISO); if(typeof mTrack==='function') mTrack('paywall_seen'); }
 }
 function paywallClose(){ document.getElementById('paywall')?.remove(); }
@@ -145,8 +157,156 @@ async function memberBuy(plan){
       toast(`Test member (${plan}). No charge.`);return 'test';
     }finally{mbBuying=false;}
   }
-  toast('Membership opens with the App Store version.'); return 'unavailable'; }
-async function memberRestore(){ toast('Nothing to restore yet.'); return 'unavailable'; }
+  const P=rcPlugin();
+  if(!P){ toast('Membership opens with the App Store version.'); return 'unavailable'; }
+  if(mbBuying||!MB_PRICES.some(p=>p.plan===plan)) return 'busy';
+  mbBuying=true;
+  try{
+    if(!await rcStart()){ toast('Can’t reach the App Store right now. Try again in a moment.'); return 'offline'; }
+    const off=await rcOffering(true), pkg=off?.availablePackages?.find(p=>p.identifier===RC_PACKAGES[plan]);
+    if(!pkg){ toast('Can’t reach the App Store right now. Try again in a moment.'); return 'unavailable'; }
+    const key=typeof clubMembershipKey==='function'?clubMembershipKey():'';
+    let r;
+    try{ r=await P.purchasePackage({aPackage:pkg}); }
+    catch(e){ if(rcCancelled(e)) return 'cancelled'; toast('The purchase did not finish. Nothing was charged.'); return 'failed'; }
+    rcApply(r?.customerInfo);
+    if(!memberEntitled()){ toast('The purchase is pending with Apple. Membership opens when it clears.'); return 'pending'; }
+    /* the same reveal the test purchase plays: coin to the card, then the number */
+    if(key&&typeof clubLoadMembership==='function'&&!clubMembershipFacts().reference) try{ await clubLoadMembership(); }catch(_e){}
+    const wall=document.getElementById('paywall'),source=wall?.querySelector('[data-club-coin]'),rect=source?.getBoundingClientRect(),angle=source?getComputedStyle(source.querySelector('.club-coin-rotor')).transform:'none';
+    wall?.remove();
+    view='sync';lastView='sync';render();window.scrollTo(0,0);if(typeof modalLockScroll==='function')modalLockScroll(0);
+    await memberWelcome({wall,rect,angle,key});
+    return 'bought';
+  }finally{ mbBuying=false; }
+}
+async function memberRestore(){
+  const P=rcPlugin();
+  if(!P){ toast('Nothing to restore yet.'); return 'unavailable'; }
+  if(!await rcStart()){ toast('Can’t reach the App Store right now. Try again in a moment.'); return 'offline'; }
+  try{ const r=await P.restorePurchases(); rcApply(r?.customerInfo); }
+  catch(e){ toast('Restore did not finish. Try again in a moment.'); return 'failed'; }
+  if(memberEntitled()){
+    paywallClose(); render(); if(view==='sync'&&typeof renderSync==='function') renderSync();
+    if(document.getElementById('mbManage')) mbManagePaint();
+    toast('Membership restored.'); return 'restored';
+  }
+  toast('No membership found for this Apple ID.'); return 'none';
+}
+
+/* ---- v4.6.385: THE APP STORE (runbook 9.8; spec 2.4, 3.3, 3.4) ----
+   RevenueCat sells the membership and is the source of truth for it. This file
+   only mirrors RevenueCat's answer into showup:entitlement, the one record every
+   gate already reads (memberEntitled), so the gates, the coin and Settings work
+   unchanged and a member stays a member offline through the 7-day grace.
+   - iOS app only, and never in test mode (test mode keeps its free test purchase).
+   - Who: the ShowUppp account id when signed in (logIn), so a membership follows
+     the account to a second iPhone; anonymous otherwise. Buying never needs an
+     account (Apple rejects apps that force one) -- Restore recovers it by Apple ID.
+   - The plugin is RevenueCat's (@revenuecat/purchases-capacitor). No bundler, so it
+     is reached the way every native plugin here is: Capacitor.Plugins, or
+     nativePromise when the bridge exposes only that.
+   - Prices on screen are the App Store's, in the buyer's currency, once loaded;
+     MB_PRICES holds the US prices until then.
+   - The key below is RevenueCat's PUBLIC SDK key, made to ship inside the app. */
+const RC_API_KEY='appl_SiKFQEebvzPrgPCvsaoGVqwkpue';
+const RC_ENTITLEMENT='member', RC_PACKAGES={yearly:'$rc_annual',monthly:'$rc_monthly'};
+const RC_PRODUCTS={'co.yooooooooo.showup.member.yearly':'yearly','co.yooooooooo.showup.member.monthly':'monthly'};
+const RC_METHODS=['configure','logIn','logOut','getOfferings','purchasePackage','restorePurchases','getCustomerInfo','setAttributes'];
+let _rcStart=null,_rcUser,_rcOffering=null,_rcOfferingAt=0;
+function rcPlugin(){
+  try{
+    if(typeof NATIVE_SHELL==='undefined'||!NATIVE_SHELL||(typeof SANDBOX!=='undefined'&&SANDBOX)) return null;
+    const cap=window.Capacitor; if(!cap) return null;
+    if(!(cap.isPluginAvailable?.('Purchases')||(cap.PluginHeaders||[]).some(h=>h&&h.name==='Purchases')||cap.Plugins?.Purchases)) return null;
+    const P=cap.Plugins?.Purchases;
+    if(P&&typeof P.purchasePackage==='function') return P;
+    if(typeof cap.nativePromise==='function') return Object.fromEntries(RC_METHODS.map(m=>[m,o=>cap.nativePromise('Purchases',m,o||{})]));
+    return null;
+  }catch(e){ return null; }
+}
+const rcUid=()=>{ try{ return (typeof session!=='undefined'&&session?.user?.id)||null; }catch(e){ return null; } };
+const rcCancelled=e=>!!(e&&(e.userCancelled||e.data?.userCancelled||e.info?.userCancelled||String(e.code)==='1'||/cancel/i.test(String(e.message||e.errorMessage||''))));
+function rcStart(){
+  const P=rcPlugin(); if(!P) return Promise.resolve(false);
+  if(_rcStart) return _rcStart;
+  _rcStart=(async()=>{
+    try{
+      const uid=rcUid();
+      await P.configure(uid?{apiKey:RC_API_KEY,appUserID:uid}:{apiKey:RC_API_KEY});
+      _rcUser=uid;
+      /* the anonymous device id from metrics.js, so the webhook can join a purchase to the funnel */
+      try{ const dev=localStorage.getItem('showup:device'); if(dev) await P.setAttributes({showup_device:dev,showup_version:String(typeof APP_VERSION!=='undefined'?APP_VERSION:'').replace(/^v/,'')}); }catch(_e){}
+      await rcRefresh();
+      rcOffering().catch(()=>{});
+      return true;
+    }catch(e){ _rcStart=null; return false; }
+  })();
+  return _rcStart;
+}
+/* RevenueCat's customer -> showup:entitlement. Test entitlements are left alone. */
+function rcApply(ci){
+  if(!ci||typeof ci!=='object') return false;
+  let prev=null; try{ prev=JSON.parse(mbGet('showup:entitlement')||'null'); }catch(_e){}
+  if(prev&&prev.test) return false;
+  const e=ci.entitlements?.active?.[RC_ENTITLEMENT];
+  if(!e||e.isActive===false){ try{ localStorage.removeItem('showup:entitlement'); }catch(_e){} return false; }
+  const until=Number.isFinite(+e.expirationDateMillis)&&+e.expirationDateMillis>0?+e.expirationDateMillis:Date.now()+3650*864e5;
+  const rec={status:e.billingIssueDetectedAt||e.billingIssueDetectedAtMillis?'grace':'active',until,
+    plan:RC_PRODUCTS[e.productIdentifier]||(/month/i.test(e.productIdentifier||'')?'monthly':'yearly'),
+    since:Number.isFinite(+e.originalPurchaseDateMillis)?+e.originalPurchaseDateMillis:null,
+    renews:e.willRenew!==false,store:'apple',sandbox:!!e.isSandbox};
+  mbSet('showup:entitlement',JSON.stringify(rec));
+  return true;
+}
+/* follow the signed-in account (spec 3.4), then read the customer */
+async function rcRefresh(){
+  const P=rcPlugin(); if(!P||!_rcStart&&_rcUser===undefined) return false;
+  const was=memberEntitled();
+  try{
+    const uid=rcUid(); let ci=null;
+    if(uid!==_rcUser){
+      if(uid){ const r=await P.logIn({appUserID:uid}); ci=r?.customerInfo||null; }
+      else { try{ const r=await P.logOut(); ci=r?.customerInfo||null; }catch(_e){} }
+      _rcUser=uid;
+    }
+    if(!ci){ const r=await P.getCustomerInfo(); ci=r?.customerInfo||r; }
+    rcApply(ci);
+  }catch(e){ return false; }
+  if(was!==memberEntitled()){ try{ render({soft:true}); if(view==='sync'&&typeof renderSync==='function') renderSync(); }catch(_e){} }
+  return true;
+}
+/* the App Store's prices, in the buyer's own currency */
+async function rcOffering(force){
+  const P=rcPlugin(); if(!P) return null;
+  if(_rcOffering&&!force&&Date.now()-_rcOfferingAt<6*3600e3) return _rcOffering;
+  try{
+    const r=await P.getOfferings(); const off=r?.current||r?.all?.default||null;
+    if(off){ _rcOffering=off; _rcOfferingAt=Date.now(); rcPrices(off); }
+    return off;
+  }catch(e){ return _rcOffering; }
+}
+function rcPrices(off){
+  const by=Object.fromEntries((off?.availablePackages||[]).map(p=>[p.identifier,p.product]));
+  const y=by[RC_PACKAGES.yearly], m=by[RC_PACKAGES.monthly];
+  const Y=MB_PRICES.find(p=>p.plan==='yearly'), M=MB_PRICES.find(p=>p.plan==='monthly');
+  if(y?.priceString){ Y.price=y.priceString; if(y.pricePerMonthString) Y.note=`${y.pricePerMonthString} a month, billed yearly`; }
+  if(m?.priceString) M.price=m.priceString;
+  if(y?.price>0&&m?.price>0){ const save=Math.round((1-y.price/(m.price*12))*100); Y.badge=save>=5?`Save ${save}%`:''; }
+  const l=document.querySelector('#paywall .mb-buy span'); if(l) l.textContent=mbBuyLabel(_mbPick);
+}
+/* Apple owns change and cancel: its own subscription screen */
+function rcManage(){
+  try{ location.href='itms-apps://apps.apple.com/account/subscriptions'; }
+  catch(e){ toast('Open Settings → your name → Subscriptions.'); }
+}
+if(typeof NATIVE_SHELL!=='undefined'&&NATIVE_SHELL){
+  setTimeout(()=>{ rcStart(); },1500);
+  /* back from the App Store (a purchase, a cancel, a renewal while away) */
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&_rcStart) rcRefresh(); });
+  /* signing in or out is not an event here; the account id is cheap to compare */
+  setInterval(()=>{ if(_rcStart&&rcUid()!==_rcUser) rcRefresh(); },5000);
+}
 
 /* One presentation path, no entitlement or identity writes. Called only after the test grant.
    A future verified store purchase can call this same reveal; restore/renewal must not.
@@ -283,6 +443,7 @@ function mbManageOpen(){
   _mbmPick=null;_mbmConfirm=false;
   const el=document.createElement('div');el.id='mbManage';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','mbmTitle');
   document.body.appendChild(el);el.addEventListener('click',mbManageClick);mbManagePaint();
+  if(rcPlugin()) rcStart().then(ok=>ok&&rcRefresh()).then(()=>{ if(document.getElementById('mbManage')) mbManagePaint(); });   // v4.6.385: Apple's latest word
 }
 function mbManagePaint(){
   const el=document.getElementById('mbManage');if(!el)return;const s=mbSub();
@@ -325,7 +486,7 @@ function mbManageClick(e){
   if(b.hasAttribute('data-mbm-join')){document.getElementById('mbManage')?.remove();paywallOpen('settings');return;}
   if(b.hasAttribute('data-mb-restore')){memberRestore();return;}
   const sandbox=typeof SANDBOX!=='undefined'&&SANDBOX;
-  if(b.hasAttribute('data-mbm-apple')||!sandbox&&b.matches('[data-mbm-switch],[data-mbm-cancel],[data-mbm-resume],[data-mbm-undo]')){toast('Opens Apple’s subscription settings in the App Store version.');return;}
+  if(b.hasAttribute('data-mbm-apple')||!sandbox&&b.matches('[data-mbm-switch],[data-mbm-cancel],[data-mbm-resume],[data-mbm-undo]')){if(rcPlugin())rcManage();else toast('Opens Apple’s subscription settings in the App Store version.');return;}
   if(b.hasAttribute('data-mbm-cancel')){_mbmConfirm=true;mbManagePaint();return;}
   if(b.hasAttribute('data-mbm-keep')){_mbmConfirm=false;mbManagePaint();return;}
   if(b.hasAttribute('data-mbm-cancel-yes')){mbSubWrite(e=>{e.renews=false;delete e.next;});_mbmConfirm=false;mbManagePaint();toast('Cancelled (test). You’re a member until '+mbDate(s.until)+'.');return;}

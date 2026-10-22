@@ -49,6 +49,8 @@ SCHEME = "co.yooooooooo.showup"          # must equal AUTH_SCHEME in js/core.js
 APP_NAME = "ShowUppp"
 # v4.6.154: Save Image in the share sheet writes to Photos; iOS requires this
 # purpose string for add-only access, and ends the app without one.
+HEALTH_READ_WHY = ("ShowUppp does not read your Health data. It only saves workouts you finish "
+                   "to Apple Health, if you turn this on in Settings.")
 PHOTOS_ADD_WHY = "ShowUppp saves a card you share to your Photos when you choose Save Image."
 HEALTH_WHY = ("ShowUppp saves each workout you finish to Apple Health, if you turn this on in Settings: "
               "strength sessions, and runs, rides, rows, swims and walks with their time and distance. "
@@ -78,7 +80,14 @@ pl.pop("UISupportedInterfaceOrientations~ipad", None)
 # rejection (5.1.1). Write only: ShowUp asks to share workouts, never to read.
 pl["CFBundleDisplayName"] = APP_NAME
 pl["NSHealthUpdateUsageDescription"] = HEALTH_WHY
-pl.pop("NSHealthShareUsageDescription", None)
+# v4.6.385: App Store Connect rejects an upload that has the HealthKit
+# entitlement and no NSHealthShareUsageDescription (ITMS-90683), even though
+# ShowUppp requests no read permission. The string says exactly that; the
+# plugin still asks with read: nil (buildcheck), so iOS never shows it.
+pl["NSHealthShareUsageDescription"] = HEALTH_READ_WHY
+# v4.6.385: standard HTTPS only, so export compliance is exempt and every
+# upload skips the encryption question in App Store Connect.
+pl["ITSAppUsesNonExemptEncryption"] = False
 pl["NSPhotoLibraryAddUsageDescription"] = PHOTOS_ADD_WHY      # v4.6.154, add-only
 pl["NSLocationWhenInUseUsageDescription"] = "ShowUppp uses your location only when you tap Allow location to add your city and weather to a workout card. No background tracking."
 # v4.6.145: the app asks this at launch (ShowUpApple.status) before it shows the button

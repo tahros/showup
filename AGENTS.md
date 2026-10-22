@@ -150,6 +150,18 @@ and some of it changes the web build too. Landed and planned:
   and heatmap geometry, and the share/story layouts in js/stats-story.js.
   Section headings on Today sit 24px under what precedes them.
 
+- v4.6.385 — the membership goes on sale in the iOS app (runbook 9.8). Read the
+  "THE APP STORE" block in js/membership.js. RevenueCat (@revenuecat/purchases-capacitor,
+  public key in the file) is the source of truth; the app mirrors it into
+  showup:entitlement, the record every gate already reads. paywallOn() is true in
+  the iOS app only (PAYWALL_IOS); the web keeps PAYWALL_ON=false (D9). Founding
+  members are marked until FOUNDING_UNTIL, then nobody new. Server:
+  supabase/functions/revenuecat-webhook (deploy-fn.yml, --no-verify-jwt, secret
+  REVENUECAT_WEBHOOK_AUTH) writes public.entitlements and the subscribed/cancelled
+  events; the v4.6.385 section of supabase-setup.sql (entitlements, owner_members())
+  is run once in the SQL editor. Tests: tools/test-membership-store.js,
+  tools/test-revenuecat.js. New native plugin: needs a Mac rebuild (build 1.0 (2)).
+
 If you touch `index.html`'s head, `sw.js`'s SHELL, `css/fonts.css`, or the
 sign-in/settings flow, say so here first — those are the files this track is
 standing on.
