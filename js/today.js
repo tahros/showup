@@ -79,6 +79,7 @@ function demoEl(){
    Today shows the training that just arrived. */
 function onbCloseDone(){
   const el=document.getElementById('onb'); if(!el||el.hidden) return false;
+  if(onbLater) return false;   // v4.6.387: a routine being set up from Today is not the first run -- a sync landing mid-setup leaves it open
   el.hidden=true; onbShown=0; onbHist=[]; render(); return true;
 }
 function maybeOnboard(){
@@ -132,7 +133,7 @@ function onbTop(cur,total=4,skip=false){
    you   -- name and units, last, for both.
    The crew member is met after the first finished workout, not here. */
 let onbPath=null,onbHave=null,onbHist=[],onbF=null,onbLater=false;
-/* v4.6.384: SET UP A ROUTINE LATER. Whoever skipped the routine at first run
+/* v4.6.387: SET UP A ROUTINE LATER. Whoever skipped the routine at first run
    (Just looking around, I'll log as I go) meets the same screens from Today:
    the nudge on the Today card, or Plan while nothing is planned. Asking for a
    routine IS the choice, so it opens straight on Basics, then Routine: two
@@ -181,7 +182,7 @@ function onbSuggest(){const n=onbF.count;return n<=3?'full':n===4?'ul':'ppl';}
 function onbTrainN(){return onbF.cards?onbF.cards.filter(c=>!c.rest).length:onbF.count;}
 function onbRestN(){return onbF.cards?onbF.cards.filter(c=>c.rest).length:0;}
 function onbDaysText(){const n=onbTrainN(),r=onbRestN();return `${n} ${n===1?'day':'days'}${r?` + ${r} rest`:''}${onbF.extra?' + extra':''} · any days`;}
-/* v4.6.384: A REST DAY IN THE ORDER. Push, Pull, Legs, Rest, Push, Pull, Legs:
+/* v4.6.387: A REST DAY IN THE ORDER. Push, Pull, Legs, Rest, Push, Pull, Legs:
    a rest card sits between sessions and is saved as restAfter (session index
    -> rest days after it). The day after that session is left open; a day you
    did not train already counts as the rest, so a missed day never adds one. */
@@ -329,7 +330,7 @@ function onbRender(){
   }else if(onbStep==='routine'){
     const t=ONB_TPLS.find(x=>x[0]===onbF.template)||ONB_TPLS[0],E=onbF.edit,sel=onbF.sel,X=icon('close',ICON_SZ.sm),GR=icon('grip',ICON_SZ.sm);
     const chip=(p,i)=>E?`<button type="button" class="pf-rot-tag ob-rt-chip${p==='Run'?' cardio':''}" data-rtdrag="${p}" data-rtfrom="${i}" data-onbact="frm" data-v="${i}" data-p="${p}" aria-label="Remove ${hesc(partLabel(p))} from ${hesc(onbCardAt(i).name)}; drag to move">${hesc(partLabel(p))}${X}</button>`:`<span class="pf-rot-tag${p==='Run'?' cardio':''}">${hesc(partLabel(p))}</span>`;
-    /* v4.6.384: THE DAY COLUMN IS THE HANDLE. Day N with the grip under it, down the card's left edge
+    /* v4.6.387: THE DAY COLUMN IS THE HANDLE. Day N with the grip under it, down the card's left edge
        (all of it grabs); title and chips get the full width. In Customize every chip carries grip dots. */
     const DOTS='<i class="ob-dots" aria-hidden="true"></i>';
     const chipE=(p,i)=>E?`<button type="button" class="pf-rot-tag ob-rt-chip${p==='Run'?' cardio':''}" data-rtdrag="${p}" data-rtfrom="${i}" data-onbact="frm" data-v="${i}" data-p="${p}" aria-label="Remove ${hesc(partLabel(p))} from ${hesc(onbCardAt(i).name)}; drag to move">${DOTS}<span>${hesc(partLabel(p))}</span>${X}</button>`:chip(p,i);
@@ -346,7 +347,7 @@ function onbRender(){
       <p class="ob-rt-xnote">Optional. Offered once your ${onbTrainN()} days are done.</p></div></section>`:`<button type="button" class="ob-rt-addses ob-rt-addx" data-onbact="faddx">+ Add an extra day</button>`;
     b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>
       <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${hesc(t[1])}</b><span>${onbDaysText()}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">Change</button></div>
-      ${E?(()=>{   /* v4.6.384: the tray says which parts are in your week and which are not in it yet */
+      ${E?(()=>{   /* v4.6.387: the tray says which parts are in your week and which are not in it yet */
         const use=p=>onbF.cards.filter(c=>!c.rest&&c.parts.includes(p)).length+(onbF.extra&&onbF.extra.parts.includes(p)?1:0);
         const pool=p=>{const n=use(p);return `<button type="button" class="pf-pal-chip ob-rt-pool ${n?'used':'fresh'}${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}" aria-label="${hesc(partLabel(p))}, ${n?`in ${n} ${n===1?'day':'days'}`:'not in your week yet'}"><i class="ob-dots" aria-hidden="true"></i><span>${hesc(partLabel(p))}</span>${n?`<i class="ob-rt-n">×${n}</i>`:''}</button>`;};
         const fresh=ONB_TRAY.filter(p=>!use(p)),used=ONB_TRAY.filter(p=>use(p));
@@ -399,7 +400,7 @@ function onbPathFinish(){
   onbFinish(false,onbHave==='import'?'import':onbHave==='paste'?'paste':'train');
 }
 function onbFinish(skip,go){
-  if(onbLater){   // v4.6.384: set up from Today -- name, units, parts and first-run tips stay as they were
+  if(onbLater){   // v4.6.387: set up from Today -- name, units, parts and first-run tips stay as they were
     onbLater=false;DB.settingsAt=Date.now();save(true);onbEl().hidden=true;onbShown=0;
     if(go==='import'&&typeof impOpen==='function'){view='today';render();impOpen('onboarding');return;}
     if(go==='paste'&&typeof pwOpen==='function'){view='today';render();pwOpen(todayISO);try{const s=pw();s.pasteText='';s.editIndex=undefined;s.editAll=false;pwGo('paste');}catch(e){}return;}
@@ -778,7 +779,7 @@ function rtSyncWeek(o={}){
   const flex=rtFlex(),N=rtFreq(),XS=rtExtra(),cnt={},xUsed={};
   if(flex){const w0=rtWeekOf(todayISO);let n=0;for(let x=w0;x<todayISO;x=rtAddDays(x,1))if(rtTrained(x))n++;cnt[w0]=n;}
   let k=pfRotNext(ses);
-  /* v4.6.384: rest days in the order. owed = rest days still due after the session last trained;
+  /* v4.6.387: rest days in the order. owed = rest days still due after the session last trained;
      each day since then that you did not train has already paid one */
   const RA=flex?rtRests(ses.length):null,after=j=>RA?(RA[((j%ses.length)+ses.length)%ses.length]||0):0;let owed=0;
   const n=ses.length,IX=RA?rtIdx():null,mark=(d,j)=>{if(IX)IX[d]=((j%n)+n)%n;};
@@ -840,11 +841,11 @@ function focusedTodayHTML(){
   const next=nextPlanItem(),sets=items.reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const parts=items.length?(now?.title&&now.d===todayISO?now.title:pwParts(pwRead(planText(now))).map(partLabel).join(' + ')):'';   // v4.6.372: a session made from a template keeps its name
-  const restToday=!items.length&&rtOn()&&rtKinds()[todayISO]==='rest'&&!rtTrained(todayISO);   // v4.6.384
+  const restToday=!items.length&&rtOn()&&rtKinds()[todayISO]==='rest'&&!rtTrained(todayISO);   // v4.6.387
   let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${(typeof companionHTML==='function'&&companionHTML('su-hello-comp'))||mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${restToday?'Rest day.':fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details>${todayFirstHTML(items)}`;
-  }else{const setup=!future.length&&rtNeedsSetup();   // v4.6.384: no routine and nothing planned -- offer the routine setup, under the one set
+  }else{const setup=!future.length&&rtNeedsSetup();   // v4.6.387: no routine and nothing planned -- offer the routine setup, under the one set
     h+=`<p class="today-focus-copy">${restToday?'Your routine has today off. Train anyway if you like.':`Choose an exercise and log what you do.${fresh&&!setup?' No plan needed.':''}`}</p><button class="btn${restToday?' ghost':''}" id="goLift">Choose exercise →</button>${setup?`<button type="button" class="today-routine" data-routine-setup><span>Want a routine? <b>Set one up in a minute</b></span>${icon('arrowR',ICON_SZ.sm)}</button>`:''}`;}
   /* v4.6.287: "Just looking around" -- sample data lives here now, not on the first screen */
   const sampleLink=fresh&&DB.settings.lookAround&&!DB.settings.demo?`<button type="button" class="today-sample" data-onbact="demo">See it with sample data</button>`:'';
@@ -1597,7 +1598,7 @@ document.addEventListener('pointerdown',e=>{
    out of the way as it passes, and each card's day reads the day it would land
    on. Letting go settles the card into its slot. Chips keep their capsule:
    a chip is the whole of itself already. */
-function onbLiftCard(D,e){   // v4.6.384: the card itself moves (no copy, no empty slot) -- what you hold is what you see
+function onbLiftCard(D,e){   // v4.6.387: the card itself moves (no copy, no empty slot) -- what you hold is what you see
   const card=D.src.closest('.ob-rt-ses'),sc=document.getElementById('onb');if(!card||!sc)return false;
   const list=[...sc.querySelectorAll('.ob-rt-list .ob-rt-ses[data-rtcard]')],tops=list.map(c=>c.getBoundingClientRect().top),hs=list.map(c=>c.offsetHeight);
   const gap=list.length>1?Math.max(0,tops[1]-tops[0]-hs[0]):6;
@@ -1656,5 +1657,5 @@ document.addEventListener('keydown',e=>{
   if(h&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();const from=+h.dataset.rthandle,to=from+(e.key==='ArrowUp'?-1:1);onbMove(from,to);document.querySelector(`#onb [data-rthandle="${Math.max(0,Math.min(to,onbF.cards.length-1))}"]`)?.focus();}
 });
 
-/* v4.6.384: the Today card's routine nudge */
+/* v4.6.387: the Today card's routine nudge */
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-routine-setup]')){e.preventDefault();onbRoutineOpen();}});

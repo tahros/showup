@@ -5171,22 +5171,21 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .planrow .pl.pl-cardio,:root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pl.pl-cardio{display:block}
 .planrow .pl-cardio .pv{color:var(--muted)}
 
-/* v4.6.384: the routine nudge under Choose exercise -- a quiet line, not a second button */
+/* v4.6.387: the routine nudge under Choose exercise -- a quiet line, not a second button */
 .today-routine{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:6px;margin-top:16px;font:400 14px/1.35 var(--body);color:var(--muted);-webkit-tap-highlight-color:transparent}
 .today-routine b{font-weight:600;color:var(--accent)}
 .today-routine svg{color:var(--accent);flex:none}
 .today-routine:active{opacity:.6}
 .today-routine:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
 
-/* v4.6.384: a rest day in the order */
+/* v4.6.387: a rest day in the order */
 #onb .ob-rt-rest{background:transparent;box-shadow:none;border:1.5px dashed color-mix(in srgb,var(--chalk) 20%,transparent)}
 #onb .ob-rt-rest .ob-rt-head b{color:var(--muted)}
 #onb .ob-rt-rest.ob-drop{border-color:var(--line);background:transparent;transform:none}
 #onb .ob-rt-restnote{margin:0 0 0 44px;font:400 13px/1.35 var(--body);color:var(--faint)}
 #onb .ob-rt-adds{display:flex;justify-content:center;gap:4px;flex-wrap:wrap}
-#onb .ob-rt-lift.ob-rt-rest{background:var(--bg)}
 
-/* v4.6.384: Customize, calmer. No dashes, no breathing, no grip dots: the tray sorts itself into
+/* v4.6.387: Customize, calmer. No dashes, no breathing, no grip dots: the tray sorts itself into
    what is not in your week yet (accent, +) and what already is (quiet, a check, ×2 when it repeats) */
 #onb .ob-rt-tray{padding:16px 16px 14px;border:0;box-shadow:var(--shadow)}
 #onb .ob-rt-tray p{margin:4px 0 2px}
@@ -5198,14 +5197,14 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-rt-pool.fresh{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 40%,transparent)}
 #onb .ob-rt-pool.used{background:color-mix(in srgb,var(--chalk) 6%,transparent);color:var(--muted);box-shadow:none}
 #onb .ob-rt-pool.used .ic{opacity:.65}
-#onb .ob-rt-n{font:500 11px var(--mono);font-style:normal;color:var(--faint);margin-left:1px}
+#onb .ob-rt-n{font:500 11px var(--mono);font-size:11px;font-style:normal;color:var(--faint);margin-left:1px}
 #onb .ob-rt-pool.held{background:var(--accent);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
 #onb .ob-rt-pool.held .ob-rt-n{color:rgba(255,255,255,.75)}
 #onb .ob-rt-pool:active{scale:.96}
 #onb .ob-rt-chip{outline:0;padding:0 8px 0 12px;gap:6px}
 #onb .ob-rt-chip .ic{width:11px;height:11px;opacity:.55}
 
-/* v4.6.384: DAY COLUMN = HANDLE. Day N on top, the grip under it; the whole column grabs.
+/* v4.6.387: DAY COLUMN = HANDLE. Day N on top, the grip under it; the whole column grabs.
    Title and chips take the rest of the card. The grip nudges now and then until you have moved a day. */
 #onb .ob-rt-ses{display:flex;align-items:stretch;gap:8px;padding:10px 14px 10px 4px}
 #onb .ob-rt-side{all:unset;box-sizing:border-box;flex:none;width:58px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 2px;border-radius:14px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
@@ -5230,7 +5229,7 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 /* the card you are moving is itself, raised -- never an empty slot */
 #onb .ob-rt-ses.ob-rt-moving{position:relative;z-index:5;border-color:var(--accent);transition:scale .18s var(--settle),rotate .18s var(--settle),box-shadow .18s;will-change:translate}
 #onb .ob-rt-ses.ob-rt-moving.up{scale:1.03;rotate:-1deg;box-shadow:0 22px 44px rgba(0,0,0,.34),0 6px 14px rgba(0,0,0,.18)}
-#onb .ob-rt-rest.ob-rt-moving{background:var(--bg)}
+#onb .ob-rt-rest.ob-rt-moving{background:var(--ground)}
 /* grip dots: what can be dragged says so */
 #onb .ob-dots{flex:none;width:6px;height:10px;background:radial-gradient(circle,currentColor 1.05px,transparent 1.35px) 0 0/3px 3.4px;opacity:.5}
 #onb .ob-rt-pool{gap:7px;padding:0 14px 0 12px}

@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.387 (2026-10-22) — Set up a routine later, with rest days
+
+- Today, with no routine and nothing planned: a quiet line under Choose exercise, “Want a routine? Set one up in a minute →”. It and Plan open the routine setup straight on Basics (two steps; name, units and crew are kept). Back closes it and saves nothing; a sync landing mid-setup leaves it open.
+- Rest days in the routine: “+ Add a rest day” puts a Rest card halfway through the order (Push, Pull, Legs, Rest, Push, Pull, Legs), draggable and removable. Saved as `restAfter`; the day after that session is left open and Today says “Rest day.” A day you did not train already counts as the rest, and each written day keeps its turn so repeated sessions are told apart.
+- Routine cards: the day column is the handle (Day N, the grip under it, the whole column grabs) and nudges until you have moved a day; title and chips take the full width. The card you drag is the card itself, raised, never an empty slot.
+- Customize: the tray sorts parts into Not in your week / In your week (×N), every draggable chip carries grip dots, and the dashes and breathing are gone.
+
 ## v4.6.386 (2026-10-22) — A world of gyms at the first welcome
 
 - The first sign-up screen uses the approved Editorial v8 design: twelve gym interiors rotate behind Pip, with “Life happens. / You show up.” in bold IBM Plex Sans, 10% smaller and vertically centered between the official logo and Pip.

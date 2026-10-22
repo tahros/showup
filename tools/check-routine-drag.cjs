@@ -1,7 +1,7 @@
 // PW_PORT=8978 node tools/check-routine-drag.cjs   (serve dist/ or the repo root on that port)
 // v4.6.378: dragging a session on "Your week, your way" lifts the whole card
 // (title and chips), slides the others aside, shows the day it would land on,
-// and drops it there. v4.6.384: the card itself moves -- no copy, no empty slot.
+// and drops it there. v4.6.387: the card itself moves -- no copy, no empty slot.
 const {chromium}=require('playwright'),assert=require('assert');
 (async()=>{const b=await chromium.launch({executablePath:process.env.PW_CHROME||'/opt/pw-browsers/chromium'});try{
 const origin='http://127.0.0.1:'+(process.env.PW_PORT||8978)+'/';
