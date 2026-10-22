@@ -4864,12 +4864,6 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .lt .lt-progress{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
 .lt .lt-progress i{display:block;height:100%;border-radius:4px;background:var(--accent)}
 .lt .lt-count{margin-top:-6px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-.lt .lt-next{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:64px;box-sizing:border-box;padding:12px 18px 12px 20px;border:0;border-radius:18px;background:var(--accent);color:#FFFFFF;text-align:left;cursor:pointer;font-family:var(--body)}
-.lt .lt-next span{display:flex;flex-direction:column;gap:2px 2px;min-width:0}
-.lt .lt-next small{font-size:11px;opacity:.85}
-.lt .lt-next b{font-size:16px;font-weight:600}
-.lt .lt-next .ic{flex:none;width:20px;height:20px}
-.lt .lt-next:focus-visible{outline:2px solid var(--chalk);outline-offset:2px}
 .lt .lt-done{margin:0;font:400 12px/1.316 var(--body);color:var(--muted)}
 .lt .lt-h{margin:24px 4px 10px}
 .pw-home.lt .lt-log{padding:4px 0;margin:0;display:flex;flex-direction:column}
@@ -5162,3 +5156,28 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-rt-addx{align-self:flex-start;margin-top:4px}
 #onb .ob-count .pf-dowb{font-variant-numeric:tabular-nums}
 :root .pf-workspace .pf-dow.ob-count,:root .pf-workspace .pf-dow.pf-freq{grid-template-columns:repeat(6,1fr)}
+/* v4.6.381: the plan is the screen while a session is live */
+.lt .lt-tip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 14px 12px 16px;border:1.5px dashed color-mix(in srgb,var(--muted) 45%,transparent);border-radius:16px;font:400 13px/1.38 var(--body);font-size:13px;color:var(--muted)}
+.lt .lt-tip b{color:var(--chalk);font-weight:600}
+.lt .lt-tip button{flex:none;min-height:36px;padding:0 4px;border:0;background:none;color:var(--accent-ink);font:500 12px var(--body);font-size:12px;cursor:pointer;white-space:nowrap}
+.lt .lt-list{display:flex;flex-direction:column;margin:2px -18px -18px}
+.lt .lt-item{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:58px;box-sizing:border-box;padding:10px 18px;border:0;border-top:1px solid var(--line);background:none;color:var(--chalk);text-align:left;cursor:pointer;font-family:var(--body)}
+.lt .lt-item-main{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.lt .lt-item b{font:500 15px/1.25 var(--body);font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lt .lt-item .mono{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.lt .lt-item.lt-fin b,.lt .lt-item.lt-added b{color:var(--muted);font-weight:400}
+.lt .lt-item.lt-now{background:color-mix(in srgb,var(--live) 6%,transparent)}
+.lt .lt-item.lt-now::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--live)}
+.lt .lt-tag{flex:none;font:600 10px var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink)}
+.lt .lt-tag-now{color:var(--live)}
+.lt .lt-item.lt-added .lt-tag{color:var(--muted)}
+.lt .lt-sqs{flex:none;display:flex;align-items:center;gap:3px}
+.lt .lt-sqs i{width:9px;height:9px;border-radius:2.5px;border:1.5px solid var(--line);box-sizing:border-box}
+.lt .lt-sqs i.on{background:var(--accent);border-color:var(--accent)}
+.lt .lt-item.lt-now .lt-sqs i.on{background:var(--live);border-color:var(--live)}
+.lt .lt-sqs em{font:400 10px var(--mono);font-size:10px;font-style:normal;color:var(--muted);margin-left:2px}
+.lt .lt-all>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 2px;list-style:none;cursor:pointer;font:400 13px/1.38 var(--body);font-size:13px;color:var(--muted)}
+.lt .lt-all>summary::-webkit-details-marker{display:none}
+.lt .lt-all>summary small{flex:none;font:500 12px var(--body);font-size:12px;color:var(--accent-ink)}
+.lt .lt-all[open]>summary small{visibility:hidden}
+.lt .lt-all .lt-list{margin-top:10px}

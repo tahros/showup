@@ -814,32 +814,61 @@ function focusedTodayHTML(){
    logged is a plain list. The tools and the other planned days live inside the
    card's fold, one tap away, not deleted. Only with a plan for today and a
    session open -- every other state keeps its own layout. */
+/* v4.6.381: THE PLAN IS THE SCREEN (Sungjee, 2026-10-22: "this screen is ugly").
+   During a session Today carried a card, a big blue Next, a "Logged today"
+   heading and a second list -- four things for one question: where am I in
+   today's plan? Now it is one list in the plan's order. Each exercise shows
+   its sets as squares that fill as you log (the app's square for a day);
+   the one in the red bar is marked Now with a red edge, the next is a quiet
+   Next tag, done ones go muted with their result, and anything logged that
+   was not in the plan is added in place, tagged Added. Any row opens its
+   exercise. A dotted tip (once, until dismissed) says the red bar is the
+   way back. The red bar stays the only loud thing on the screen. */
 function liveTodayHTML(t){
-  const now=planNow(),items=(now.items||[]).map(planItemShape);
+  const now=planNow(),shaped=(now.items||[]).map(planItemShape);
+  /* the plan in its own order, cardio included: a cardio line ("Run — 1 mi") is
+     not an item, so it is read from the plan's text and counts as one set */
+  const items=[],seen=new Set();
+  try{const txt=now.raw&&planText(now)===now.raw?now.raw:'';for(const r of txt?pwRead(txt):[]){
+    if(typeof pfIsCardioRow==='function'&&pfIsCardioRow(r)){const ex=String(r.raw||'').split(/\s+[—–-]\s+/)[0].trim();if(ex&&!seen.has(ex)){seen.add(ex);items.push({ex,lines:[{reps:[1]}],cardio:true});}}
+    else if(r.kind==='ex'&&r.ex&&!seen.has(r.ex)){const it=shaped.find(x=>x.ex===r.ex);if(it){seen.add(r.ex);items.push(it);}}}}catch(e){}
+  for(const it of shaped)if(!seen.has(it.ex)){seen.add(it.ex);items.push(it);}
   const parts=pwParts(pwRead(planText(now))).map(partLabel).join(' + ')||'Your workout';
+  const name=(typeof pwDayName==='function'?pwDayName(todayISO,now):'')||parts;
   const planned=it=>(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0);
+  const setsOf=ex=>t.w.filter(s=>s.ex===ex);
   const total=items.reduce((n,it)=>n+planned(it),0);
-  const done=Math.min(total,items.reduce((n,it)=>n+Math.min(planned(it),t.w.filter(s=>s.ex===it.ex).length),0));
-  /* a run in the plan counts as done once one is logged: planLoggedToday() asks for reps, which cardio rows never carry */
-  const next=(now.items||[]).find(i=>!t.w.some(s=>s.ex===i.ex))||null;
+  const doneOf=it=>{const l=setsOf(it.ex);return l.some(isCardio)?(l.length?Math.max(1,planned(it)):0):Math.min(planned(it),l.length);};
+  const done=Math.min(total,items.reduce((n,it)=>n+doneOf(it),0));
+  const cur=(typeof lift!=='undefined'&&lift.ex&&exOpen(lift.ex)?lift.ex:null)||[...t.w].reverse().find(s=>exOpen(s.ex))?.ex||null;
+  const isDone=it=>{const l=setsOf(it.ex);return l.length>0&&(l.some(isCardio)||l.length>=planned(it));};
+  const next=items.find(it=>it.ex!==cur&&!setsOf(it.ex).length)||null;
   const future=[...new Set([...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)])].filter(d=>pwSaved(d)?.items?.length).sort();
   const open=pwFoldOpen('live:'+todayISO);
-  let h=`<section class="pw-home lt"><div class="card lt-plan"><details class="lt-fold" data-pw-fold="live:${todayISO}" ${open?'open':''}><summary class="pw-fold-summary" aria-expanded="${open}"><span class="lt-head"><small>Today · ${hesc(pwDate(todayISO))}</small><b>${hesc(parts)}</b></span>${icon('chevron',ICON_SZ.sm)}</summary><div class="lt-fold-body">`;
-  h+=`<div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('open-date','Edit','edit','',`data-date="${todayISO}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}${pwAction('plan-copy','Copy','copy','',`data-date="${todayISO}"`)}</div>${planCardHTML(now,true)}`;
+  const result=l=>l.every(isCardio)?l.map(cardioLine).filter(Boolean).join(', '):`${l.length} ${l.length===1?'set':'sets'}`;
+  const squares=(n,on)=>{const k=Math.min(n,8);return `<span class="lt-sqs" aria-hidden="true">${Array.from({length:k},(_,i)=>`<i${i<on?' class="on"':''}></i>`).join('')}${n>8?`<em>+${n-8}</em>`:''}</span>`;};
+  const row=(ex,part,state,n,on,aside)=>`<button type="button" class="lt-item lt-${state}" data-ex="${hesc(ex)}" data-part="${hesc(part||'')}" aria-label="${hesc(ex)}${state==='now'?', now':state==='up'?', next':state==='fin'?', done':''}"><span class="lt-item-main"><b>${hesc(ex)}</b>${aside}</span>${state==='now'?'<small class="lt-tag lt-tag-now">Now</small>':state==='up'?'<small class="lt-tag">Next</small>':state==='added'?'<small class="lt-tag">Added</small>':''}${state==='added'?'':squares(n,on)}</button>`;
+  let h=`<section class="pw-home lt">`;
+  if(cur&&!DB.settings.ltTipOff)h+=`<div class="lt-tip"><span>Tap the red bar to go back to <b>${hesc(cur)}</b>.</span><button type="button" data-lttip>Don't show again</button></div>`;
+  h+=`<div class="card lt-plan"><details class="lt-fold" data-pw-fold="live:${todayISO}" ${open?'open':''}><summary class="pw-fold-summary" aria-expanded="${open}"><span class="lt-head"><small>Today · ${hesc(pwDate(todayISO))}</small><b>${hesc(name)}</b></span>${icon('chevron',ICON_SZ.sm)}</summary><div class="lt-fold-body">`;
+  h+=`<div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('open-date','Edit','edit','',`data-date="${todayISO}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}${pwAction('plan-copy','Copy','copy','',`data-date="${todayISO}"`)}</div>`;
   if(future.length)h+=`<details class="pw-later pw-later-visible" data-pw-fold="later" ${pwFoldOpen('later',false)?'open':''}><summary class="pw-later-heading pw-fold-summary" aria-expanded="${pwFoldOpen('later',false)}"><span>${future.length} more ${future.length===1?'plan':'plans'}</span><small>${hesc(pwWeekdays(future))}</small></summary><div class="pw-later-list">${future.map(pwLaterDayHTML).join('')}</div></details>`;
   h+=`</div></details>`;
   if(total){const pc=Math.round(done/total*100);h+=`<div class="lt-progress" role="img" aria-label="${done} of ${total} sets done"><i style="width:${pc}%"></i></div><div class="lt-count mono">${done} of ${total} ${total===1?'set':'sets'}</div>`;}
-  h+=next?`<button type="button" class="lt-next tnextplan" data-planex="${hesc(next.ex)}"><span><small>Next</small><b>${hesc(next.ex)}</b></span>${icon('chevron',ICON_SZ.md)}</button>`
-         :`<p class="lt-done">Every exercise in your plan is logged.</p>`;
-  h+=`</div><h2 class="lt-h">Logged today</h2><div class="card lt-log">`;
-  const byEx=new Map();t.w.forEach(s=>{if(!byEx.has(s.ex))byEx.set(s.ex,[]);byEx.get(s.ex).push(s);});
-  for(const [ex,list] of byEx){
-    const live=exOpen(ex),part=list[list.length-1].part;
-    const what=list.every(isCardio)?list.map(cardioLine).filter(Boolean).join(', '):`${list.length} ${list.length===1?'set':'sets'}`;
-    h+=`<button type="button" class="lt-row${live?' on':''}" data-ex="${hesc(ex)}" data-part="${hesc(part)}"><b>${hesc(ex)}</b><span class="mono">${hesc(what)}</span></button>`;
-  }
+  /* the plan, in order; logged exercises the plan did not name go in after the
+     last planned one you had reached when you did them */
+  const inPlan=new Set(items.map(it=>it.ex)),rows=[];
+  for(const it of items){const l=setsOf(it.ex),n=planned(it),part=(l.at(-1)||{}).part||(typeof homePartOf==='function'?homePartOf(it.ex):'');
+    const state=it.ex===cur?'now':isDone(it)?'fin':next&&it.ex===next.ex?'up':'later';
+    rows.push(row(it.ex,part,state,Math.max(n,l.some(isCardio)?1:0),doneOf(it),state==='fin'?`<span class="mono">${hesc(result(l))}</span>`:''));}
+  const extra=[...new Set(t.w.map(s=>s.ex))].filter(ex=>!inPlan.has(ex));
+  for(const ex of extra){const l=setsOf(ex);rows.push(row(ex,l.at(-1).part,ex===cur?'now':'added',l.length,l.length,`<span class="mono">${hesc(result(l))}</span>`));}
+  const all=items.length&&items.every(isDone)&&!extra.includes(cur);
+  h+=all?`<details class="lt-all"><summary><span>Every exercise in your plan is logged. Finish is in the red bar.</span><small>Show</small></summary><div class="lt-list">${rows.join('')}</div></details>`
+        :`<div class="lt-list">${rows.join('')}</div>`;
   return h+`</div></section>`;
 }
+document.addEventListener('click',e=>{if(!e.target.closest('[data-lttip]'))return;DB.settings.ltTipOff=true;DB.settingsAt=Date.now();save(true);render();});
 /* v4.6.361: A FINISHED DAY, PLAINLY (approved mock "Today after the workout",
    Sungjee 2026-10-20). Under the day card: the next plan as one card whose arrow
    opens it with its tools (Plan, Edit, Paste, Copy) inside, the other planned
