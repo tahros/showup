@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.382 — Cardio is read, not kept as a note
+- **Reported:** the app "cannot read running properly" -- a planned run showed as "Kept as a note · check this line".
+- **Cause:** the plan reader understood one shape, a lift and its weight × reps. Every run line, the app's own "Run — by feel" included, became note text; only Plan's editor and Today's card checked notes for a run, so the review card ("changed on another device"), the paste preview and the paste toast all treated the run as unreadable. Common spellings ("Run 2 mi", "Running — 5 km", "Treadmill 20 min") were not recognised anywhere.
+- **Fix:** the reader itself reads cardio. A line naming an activity (Run/Running/Jog/Treadmill, Walk, Cycling/Bike/Ride/Spin, Rowing/Row/Erg, Swimming, Elliptical, Stair Climber, Jump Rope) with only distance (mi/km/k/m), time (min/h/28:00), "by feel" or a plain word (easy, tempo...) is a cardio row, written back in the app's form ("Run — 5 km (easy)"). A detail on the line under a bare "Run" joins it. Left alone: lifts starting with a cardio word (Walking Lunge), a bare "Row", lines with words it does not know (still notes), and the old "Run / by feel × 1" form. Saved plans need no conversion.
+- Every screen shows it as an activity: the review card, the paste preview (✓, and a run-only paste says "Plan set — 1 exercise"), and Today's card (the run is a row of the plan, not note text).
+- Test: test-cardio-reader.js (new).
+
 ## v4.6.381 — Your sets keeps a run together; Today mid-workout points at the red bar
 - **Asked (Your sets):** last time's six sets at 175 showed as "3–5" and "6" because today's plan had five. A column with no set at a position no longer splits a row: it reads 3–6, Last 175 × 6 4 4 3, Plan 175 × 6 6 6 -- the plan's shorter list still shows the set it does not have. Only at the end of a column (no holes mid-reps, no column starting partway in); a real change of weight, unit, warm-up or bodyweight still starts a new row. Test: test-set-rows.js (new).
 - **Asked (Today during a workout):** the big blue Next button is gone; the card ends at its progress, and Logged today sits under it as before. A dotted tip at the top -- an up arrow at the red bar, "Tap the red bar to go back to <the exercise in the bar>" -- with Don't show again (remembered). test-livetoday.js follows.
