@@ -5175,3 +5175,10 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 /* v4.6.376: a card where nothing has a weight yet (a new user's first week) has no numbers to line up: the dumbbell sits under the name */
 :root[data-flow="refined"] #view[data-flow-view="today"] .plancard.allfeel .planrow .pl{grid-template-columns:auto 12px minmax(0,1fr)}
 .plancard.allfeel .planrow .pv{text-align:left}
+/* v4.6.377: a session being dragged is the card itself, lifted; its old place is a dashed slot; the others slide aside */
+#onb .ob-rt-lift{position:fixed;left:0;top:0;z-index:99;margin:0;pointer-events:none;border-color:var(--accent);background:var(--surface);transform-origin:50% 40%;scale:1;rotate:0deg;transition:scale .18s var(--settle),rotate .18s var(--settle),box-shadow .18s}
+#onb .ob-rt-lift.up{scale:1.04;rotate:-1.6deg;box-shadow:0 22px 44px rgba(0,0,0,.34),0 6px 14px rgba(0,0,0,.18)}
+#onb .ob-rt-ses.ob-rt-slot{background:transparent;box-shadow:none;border:1.5px dashed var(--muted);opacity:.7}
+#onb .ob-rt-ses.ob-rt-slot>*{visibility:hidden}
+.ob-dragging #onb .ob-rt-ses[data-rtcard]{transition:transform .22s var(--settle),border-color .16s,background-color .16s}
+@media (prefers-reduced-motion:reduce){#onb .ob-rt-lift,.ob-dragging #onb .ob-rt-ses[data-rtcard]{transition:none}}
