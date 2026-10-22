@@ -1,5 +1,13 @@
 # ShowUppp — changelog
 
+## v4.6.376 — Your routine plans the week, in Plan
+- **Asked:** after first-run setup only today had a plan; nothing said the rest of the week needed planning.
+- For whoever sets up a routine in first-run setup, each training day in the next seven is saved into Plan from the routine: your own exercises at your last weights, starters until you have them. Plan and Today read the same days. A week you already plan by hand is not touched.
+- **This week** on Today: seven days, today first, rest days marked. Tap a day to see what it holds and Edit this day; tap Today to open today's workout card. A rest day says what is next and offers Train anyway, which puts the next session on today.
+- Days the routine wrote and you have not changed move up when one is missed (the missed day leaves the plan; nothing counts it). A day you edit stays as you wrote it and takes its turn; a day you remove stays empty. Saving a day unchanged from Plan keeps it the routine's.
+- A weight not known yet shows as a hollow dumbbell (the Train tab's, in outline) instead of "by feel": Today's card, This week, Plan's editor and Train's set table. Saved plan text still says "by feel", so Paste and Copy read as before; screen readers hear "Start light". Cardio's "By feel" is unchanged.
+- Tests: test-routine-week.js (new); test-plan.js and test-bw-plan.js follow the dumbbell.
+
 ## v4.6.375 — First run: choices move smoothly, nothing jumps
 - **Reported:** tapping Build muscle / Get stronger / Lose weight snapped instead of sliding; picking a template in "Find your rhythm" made the sheet move up and down.
 - **Cause:** every tap redrew the whole screen, so the goal's thumb and the day circles had no old state to move from, and the open sheet replayed its slide-in.
