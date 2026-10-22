@@ -5325,3 +5325,14 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-rt-ask{gap:6px;padding:6px 6px 6px 10px;flex-wrap:nowrap}
 #onb .ob-rt-ask span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #onb .ob-rt-ask button{flex:none;padding:0 10px;font-size:12.5px}
+
+/* v4.6.390: the answer-all card is the loudest thing on the screen */
+#imp .im-bulk{display:flex;flex-direction:column;align-items:center;text-align:center;margin:4px 0 6px;padding:22px 18px 18px;border-radius:22px;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--surface));box-shadow:0 10px 30px color-mix(in srgb,var(--accent) 22%,transparent)}
+#imp .im-bulk-k{font:500 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink)}
+#imp .im-bulk-n{margin-top:6px;font:700 48px/1 var(--body);letter-spacing:-.02em;color:var(--chalk);font-variant-numeric:tabular-nums}
+#imp .im-bulk-t{margin-top:2px;font:600 17px var(--body);color:var(--chalk)}
+#imp .im-bulk p{margin:6px 0 14px;font:400 13px/1.4 var(--body);color:var(--muted)}
+#imp .im-bulk-btns{display:flex;flex-direction:column;gap:8px;width:100%}
+#imp .im-bulk-btns .im-b{width:100%;min-height:50px;font-size:16px}
+#imp .im-one{margin:16px 4px 6px;font:500 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+#imp .im-bulk-btns .im-b:not(.pri){border:1.5px solid color-mix(in srgb,var(--chalk) 28%,transparent);background:color-mix(in srgb,var(--chalk) 4%,transparent)}
