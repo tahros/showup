@@ -5313,3 +5313,15 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-rt-ses .ob-rt-xdel .ic{width:14px;height:14px}
 #onb .ob-rt-order button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
 #onb .ob-rt-order button .ic{width:14px;height:14px}
+
+/* v4.6.390: the found routine on one line; Edit with its pencil; the x asks first */
+#onb .ob-h.ob-h1{white-space:nowrap;font-size:min(32px,7.4vw);letter-spacing:-.02em}
+#onb .ob-rt-bar .ob-rt-link{display:inline-flex;align-items:center;gap:5px}
+#onb .ob-rt-bar .ob-rt-link .ic{width:14px;height:14px}
+#onb .ob-rt-ask{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--chalk) 6%,transparent)}
+#onb .ob-rt-ask span{flex:1;min-width:0;font:500 13px var(--body);color:var(--chalk)}
+#onb .ob-rt-ask button{all:unset;cursor:pointer;height:32px;padding:0 12px;border-radius:16px;font:600 13px var(--body);color:var(--chalk);background:color-mix(in srgb,var(--chalk) 8%,transparent)}
+#onb .ob-rt-ask .ob-rt-ask-go{background:#D64545;color:#fff}
+#onb .ob-rt-ask{gap:6px;padding:6px 6px 6px 10px;flex-wrap:nowrap}
+#onb .ob-rt-ask span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#onb .ob-rt-ask button{flex:none;padding:0 10px;font-size:12.5px}

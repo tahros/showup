@@ -104,7 +104,7 @@ async function app(){
     ok('five days: Push / Pull / Legs on Day 1 to Day 5', a.run(`onbF.cards.map(c=>c.name).join()`)==='Push,Pull,Legs,Push,Pull'&&a.w.document.querySelectorAll('#onb .ob-rt-list .ob-rt-day')[4].textContent==='Day 5'&&/5 days · any days/.test(a.q('.ob-rt-plan').textContent));
     await a.tap('[data-onbact="faddses"]');
     ok('+ Add a day grows the template: Day 6 is Legs', a.run('onbF.cards.length')===6&&a.run('onbF.cards[5].name')==='Legs'&&/6 days/.test(a.q('.ob-rt-plan').textContent));
-    await a.tap('[data-onbact="fmenu"][data-v="5"]');await a.tap('[data-onbact="fdrop"][data-v="5"]');
+    await a.tap('[data-onbact="fask"][data-v="5"]');await a.tap('[data-onbact="fdrop"][data-v="5"]');
     ok('Remove day takes one away', a.run('onbF.cards.length')===5&&/5 days a week/.test(a.q('.ob-rt-feed').textContent));
     await a.tap('[data-onbact="faddx"]');
     ok('+ Add an extra day: a dashed Extra card, apart from the main days', !!a.q('.ob-rt-extra')&&a.q('.ob-rt-extra .ob-rt-day').textContent==='Extra'&&!a.q('.ob-rt-list .ob-rt-extra')&&/5 days \+ extra/.test(a.q('.ob-rt-plan').textContent));
