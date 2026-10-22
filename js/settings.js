@@ -72,7 +72,7 @@ function renderSync(){
       <div class="ts-labels" aria-hidden="true"><span>Smaller</span><span>Default</span><span>Larger</span></div>
       ${textPhoneAdd()!=null?`<button type="button" class="ts-auto${DB.settings.textSize==='auto'||DB.settings.textSize==null?' on':''}" data-text-size="auto" role="switch" aria-checked="${DB.settings.textSize==='auto'||DB.settings.textSize==null}"><span>Match iPhone text size</span><i aria-hidden="true"></i></button>`:''}
     </div>
-    <!-- v4.6.388: the Mascot switch (Animated / Still / Off) is gone. The crew moves; the phone's Reduce Motion still stills it. -->
+    <!-- v4.6.389: the Mascot switch (Animated / Still / Off) is gone. The crew moves; the phone's Reduce Motion still stills it. -->
     <!-- v4.6.164: the TODAY & TRAIN layout switch is gone -- Refined only; load() moves a stored Previous to Refined. -->
     <h2>Planning</h2>
     <div class="card">
@@ -188,7 +188,7 @@ function renderSync(){
     </div>
     <h2>Your data</h2>
     <div class="card">
-      <!-- v4.6.388: YOUR DATA, SAID PLAINLY. Eight equal buttons read as eight equal choices; there are
+      <!-- v4.6.389: YOUR DATA, SAID PLAINLY. Eight equal buttons read as eight equal choices; there are
            three things to do with your data (take a copy to read, keep a copy to restore, bring old
            workouts in), each a row that says what the file is for. Previews are the maker's tools:
            they show only to the owner. -->

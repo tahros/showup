@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.389 (2026-10-22) — Your data, said plainly; no Mascot switch
+
+- Settings → Your data: three rows that say what each file is for. **Export to spreadsheet** (Download the CSV, or Copy for Google Sheets; kg and km), **Backup** (everything in one file, for Restore; Back up / Restore…), **Bring past workouts** (Import; the last import and its Undo show in the row). Show tips again is a quiet link. Preview day one and the century preview show only to the owner.
+- The Mascot setting (Animated / Still / Off) is gone; a stored Still or Off is cleared on load. The phone's Reduce Motion still holds the crew still.
+- Settings groups open on a chevron that turns 90°, like the plan, instead of a + that became an x.
+
 ## v4.6.388 (2026-10-22) — The approved welcome, with grounded Pip
 
 - Ships the approved v14 first sign-up screen: raised, centered official logo at 90% size, the selected smaller bold headline, city names without captions, and the deeper 36% black overlay.
