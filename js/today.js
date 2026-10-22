@@ -208,7 +208,7 @@ function onbFreshApply(){
   DB.settings.myParts=[...BODY_PARTS.filter(p=>used.has(p)||!onbF.edited),...(used.has('Run')?['Run']:[])];
   DB.settings.objective=onbF.goal;DB.settings.weekStart=onbF.weekStart;DB.settings.onbRoutine=todayISO;
   const prev=DB.settings.plannerPreferences||{};
-  DB.settings.plannerPreferences={...prev,frequency:onbF.cards.length,trainDays:[],rotation:{...rot,extra:onbF.extra&&onbF.extra.parts.length?{name:onbSesTemplate(onbF.extra.parts),parts:onbF.extra.parts.slice()}:null},orderMode:'own',avoid:prev.avoid||[]};
+  DB.settings.plannerPreferences={...prev,frequency:onbF.cards.length,trainDays:[],rotation:rot,extra:onbF.extra&&onbF.extra.parts.length?{name:onbSesTemplate(onbF.extra.parts),parts:onbF.extra.parts.slice()}:null,orderMode:'own',avoid:prev.avoid||[]};
   const text=(T.cardio?'Run — by feel\n':'')+T.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n');
   try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan){ DB.plan.title=T.name; DB.plan.auto='routine'; } DB.settings.routineAutoAt=todayISO; DB.settings.routineWrote={[todayISO]:text}; DB.settings.routineAuto=true; }catch(e){}
   if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
@@ -666,7 +666,7 @@ function rtFreq(){return Math.max(0,Math.min(7,+(DB.settings.plannerPreferences|
 /* v4.6.377: no set weekdays -- the week fills from today: the next main session
    each day until the week has its number, then the Extra once, then rest */
 function rtFlex(){return !rtTrainDays().length&&rtFreq()>0;}
-function rtExtra(){const x=(DB.settings.plannerPreferences||{}).rotation?.extra;return x&&x.parts&&x.parts.length?x:null;}
+function rtExtra(){const x=(DB.settings.plannerPreferences||{}).extra;return x&&x.parts&&x.parts.length?x:null;}
 function rtKinds(){const s=DB.settings;if(!s.routineKinds||typeof s.routineKinds!=='object')s.routineKinds={};return s.routineKinds;}
 function rtWeekOf(d){const t=new Date(d+'T12:00'),off=(t.getDay()-(DB.settings.weekStart==='monday'?1:0)+7)%7;t.setDate(t.getDate()-off);return t.toLocaleDateString('en-CA');}
 function rtOn(){return DB.settings.routineAuto===true&&!!rtSessions()&&(rtTrainDays().length>0||rtFlex());}

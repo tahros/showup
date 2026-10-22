@@ -60,7 +60,7 @@ ok('...it takes its turn: the next day is Lower', run(`DB.week.days['2026-10-23'
 setup('2026-10-22',`DB.settings.routineAuto=false;`);
 ok('switched off: nothing is written and no week card', !run('DB.plan')&&!run('DB.week')&&!q('.tw'));
 /* v4.6.377: no set weekdays. Three a week plus an Extra; the week fills from today */
-const flex=(today,extra='')=>setup(today,`DB.settings.plannerPreferences={frequency:3,trainDays:[],orderMode:'own',rotation:{preset:'ul',sessions:[{name:'Upper',parts:['Chest','Back','Shoulder','Biceps','Triceps']},{name:'Lower',parts:['Legs','Sixpack']}],extra:{name:'',parts:['Biceps','Triceps']}}};${extra}`);
+const flex=(today,extra='')=>setup(today,`DB.settings.plannerPreferences={frequency:3,trainDays:[],orderMode:'own',rotation:{preset:'ul',sessions:[{name:'Upper',parts:['Chest','Back','Shoulder','Biceps','Triceps']},{name:'Lower',parts:['Legs','Sixpack']}]},extra:{name:'',parts:['Biceps','Triceps']}};${extra}`);
 const names=()=>run(`rtWeek().map(x=>x.kind==='rest'?'-':x.kind==='extra'?'X':x.name).join()`);
 flex('2026-10-21');   // Wednesday, nothing done this week (weeks start Sunday)
 ok('flex: the next free days take the sessions, then the Extra, then rest', names()==='Upper,Lower,Upper,X,Lower,Upper,Lower', names());

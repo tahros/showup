@@ -5195,4 +5195,4 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-count .pf-dowb{font-variant-numeric:tabular-nums}
 .tw-day.tw-extra{background:none;border-style:dashed;border-color:var(--accent-ink)}
 .tw-day.tw-extra span{color:var(--accent-ink)}
-:root .pf-workspace .pf-dow.ob-count{grid-template-columns:repeat(6,1fr)}
+:root .pf-workspace .pf-dow.ob-count,:root .pf-workspace .pf-dow.pf-freq{grid-template-columns:repeat(6,1fr)}

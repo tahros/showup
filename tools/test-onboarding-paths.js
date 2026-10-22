@@ -111,7 +111,7 @@ async function app(){
     a.run(`onbPut('Sixpack',-1,null)`);
     ok('body parts go onto the Extra too', a.run(`onbF.extra.parts.join()`)==='Biceps,Triceps,Sixpack');
     await a.tap('[data-onbact="fundo"]');await a.tap('[data-onbact="fsave"]');
-    ok('saved: five a week, no set weekdays, the Extra kept apart from the order', a.run(`(p=>p.frequency===5&&p.trainDays.length===0&&p.rotation.preset==='ppl'&&p.rotation.sessions.length===3&&p.rotation.extra.parts.join()==='Biceps,Triceps')(DB.settings.plannerPreferences)`), a.run('JSON.stringify(DB.settings.plannerPreferences)'));
+    ok('saved: five a week, no set weekdays, the Extra kept apart from the order', a.run(`(p=>p.frequency===5&&p.trainDays.length===0&&p.rotation.preset==='ppl'&&p.rotation.sessions.length===3&&p.extra.parts.join()==='Biceps,Triceps')(DB.settings.plannerPreferences)`), a.run('JSON.stringify(DB.settings.plannerPreferences)'));
   }
   { const a=await app(); await a.toFork();await a.tap('[data-onbact="path"][data-v="have"]');
     ok('a routine: where is it now?', !!a.q('[data-onbact="have"][data-v="import"]')&&!!a.q('[data-onbact="have"][data-v="paste"]')&&!!a.q('[data-onbact="have"][data-v="log"]'));

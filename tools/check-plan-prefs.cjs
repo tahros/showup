@@ -23,7 +23,7 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  ok(`${tag} before any preference is saved, the planner opens on one day, as before`,x.dates.length===1,x.dates);
  await p.evaluate(()=>{pfHandle('pf-prefs',{dataset:{}});});await p.waitForTimeout(600);
  const dom=()=>p.evaluate(()=>{const q=s=>[...document.querySelectorAll(s)],on=s=>q(s).filter(e=>e.classList.contains('on')).map(e=>e.dataset.value);
-  return {h3:q('.pf-prefs h3').map(e=>e.textContent),goal:on('[data-pw="pf-goal"]'),cap:document.querySelector('.pf-pref-cap')?.textContent,ws:on('[data-pw="pf-weekstart"]'),dow:q('[data-pw="pf-trainday"]').map(e=>e.textContent+(e.classList.contains('on')?'*':'')).join(' '),size:on('[data-pw="pf-size"]'),max:!!document.querySelector('[data-pf-pref="maxSets"]'),warm:document.querySelector('[data-pw="pf-warmup"]')?.getAttribute('aria-checked'),
+  return {h3:q('.pf-prefs h3').map(e=>e.textContent),goal:on('[data-pw="pf-goal"]'),cap:document.querySelector('.pf-pref-cap')?.textContent,ws:on('[data-pw="pf-weekstart"]'),dow:q('[data-pw="pf-freq"]').map(e=>e.textContent+(e.classList.contains('on')?'*':'')).join(' '),size:on('[data-pw="pf-size"]'),max:!!document.querySelector('[data-pf-pref="maxSets"]'),warm:document.querySelector('[data-pw="pf-warmup"]')?.getAttribute('aria-checked'),
    avoid:q('[data-pw="pf-unavoid"]').map(e=>e.textContent.trim()),hold:q('[data-pw="pf-unhold"]').map(e=>e.textContent.replace(/\s+/g,' ').trim()),selects:q('.pf-prefs select').length,adds:q('[data-pw="pf-xpick-open"]').length,rules:q('.pf-rules li').length,old:q('[data-pf-emphasis],[data-pw="pf-frequency"],[data-pf-pref="minutes"],[data-pf-pref="split"],[data-pf-pref="minSets"]').length,
    over:q('.pf-prefs .card *').filter(e=>{const r=e.getBoundingClientRect(),c=e.closest('.card').getBoundingClientRect();return r.width&&e.tagName!=='SELECT'&&e.tagName!=='OPTION'&&e.tagName!=='OPTGROUP'&&(r.right>c.right+0.5||r.left<c.left-0.5);}).map(e=>e.className||e.tagName).slice(0,4),
    segH:q('.pf-segb').map(e=>Math.round(e.getBoundingClientRect().height)),dowW:q('.pf-dowb').map(e=>Math.round(e.getBoundingClientRect().width)),sw:document.documentElement.scrollWidth,vw:innerWidth};});
@@ -31,14 +31,14 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  ok(`${tag} six cards: goal, week, body parts, split, session, exercises -- and the rules`,d.h3.join('|')==='What are you training for?|Your week|Body parts you train|Your order|Each session|Exercises'&&d.rules===6,d.h3);
  ok(`${tag} days a week, minutes, sliders, the sets range and split are gone`,d.old===0,d.old);
  ok(`${tag} it opens on what is true now: Grow, Monday, Auto, warm-up on`,d.goal.join()==='grow'&&d.ws.join()==='monday'&&d.size.join()==='auto'&&d.warm==='true'&&!d.max&&/8 to 12 reps/.test(d.cap),d);
- ok(`${tag} the weekdays you have trained on are offered, week starting Monday`,d.dow==='M* T* W* T* F* S S',d.dow);
+ ok(`${tag} days a week: the number of weekdays you have trained on is offered (v4.6.377: a number, not weekdays)`,d.dow==='2 3 4 5* 6 7',d.dow);
  ok(`${tag} Avoid and Hold list what is already set, Hold with its weight`,d.avoid.join()==='Romanian Deadlift'&&d.hold.length===1&&/^Barbell Bench Press 135 lb$/.test(d.hold[0]),d);
  ok(`${tag} no system dropdown on the page: two + Add buttons`,d.selects===0&&d.adds===2,d);
  ok(`${tag} nothing overflows a card or the screen`,!d.over.length&&d.sw<=d.vw,d);
  ok(`${tag} controls are tappable sizes`,d.segH.every(n=>n>=32)&&d.dowW.every(n=>n>=30),d);
  if(SHOT&&w===402){await p.evaluate(()=>{const dk=document.querySelector('.pw-save-dock'),nv=document.getElementById('nav');window.__vis=[dk,nv];});await p.screenshot({path:`${SHOT}/prefs-built-${theme}.png`,fullPage:false});await p.setViewportSize({width:402,height:1790});await p.waitForTimeout(300);await p.screenshot({path:`${SHOT}/prefs-built-full-${theme}.png`});await p.setViewportSize({width:w,height:h});await p.waitForTimeout(200);}
  /* v4.6.202: the toggles animate -- the element tapped survives the tap, and has a transition to run */
- await p.evaluate(()=>{window.__keep={goal:document.querySelector('[data-pw="pf-goal"][data-value="lose"]'),seg:document.querySelector('[data-pw="pf-goal"]').parentNode,dow:document.querySelector('[data-pw="pf-trainday"][data-value="2"]'),sw:document.querySelector('[data-pw="pf-warmup"]'),card:document.querySelector('.pf-prefs')};});
+ await p.evaluate(()=>{window.__keep={goal:document.querySelector('[data-pw="pf-goal"][data-value="lose"]'),seg:document.querySelector('[data-pw="pf-goal"]').parentNode,dow:document.querySelector('[data-pw="pf-freq"][data-value="2"]'),sw:document.querySelector('[data-pw="pf-warmup"]'),card:document.querySelector('.pf-prefs')};});
  const mo=await p.evaluate(()=>{const cs=(e,ps)=>getComputedStyle(e,ps),sec=v=>Math.max(...String(v).split(',').map(x=>parseFloat(x)||0));const k=window.__keep;
   return {thumb:sec(cs(k.seg,'::before').transitionDuration),thumbProp:cs(k.seg,'::before').transitionProperty,label:sec(cs(k.goal).transitionDuration),dow:sec(cs(k.dow).transitionDuration),sw:sec(cs(k.sw).transitionDuration),knob:sec(cs(k.sw,'::after').transitionDuration),i:k.seg.style.getPropertyValue('--i'),n:k.seg.style.getPropertyValue('--n')};});
  ok(`${tag} every toggle has a transition: thumb, labels, weekday circles, switch and its knob`,mo.thumb>=0.2&&/transform/.test(mo.thumbProp)&&mo.label>=0.15&&mo.dow>=0.15&&mo.sw>=0.15&&mo.knob>=0.2&&mo.i==='0'&&mo.n==='3',mo);
@@ -52,9 +52,9 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  await p.tap('[data-pw="pf-goal"][data-value="lose"]');await p.waitForTimeout(250);d=await dom();
  ok(`${tag} tap Lose weight: it lights and the line under it changes`,d.goal.join()==='lose'&&/12 to 15 reps/.test(d.cap),d.cap);
  await p.tap('[data-pw="pf-weekstart"][data-value="sunday"]');await p.waitForTimeout(250);d=await dom();
- ok(`${tag} tap Sunday: the weekday row re-orders, the picks stay`,d.ws.join()==='sunday'&&d.dow==='S M* T* W* T* F* S',d.dow);
- await p.tap('[data-pw="pf-trainday"][data-value="5"]');await p.tap('[data-pw="pf-trainday"][data-value="6"]');await p.waitForTimeout(250);d=await dom();
- ok(`${tag} tap Friday off and Saturday on`,d.dow==='S M* T* W* T* F S*',d.dow);
+ ok(`${tag} tap Sunday: the week starts on Sunday, days a week stays`,d.ws.join()==='sunday'&&d.dow==='2 3 4 5* 6 7',d.dow);
+ await p.tap('[data-pw="pf-freq"][data-value="6"]');await p.waitForTimeout(250);d=await dom();
+ ok(`${tag} tap 6: six days a week`,d.dow==='2 3 4 5 6* 7',d.dow);
  await p.tap('[data-pw="pf-size"][data-value="limit"]');await p.waitForTimeout(250);d=await dom();
  ok(`${tag} tap Set a limit: a number field appears`,d.size.join()==='limit'&&d.max,d);
  await p.fill('[data-pf-pref="maxSets"]','18');
@@ -98,13 +98,13 @@ try{for(const [w,h] of [[402,874],[320,640]])for(const theme of ['light','dark']
  x=await st();
  ok(`${tag} nothing is stored until Save`,x.prefs===null&&x.goal==='grow'&&x.ws==='monday'&&x.avoid.join()==='Romanian Deadlift'&&x.hold.join()==='Barbell Bench Press',x);
  await p.tap('[data-pw="pf-prefs-save"]');await p.waitForTimeout(600);x=await st();
- ok(`${tag} Save stores all of it`,x.prefs&&x.prefs.mode==='limit'&&x.prefs.maxSets===18&&x.prefs.warmup===false&&x.prefs.trainDays.join()==='1,2,3,4,6'&&x.goal==='lose'&&x.pwGoal==='lose'&&x.ws==='sunday'&&x.avoid.join()==='Standing Calf Raise'&&x.hold.slice().sort().join()==='Barbell Bench Press,Dip',x);
+ ok(`${tag} Save stores all of it`,x.prefs&&x.prefs.mode==='limit'&&x.prefs.maxSets===18&&x.prefs.warmup===false&&x.prefs.trainDays.length===0&&x.prefs.frequency===6&&x.goal==='lose'&&x.pwGoal==='lose'&&x.ws==='sunday'&&x.avoid.join()==='Standing Calf Raise'&&x.hold.slice().sort().join()==='Barbell Bench Press,Dip',x);
  ok(`${tag} ...and returns to Dates`,x.page==='dates',x.page);
  /* the Dates step now opens on your week */
  await p.evaluate(async()=>{pw().dates=[];pw().active=null;pwOpen(null,'dates');await new Promise(r=>setTimeout(r,500));});x=await st();
- ok(`${tag} with nothing selected, Dates opens on your training days across the next seven days`,x.dates.join()==='2026-10-03,2026-10-05,2026-10-06,2026-10-07,2026-10-08',x.dates);
+ ok(`${tag} with nothing selected, Dates opens on the next six free days (v4.6.377: days a week, not weekdays)`,x.dates.join()==='2026-10-03,2026-10-04,2026-10-05,2026-10-06,2026-10-07,2026-10-08',x.dates);
  const sel=await p.evaluate(()=>document.querySelectorAll('.pf-calendar .selected').length);
- ok(`${tag} ...five days lit on the calendar`,sel===5,sel);
+ ok(`${tag} ...six days lit on the calendar`,sel===6,sel);
  await p.evaluate(async()=>{pw().dates=['2026-10-12'];pw().active='2026-10-12';pwOpen(null,'dates');await new Promise(r=>setTimeout(r,400));});x=await st();
  ok(`${tag} a selection you already have is left alone`,x.dates.join()==='2026-10-12',x.dates);
  ok(`${tag} no page errors`,!errors.length,errors);
