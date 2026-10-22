@@ -712,7 +712,8 @@ document.addEventListener('click',e=>{
     planSave(items,note,lift.planText||'',_wd);
     lift.planDate=null; lift.planSource=null; lift.planReason=null;
     planDone();
-    toast(items.length?`Plan set${_wd===todayISO?'':' for '+planDayLabel(_wd)} — ${items.length} exercise${items.length>1?'s':''}`:'Kept as a note');
+    const _cn=(lift.planRows||[]).filter(r=>r.kind==='cardio').length,_n=items.length+_cn;   // v4.6.382: a planned run is part of the plan, not a note
+    toast(_n?`Plan set${_wd===todayISO?'':' for '+planDayLabel(_wd)} — ${_n} exercise${_n>1?'s':''}`:'Kept as a note');
     return render();
   }
   if(e.target.closest&&e.target.closest('[data-planfold]')){

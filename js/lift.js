@@ -69,12 +69,17 @@ function planCardHTML(_pl, live){
   const _ln=_rows.reduce((a,r)=>a.concat(r.map(x=>x.l)),[]);
   const _cw=(f,min)=>Math.max(min,..._ln.map(l=>f(l).length));
   const _mhtml=x=>isHold(x.l.su)?_rhtml(x.l,x.sp):x.l.reps.map((r,k)=>`<i class="rp${x.fl[k]?' rspent':''}">${r}</i>`).join(' ');
+  /* v4.6.382: a planned run is a row of the plan, first where it was written, not a line of note text */
+  const _noteLines=String(_pl.note||'').split('\n'),_cardioRows=[],_keep=[];
+  for(const ln of _noteLines){const c=ln.trim()&&typeof planReadCardio==='function'?planReadCardio(ln.trim()):null;if(c)_cardioRows.push(c);else _keep.push(ln);}
+  const _noteRest=_keep.join('\n').trim();
   return `<div class="card plancard${live?'':' dayplan'}${_ln.length&&_ln.every(l=>l.nw)?' allfeel':''}" style="--planw:${_cw(l=>_wtx(l).replace(FEEL_WORD,'##'),2)}ch;--planr:${_cw(_rtx,1)}ch">
+    ${_cardioRows.map(c=>{const _dn=live&&(dayMeta().w||[]).some(x=>x.ex===c.ex&&isCardio(x));return `<button class="planrow pcardio${_dn?' pdone':''}" data-planex="${hesc(c.ex)}"><span class="pn">${hesc(c.ex)}<i class="pk">${_dn?'\u2713':''}${refinedFlow()&&!_dn?icon('chevron',ICON_SZ.sm):''}</i></span><span class="pl pl-cardio"><span class="pv mono">${hesc(String(c.raw).split(/\s+[—–]\s+/).slice(1).join(' — '))}</span></span></button>`;}).join('')}
     ${(_pl.items||[]).map((i,ii)=>{const _dn=live&&planLoggedToday(i.ex); return `<button class="planrow${_dn?' pdone':''}" data-planex="${i.ex}">
         <span class="pn">${i.ex}<i class="pk">${_dn?'\u2713':(exIsNew(i.ex)?'<span class="ptag">NEW</span>':'')}${refinedFlow()&&!_dn?icon('chevron',ICON_SZ.sm):''}</i></span>
         <span class="pl">${_rows[ii].map(x=>`<span class="pv pw mono">${loadHTML(_wtx(x.l))}</span><span class="px mono" aria-hidden="true">×</span><span class="pr mono">${_mhtml(x)}</span>`).join('')}</span>
       </button>`;}).join('')}
-    ${_pl.note?planNoteHTML(_pl.note):''}
+    ${_noteRest?planNoteHTML(_noteRest):''}
   </div>`;
 }
 /* the pills that lead the heading: today, and week while a week is live */
@@ -1256,6 +1261,12 @@ function planScreenHTML(){
     if(r.kind==='day'){
       h+=`<div class="planpv day"><span class="pi">\u00b7</span>
         <span class="pb"><b>${hesc(pretty(r.iso))}</b>${r.title?`<i class="mono">${hesc(r.title)}</i>`:''}</span></div>`;
+      return;
+    }
+    /* v4.6.382: a cardio line is read, and says what it read */
+    if(r.kind==='cardio'){
+      h+=`<div class="planpv ok"><span class="pi">\u2713</span>
+        <span class="pb"><b>${hesc(r.ex)}</b><i class="mono">${hesc(String(r.raw).split(/\s+[—–]\s+/).slice(1).join(' — '))}</i></span></div>`;
       return;
     }
     if(r.kind==='ex'&&r.ex){

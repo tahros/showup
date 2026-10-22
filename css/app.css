@@ -5167,3 +5167,6 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .lt .lt-tip-up .ic{width:16px;height:16px}
 @media(prefers-reduced-motion:no-preference){.lt .lt-tip-up .ic{animation:ltTipUp 1.6s var(--settle) infinite}}
 @keyframes ltTipUp{0%,100%{transform:translateY(2px)}50%{transform:translateY(-3px)}}
+/* v4.6.382: a planned run on the plan card reads its distance and time in the weight column's place */
+.planrow .pl.pl-cardio,:root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pl.pl-cardio{display:block}
+.planrow .pl-cardio .pv{color:var(--muted)}

@@ -2106,6 +2106,47 @@ const PLAN_COMPLEX=/(?:\b(?:drop\s*set|rest[- ]?pause|amrap)\b|[x×]\s*\d+\s*[-�
 const planHeadClean=t=>String(t).split(/[←<]-?|\/\/|\s{3,}#/)[0]
   .replace(/\b\d+\s*sets?\b/ig,'').replace(/[·|—–-]\s*$/,'').trim();
 
+/* v4.6.382: CARDIO IS READ, NOT KEPT AS A NOTE (Sungjee, 2026-10-22: "the app
+   cannot read running properly"). The reader knew one shape -- a lift and its
+   weight x reps -- so every run line, the app's own "Run — by feel" included,
+   became a note, and only the two screens that re-checked notes showed it as a
+   run; everywhere else said "Kept as a note · check this line". A line that
+   names a cardio activity and says nothing but distance, time or "by feel"
+   is now a cardio row of its own, written back in the app's form
+   ("Run — 2 mi · 20 min"). Read: Run/Running/Jog/Treadmill, Walk, Cycling/
+   Bike/Ride/Spin, Rowing/Row/Erg, Swimming/Swim, Elliptical, Stair Climber/
+   Stairmaster, Jump Rope; distances mi/km/k/m, times min/h or 28:00, "by feel",
+   a few plain words (easy, tempo...). Anything else on the line keeps it a
+   note: the reader proposes, it does not reinterpret what you wrote. A bare
+   name counts only when it cannot be a lift ("Row" alone is not a row) and
+   when no set line follows ("Run / by feel x 1" stays the exercise it was). */
+const CARDIO_ALIAS=[['stationary bike','Cycling'],['treadmill run','Run'],['stair climber','Stair Climber'],['stairmaster','Stair Climber'],['jump rope','Jump Rope'],['treadmill','Run'],['jogging','Run'],['running','Run'],['cycling','Cycling'],['swimming','Swimming'],['elliptical','Elliptical'],['skipping','Jump Rope'],['walking','Walk'],['rowing','Rowing'],['biking','Cycling'],['rower','Rowing'],['stairs','Stair Climber'],['cycle','Cycling'],['swim','Swimming'],['bike','Cycling'],['ride','Cycling'],['spin','Cycling'],['walk','Walk'],['jog','Run'],['run','Run'],['row','Rowing'],['erg','Rowing']];
+const CARDIO_NEEDS_DETAIL=new Set(['row','ride','spin','stairs','erg','cycle','bike','rower']);
+const CARDIO_WORDS=/^(easy|recovery|steady|tempo|intervals?|long|light|brisk|zone ?2|z2|outdoor|indoor|warm[ -]?up|cool[ -]?down)$/i;
+function planReadCardioDetail(rest){
+  let t=' '+String(rest||'').toLowerCase().replace(/[—–]/g,' ').replace(/[·,/@]|\band\b|\bin\b|\bfor\b/g,' ')+' ',d=null,du=null,m=null,feel=false;const words=[];
+  t=t.replace(/(\d+(?:\.\d+)?)\s*(miles?|mi|kilometers?|kilometres?|km|k|meters?|metres?|m)(?=\s)/g,(_,n,u)=>{if(d!=null)return ' ';d=+n;du=/^mi/.test(u)?'mi':/^(k|km|kilomet)/.test(u)?'km':'m';return ' ';});
+  t=t.replace(/(\d+):(\d{2})(?::(\d{2}))?(?=\s)/g,(_,a,b,c)=>{if(m!=null)return ' ';m=c!=null?(+a)*60+(+b)+(+c)/60:(+a)+(+b)/60;return ' ';});
+  t=t.replace(/(\d+(?:\.\d+)?)\s*(hours?|hrs?|h)(?=\s)/g,(_,n)=>{m=(m||0)+(+n)*60;return ' ';});
+  t=t.replace(/(\d+(?:\.\d+)?)\s*(minutes?|mins?|min)(?=\s)/g,(_,n)=>{m=(m||0)+(+n);return ' ';});
+  t=t.replace(/\bby feel\b/g,()=>{feel=true;return ' ';});
+  t=t.replace(/[()\-:]/g,' ');
+  for(const w of t.split(/\s+/).filter(Boolean)){if(CARDIO_WORDS.test(w)||/^(zone|2)$/.test(w))words.push(w);else return null;}
+  return {d,du,m:m!=null?Math.round(m*10)/10:null,feel:feel||(d==null&&m==null),desc:words.join(' ')};
+}
+function planCardioText(c){const f=n=>String(+(+n).toFixed(2));const bits=[c.d!=null?f(c.d)+' '+c.du:'',c.m!=null?f(c.m)+' min':''].filter(Boolean);return c.ex+' — '+(bits.join(' · ')||'by feel')+(c.desc?' ('+c.desc+')':'');}
+function planReadCardio(body,nextLine){
+  const low=String(body||'').trim().toLowerCase();if(!low)return null;
+  for(const [a,ex] of CARDIO_ALIAS){
+    if(!low.startsWith(a))continue;const rest=low.slice(a.length);
+    if(rest&&!/^[\s—–\-:·(]/.test(rest)&&!/^\d/.test(rest))continue;      // "Rowing" is not "Row" + "ing"; "Running" is not "Run" + "ning"
+    const det=planReadCardioDetail(rest);if(!det)return null;
+    const bare=!rest.trim()||/^[\s—–\-:·]*$/.test(rest);
+    if(bare&&(CARDIO_NEEDS_DETAIL.has(a)||(nextLine!=null&&/^\s/.test(nextLine)&&planReadPrescription(planSetLabel(nextLine.trim()).body))))return null;
+    const c={ex,...det};return {kind:'cardio',cardio:true,ex,name:ex,d:c.d,du:c.du,m:c.m,feel:c.feel,desc:c.desc,src:String(body).trim(),raw:planCardioText(c)};
+  }
+  return null;
+}
 function parsePlan(text){
   const rows=[];
   let cur=null;
@@ -2115,6 +2156,14 @@ function parsePlan(text){
     const line=raw.replace(/\t/g,' ').trimEnd();
     if(!line.trim()){ cur=null; continue; }
     const body=line.split(/←|<-/)[0].trim();
+    /* v4.6.382: a cardio line is a cardio row; a detail line under a bare one ("Run" / "  2 mi") joins it */
+    const nextRaw=source.slice(at+1).find(x=>x.trim())??null;
+    const cardio=(!cur||!/^\s/.test(raw))?planReadCardio(body,nextRaw):null;
+    if(cardio){
+      const nx=source[at+1];
+      if(cardio.feel&&!/by feel/i.test(body)&&nx&&/^\s+\S/.test(nx)){const more=planReadCardioDetail(nx.trim());if(more&&!more.feel){Object.assign(cardio,{d:more.d,du:more.du,m:more.m,feel:false,desc:more.desc||cardio.desc});cardio.raw=planCardioText(cardio);at++;}}
+      rows.push(cardio);cur=null;continue;
+    }
     if(PLAN_BLOCK.test(body)){
       const block=[raw];
       while(at+1<source.length&&source[at+1].trim()) block.push(source[++at]);
