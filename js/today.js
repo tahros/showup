@@ -264,7 +264,32 @@ function onbReadRoutine(text){
    coffee: a paste is understood whole (names, sets, rest days, messy lines), an import is analysed
    for your split, your order and your days a week. If the AI cannot answer -- offline, today's
    allowance spent, or slow -- the quick read on the phone takes over, and the screen says which. */
-const ONB_MUG='<svg class="ob-mug" viewBox="0 0 64 72" aria-hidden="true"><path class="ob-steam s1" d="M22 22c-4-5 4-8 0-14"/><path class="ob-steam s2" d="M32 22c-4-5 4-8 0-14"/><path class="ob-steam s3" d="M42 22c-4-5 4-8 0-14"/><path class="ob-cup" d="M12 30h38v18a14 14 0 0 1-14 14H26a14 14 0 0 1-14-14z"/><path class="ob-handle" d="M50 35h3a7 7 0 0 1 0 14h-3"/><path class="ob-saucer" d="M6 66h50"/></svg>';
+/* v4.6.390: YOUR CREW READS YOUR STREAKS. The wait is the app's own picture of showing up: a wall of
+   day squares, seven to a row, scrolling up past your crew member; each square lights as it passes
+   their eyes. An import scrolls your real weeks, oldest first; a paste, a week shaped like what you
+   wrote. Reduced motion holds a filled wall still. */
+let onbWallRaf=0;
+function onbWallWeeks(){
+  if(onbReadSrc==='import'){const ds=[...workoutDates()].sort();if(ds.length>=7){const on=new Set(ds),dow=weekStartDow(),first=new Date(ds[0]+'T12:00');first.setDate(first.getDate()-((first.getDay()-dow+7)%7));
+    const out=[];for(const d=new Date(first);d.toLocaleDateString('en-CA')<=todayISO;d.setDate(d.getDate()+7)){const row=[];for(let k=0;k<7;k++){const x=new Date(d);x.setDate(x.getDate()+k);const iso=x.toLocaleDateString('en-CA');row.push(iso>todayISO?-1:on.has(iso)?1:0);}out.push(row);}
+    if(out.length>=6)return out;}}
+  const n=Math.max(2,Math.min(7,(onbReadRoutine(onbPasteText).sessions||[]).filter(x=>!x.rest).length||4)),out=[];let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let w=0;w<40;w++){const row=Array(7).fill(0),days=[0,1,2,3,4,5,6].sort(()=>rnd()-.5).slice(0,Math.max(1,n-(rnd()<.25?1:0)));for(const k of days)row[k]=1;out.push(row);}
+  return out;}
+function onbWallStart(){
+  cancelAnimationFrame(onbWallRaf);const wall=document.querySelector('#onb .ob-wall');if(!wall)return;
+  const weeks=onbWallWeeks(),P=30,still=matchMedia('(prefers-reduced-motion: reduce)').matches,H=wall.clientHeight,eye=H*.56;
+  wall.innerHTML='';const rows=[];const make=w=>{const r=document.createElement('div');r.className='ob-wall-row';r.innerHTML=weeks[w%weeks.length].map(v=>`<i class="${v<0?'fut':v?'yes':''}"></i>`).join('');wall.appendChild(r);return r;};
+  const vis=Math.ceil(H/P)+2;let next=0;
+  for(let k=0;k<vis;k++)rows.push({el:make(next++),y:H-P*(vis-1-k)-(still?0:H*.5)});
+  if(still){rows.forEach(r=>{r.el.style.transform=`translateY(${r.y}px)`;r.el.classList.add('read');});return;}
+  let t0=performance.now();const speed=P/0.34;   // a row about every third of a second
+  const tick=t=>{if(!wall.isConnected)return;const dt=Math.min(64,t-t0);t0=t;
+    for(const r of rows){r.y-=speed*dt/1000;if(r.y<eye&&!r.read){r.read=true;r.el.classList.add('read');}r.el.style.transform=`translateY(${r.y.toFixed(1)}px)`;}
+    if(rows[0].y<-P){const r=rows.shift();r.el.remove();const last=rows[rows.length-1];rows.push({el:make(next++),y:last.y+P});}
+    onbWallRaf=requestAnimationFrame(tick);};
+  onbWallRaf=requestAnimationFrame(tick);}
+
 let onbReadToken=0,onbReadTick=null,onbReadSlow=false,onbReadSrc='paste';
 const ONB_READ_LINES={paste:['Reading your days…','Matching your exercises…','Finding your rest days…','Setting today’s numbers…'],
   import:['Going through your workouts…','Finding your split…','Working out your order…','Setting today’s numbers…']};
@@ -458,10 +483,10 @@ function onbRender(){
     /* v4.6.390: the wait is part of the welcome -- your crew member has a coffee while the AI reads */
     const L=ONB_READ_LINES[onbReadSrc]||ONB_READ_LINES.paste;
     b=`<div class="ob ob-step ob-reading">${onbTop(...onbPos())}
-      <div class="ob-read-stage"><div class="ob-read-crew">${(typeof companionHTML==='function'&&companionHTML('ob-read-comp'))||(typeof mascotHTML==='function'?mascotHTML('idle','ob-read-comp'):'')}${ONB_MUG}</div>
+      <div class="ob-read-stage"><div class="ob-read-scene"><div class="ob-wall" aria-hidden="true"></div><div class="ob-read-crew">${(typeof companionHTML==='function'&&companionHTML('ob-read-comp'))||(typeof mascotHTML==='function'?mascotHTML('idle','ob-read-comp'):'')}</div></div>
       <h1 class="ob-h ob-read-h">${onbReadSrc==='import'?'Reading your<br>workouts.':'Reading your<br>routine.'}</h1>
       <p class="ob-read-line in" aria-live="polite">${L[0]}</p>
-      <p class="ob-read-sub">Your crew is on a coffee break. This takes a few seconds.</p>
+      <p class="ob-read-sub">${onbReadSrc==='import'?'Your crew is reading every day you showed up.':'Your crew is reading it through. This takes a few seconds.'}</p>
       <button type="button" class="ob-link ob-read-quick" data-onbact="rquick" ${onbReadSlow?'':'hidden'}>Taking a while? Use the quick read</button></div></div>`;
   }else if(onbStep==='paste'){
     /* v4.6.390: PASTE YOUR ROUTINE. Your days as you keep them in your notes; the app reads them on the
@@ -548,6 +573,7 @@ function onbRender(){
   if(!replay)el.scrollTop=keepY;
   if(onbStep==='crew'&&typeof adoptBind==='function'){const r=el.querySelector('.ob-adopt');if(r)adoptBind(r,()=>{onbGo('fork');});}
   if(onbStep===1)onbWorldMount(el);
+  if(onbStep==='reading')onbWallStart();else cancelAnimationFrame(onbWallRaf);
   if(onbStep==='paste'){const ta=el.querySelector('#onbPaste');ta?.addEventListener('input',()=>{onbPasteText=ta.value;onbPasteSync();});}
   if(onbStep==='you'||onbStep==='basics'){
     const nm=el.querySelector('#onbName'), bw=el.querySelector('#onbBw'), bb=el.querySelector('#onbBubble');

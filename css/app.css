@@ -5336,3 +5336,15 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #imp .im-bulk-btns .im-b{width:100%;min-height:50px;font-size:16px}
 #imp .im-one{margin:16px 4px 6px;font:500 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
 #imp .im-bulk-btns .im-b:not(.pri){border:1.5px solid color-mix(in srgb,var(--chalk) 28%,transparent);background:color-mix(in srgb,var(--chalk) 4%,transparent)}
+
+/* v4.6.390: the crew reads your streaks -- a wall of day squares scrolling up past its eyes */
+#onb .ob-read-scene{position:relative;width:214px;height:250px;margin-bottom:22px}
+#onb .ob-wall{position:absolute;inset:0;overflow:hidden;-webkit-mask:linear-gradient(transparent 0,#000 22%,#000 70%,transparent 100%);mask:linear-gradient(transparent 0,#000 22%,#000 70%,transparent 100%)}
+#onb .ob-wall-row{position:absolute;left:0;right:0;top:0;display:grid;grid-template-columns:repeat(7,24px);gap:7px;justify-content:center;will-change:transform}
+#onb .ob-wall-row i{height:24px;border-radius:7px;background:color-mix(in srgb,var(--chalk) 9%,transparent);transition:background-color .35s ease,transform .35s cubic-bezier(.2,1.6,.4,1)}
+#onb .ob-wall-row i.fut{background:none;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--chalk) 10%,transparent)}
+#onb .ob-wall-row.read i.yes{background:var(--accent);transform:scale(1.06)}
+#onb .ob-read-scene .ob-read-crew{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);height:auto;margin:0;z-index:2}
+#onb .ob-read-scene .ob-read-comp{width:112px;height:112px;animation:obRead 2.8s ease-in-out infinite;filter:drop-shadow(0 8px 12px rgba(0,0,0,.18))}
+@keyframes obRead{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-3px) rotate(-2deg)}65%{transform:translateY(-2px) rotate(2deg)}}
+@media(prefers-reduced-motion:reduce){#onb .ob-read-scene .ob-read-comp{animation:none}#onb .ob-wall-row i{transition:none}}
