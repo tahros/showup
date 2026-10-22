@@ -191,29 +191,23 @@ function renderSync(){
     </div>
     <h2>Your data</h2>
     <div class="card">
-      <div class="note" style="margin-bottom:8px">${fmt(Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).length)} days on this device — yours to take anywhere. Weights export in kg, distance in km (the stored truth), whatever the display unit.</div>
-      <div class="row" style="gap:8px">
-        <button class="btn ghost" id="expCsv" style="flex:1;margin:0">CSV ↓</button>
-        <button class="btn ghost" id="expSheet" style="flex:1;margin:0">Copy for Sheets</button>
+      <!-- v4.6.388: YOUR DATA, SAID PLAINLY. Eight equal buttons read as eight equal choices; there are
+           three things to do with your data (take a copy to read, keep a copy to restore, bring old
+           workouts in), each a row that says what the file is for. Previews are the maker's tools:
+           they show only to the owner. -->
+      <p class="data-count">${fmt(Object.keys(DB.days).filter(d=>(DB.days[d].w||[]).length).length)} days on this device. Yours to take anywhere.</p>
+      <div class="data-row">
+        <div class="data-txt"><b>Export to spreadsheet</b><span>Every set, one row each, in kg and km. Opens in Excel, Numbers or Google Sheets.</span></div>
+        <div class="data-acts"><button class="btn ghost" id="expCsv">Download ↓</button><button class="btn ghost" id="expSheet">Copy</button></div>
       </div>
-      <!-- v3.3.372: look at day one without becoming day one. The maker has 953
-           days behind him and the only other way to see a new user's first
-           screen is to log out or clear the device. This renders the flow over
-           live data and writes NOTHING -- no sets, no settings, no stamp. -->
-      <button class="btn ghost" id="d1prev" style="margin-top:6px">Preview day one</button>
-      <!-- v3.3.424: and the century, for the same reason -- the next one is
-           dozens of days away and it cannot be judged from a description.
-           It writes NOTHING: no stamp, no settings, no set. It shows the
-           NEXT century you will actually reach, so what you are looking at is
-           your own number, not a sample. -->
-      <button class="btn ghost" id="milePrev" style="margin-top:6px">Preview the ${fmt(Math.ceil((dayCount()+1)/100)*100)} day</button>
-      <div class="row" style="gap:8px;margin-top:6px">
-        <button class="btn ghost" id="expJson" style="flex:1;margin:0">Backup ↓</button>
-        <button class="btn ghost" id="impJson" style="flex:1;margin:0">Restore…</button>
+      <div class="data-row">
+        <div class="data-txt"><b>Backup</b><span>Everything in one file, for Restore. Only ShowUppp opens it.</span></div>
+        <div class="data-acts"><button class="btn ghost" id="expJson">Back up ↓</button><button class="btn ghost" id="impJson">Restore…</button></div>
       </div>
       <input type="file" id="impFile" accept=".json,application/json" hidden>
       ${typeof impSettingsHTML==='function'?impSettingsHTML():''}
-      ${typeof tipsSettingsHTML==='function'?tipsSettingsHTML():''}
+      <button type="button" class="data-link" data-tips-again>Show tips again</button>
+      ${typeof ownerIs==='function'&&ownerIs()?`<div class="data-owner"><span>Owner previews</span><button type="button" class="data-link" id="d1prev">Day one</button><button type="button" class="data-link" id="milePrev">The ${fmt(Math.ceil((dayCount()+1)/100)*100)} day</button></div>`:''}
     </div>
     <div class="note assetcredits" style="text-align:center;margin-top:5px;opacity:.7">Status icons: <a href="https://thenounproject.com/icon/minus-8363736/" target="_blank" rel="noopener">Minus</a> by ARIPATUT DASUKI · <a href="https://thenounproject.com/icon/trend-2344331/" target="_blank" rel="noopener">Trend</a> by Travis Avery · <a href="https://thenounproject.com/icon/share-2438501/" target="_blank" rel="noopener">Share</a> and <a href="https://thenounproject.com/icon/edit-1751206/" target="_blank" rel="noopener">Edit</a> by Timur Minvaleev · <a href="https://thenounproject.com/icon/ai-7262146/" target="_blank" rel="noopener">Sparkle</a> by Eliricon · <a href="https://thenounproject.com/icon/arrow-1342814/" target="_blank" rel="noopener">Chevron</a> by Barracuda · <a href="https://thenounproject.com/icon/expand-7584001/" target="_blank" rel="noopener">Expand</a> and <a href="https://thenounproject.com/icon/collapse-7584005/" target="_blank" rel="noopener">Collapse</a> by LAFS · Copy by maria icon · Pencil by Alvida Black · Noun Project</div>`;
   clubArrangeSettings();
@@ -863,7 +857,7 @@ document.addEventListener('click',e=>{
 /* Settings: the latest import can be undone here too */
 function impSettingsHTML(){
   const l=(DB.settings.imports||[]).at(-1);
-  return `<button class="btn ghost" data-imp-open="settings" style="margin:6px 0 0">Bring past workouts</button>`+(l?`<p class="note" style="margin-top:5px">Last import: ${fmt(l.sets)} sets from ${hesc(l.src)}, ${hesc(impRange([l.first,l.last]))}. <button type="button" class="linkbtn" data-imp-undo="${hesc(l.id)}">Undo</button></p>`:'');
+  return `<div class="data-row"><div class="data-txt"><b>Bring past workouts</b><span>${l?`Last import: ${fmt(l.sets)} sets from ${hesc(l.src)}, ${hesc(impRange([l.first,l.last]))}. <button type="button" class="linkbtn" data-imp-undo="${hesc(l.id)}">Undo</button>`:'From Strong, Hevy or a spreadsheet.'}</span></div><div class="data-acts"><button class="btn ghost" data-imp-open="settings">Import</button></div></div>`;
 }
 document.addEventListener('click',e=>{const u=e.target.closest&&e.target.closest('[data-imp-undo]');if(!u)return;const k=impUndo(u.dataset.impUndo);render();if(typeof renderSync==='function'&&view==='sync')renderSync();toast(`Import undone · ${fmt(k)} sets removed`);});
 
