@@ -306,7 +306,7 @@ async function aiAnalyzeRoutine(payload){
   if(typeof navigator!=='undefined'&&navigator.onLine===false)return null;
   const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),40000);onbReadAbort=ctl;
   try{const tok=(typeof freshToken==='function'?await freshToken():null)||cloudCfg().anon;
-    const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok},body:JSON.stringify(payload)});
+    const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok,'x-device':typeof aiDevice==='function'?aiDevice():''},body:JSON.stringify(payload)});
     if(typeof aiQuotaFrom==='function')aiQuotaFrom(r);if(typeof aiCapFrom==='function'&&await aiCapFrom(r))return {capped:true};if(!r.ok)return null;return await r.json();
   }catch(e){return null;}finally{clearTimeout(t);onbReadAbort=null;}}
 let onbReadAbort=null;

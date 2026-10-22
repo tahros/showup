@@ -517,6 +517,7 @@ function aiQuota(){try{const q=JSON.parse(localStorage.getItem(AI_QUOTA_KEY)||'n
 function aiQuotaSet(left,limit){try{localStorage.setItem(AI_QUOTA_KEY,JSON.stringify({day:todayISO,left:Math.max(0,Math.floor(+left||0)),limit:Math.floor(+limit||0)||AI_DAILY}));}catch(e){}}
 function aiCapped(){const q=aiQuota();return !!q&&q.left<=0;}
 function aiQuotaFrom(r){try{const l=r.headers.get('x-ai-left');if(l!=null&&l!=='')aiQuotaSet(+l,+r.headers.get('x-ai-limit')||AI_DAILY);}catch(e){}}
+function aiDevice(){try{if(typeof mBoot==='function')mBoot();return (typeof mGet==='function'&&typeof M_KEYS!=='undefined'&&mGet(M_KEYS.dev))||'';}catch(e){return '';}}   // the allowance counts per device when you are not signed in
 function aiCapError(){const e=new Error('daily cap');e.cap=true;return e;}
 async function aiCapFrom(r){if(r.status!==429)return false;let j={};try{j=await r.clone().json();}catch(e){}if(j.error!=='daily_cap')return false;aiQuotaSet(0,j.limit||AI_DAILY);return true;}
 function aiLeftHTML(){const q=aiQuota();if(!q||q.left<=0||q.left>2)return '';
@@ -542,7 +543,7 @@ async function writeSession(payload){
   try{
     const tok=(typeof freshToken==='function'?await freshToken():null)||cloudCfg().anon;
     const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,
-      headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok},
+      headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok,'x-device':aiDevice()},
       body:JSON.stringify(payload)});
     aiQuotaFrom(r);if(await aiCapFrom(r)) throw aiCapError();             // v4.6.390
     if(!r.ok) throw new Error('http '+r.status);

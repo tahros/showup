@@ -1,5 +1,16 @@
 # ShowUppp — changelog
 
+## v4.6.390 (2026-10-22) — Bring your routine; the AI reads it
+
+- Setup, "Where's your routine now?": pasting and importing stay inside setup (Back returns there). **Paste your routine** takes your days as you keep them in your notes; an import ends on **See my routine →**.
+- While the AI reads, your crew member reads your streaks: a wall of day squares scrolling up, each lighting as it passes (an import scrolls your real weeks). After about 12 seconds, **Taking a while? Use the quick read**.
+- The AI reads a paste whole (days, rest days, exercises matched to the app's names, sets) or an import's last eight weeks (split, order with today's first, days a week). The phone keeps catalog names only, at most seven days and ten exercises a day; offline, spent or slow, the phone's quick read takes over (day headings, Rest, 3x12, 4 sets of 10, 185 3x5).
+- **We found your routine.** (or **Here's a start.** when no order could be read) on one line, how it was read underneath, **Change** and **✎ Edit**; each day lists its exercises; unreadable lines are kept as notes. Today is planned from it with your exercises and numbers; later plans use your latest weights; an imported cycle keeps turning over your days a week.
+- Routine cards: the × in each corner asks first ("Remove Day 2?", Cancel / Remove); the ≡ menu keeps Move up / Move down with real arrows.
+- A daily AI allowance of 10 per account (else per device, else per address; stored hashed, a week at most), counted on the server (public.ai_use, supabase-setup.sql v4.6.390). Two left: a quiet line under Plan. Spent: a short sheet saying 10 more arrive tomorrow. If the counter is missing, calls go through.
+- Import review: one card answers every duplicate (**Keep all existing** / **Keep both for all**), the first 20 still one by one, answered ones collapse to one line with Change; "Import another" is **Keep both**; Confirm all matches from two.
+- Privacy: reading a routine you bring, and the daily AI allowance.
+
 ## v4.6.389 (2026-10-22) — Your data, said plainly; no Mascot switch
 
 - Settings → Your data: three rows that say what each file is for. **Export to spreadsheet** (Download the CSV, or Copy for Google Sheets; kg and km), **Backup** (everything in one file, for Restore; Back up / Restore…), **Bring past workouts** (Import; the last import and its Undo show in the row). Show tips again is a quiet link. Preview day one and the century preview show only to the owner.

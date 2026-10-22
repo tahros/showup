@@ -229,3 +229,32 @@ begin
 end $$;
 revoke all on function public.owner_members(date, date) from public, anon;
 grant execute on function public.owner_members(date, date) to authenticated;
+
+-- v4.6.390 — the daily AI allowance (supabase/functions/write-session/analyze.ts).
+-- One row per key (u:<user id> | d:<device id> | ip:<address>) per New York day. Only the
+-- server function reaches it, with the service key; nobody else can read or call it.
+create table if not exists public.ai_usage (
+  key  text not null,
+  day  date not null,
+  n    int  not null default 0,
+  primary key (key, day)
+);
+alter table public.ai_usage enable row level security;
+revoke all on public.ai_usage from public, anon, authenticated;
+create or replace function public.ai_use(p_key text, p_limit int) returns int
+language plpgsql security definer set search_path = public as $$
+declare d date := (now() at time zone 'America/New_York')::date; c int;
+begin
+  insert into public.ai_usage(key, day, n) values (left(p_key, 120), d, 1)
+  on conflict (key, day) do update set n = public.ai_usage.n + 1
+  returning n into c;
+  delete from public.ai_usage where day < d - 7;   -- a week is plenty to keep
+  if c > p_limit then return -1; end if;
+  return p_limit - c;
+end $$;
+revoke all on function public.ai_use(text, int) from public, anon, authenticated;
+do $$ begin
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    grant execute on function public.ai_use(text, int) to service_role;
+  end if;
+end $$;

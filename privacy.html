@@ -54,6 +54,12 @@
 </ul>
 <p>It does not send your name, your email, or your day count. Our server does not store the request or the answer. Anthropic processes it under its <a href="https://www.anthropic.com/legal/commercial-terms">commercial terms</a>, which do not allow it to train models on this data. If you do not tap Write, none of this is sent.</p>
 
+<h2>Reading a routine you bring</h2>
+<p>When you bring your routine into ShowUppp during setup, the app asks the same model to read it into days you can plan from. If you paste it, the app sends the text you pasted. If you import your history, it sends a summary of the last eight weeks: the date of each workout and each exercise with its top set. Both go with the app's exercise list, your unit and your goal. Nothing is sent unless you tap <strong>Read my routine</strong> or <strong>See my routine</strong>, and the same terms apply: our server does not store the request or the answer. Without a connection, the app reads it on your phone instead.</p>
+
+<h2>The daily AI allowance</h2>
+<p>To keep the AI affordable, our server counts how many AI requests (written sessions and routine readings) come from each account, or from each device when you are not signed in, per day. It stores only a scrambled form (a one-way hash) of the account ID, the app's anonymous device ID or, failing both, the network address, together with the day and the count. Counts older than a week are deleted.</p>
+
 <h2>Optional location and weather</h2>
 <p>Only when you choose <strong>Allow location</strong>, ShowUppp requests your current location once. You can decline and continue using every workout feature. There is no background location tracking. Before sending, the app rounds coordinates to two decimal places (roughly a kilometre). Our Supabase function sends these approximate coordinates to Photon (operated by komoot, using OpenStreetMap data) for a city name and to MET Norway for an estimated weather snapshot. These providers receive our server's request, not your workout, name or account ID. Their infrastructure may log these requests. The function keeps a bounded, short-lived in-memory lookup cache; it does not write coordinates to your workout record or database.</p>
 <p>Only the city/region, estimated conditions and capture time are saved with that day. They travel with backups and, if signed in, sync to your other devices. They appear on that day's shared card when you choose to share it. <strong>Remove</strong> below the card deletes this metadata from the current record and syncs that removal; previously downloaded backups and shared images are not changed. This is a snapshot of where you are when you add it, not an inferred past workout location or verified observation of past weather.</p>
@@ -65,7 +71,7 @@
   <li><strong>Apple</strong> handles sign-in when you choose Apple, and membership payments.</li>
   <li><strong>Google</strong> handles sign-in when you choose Google.</li>
   <li><strong>RevenueCat</strong> keeps membership status.</li>
-  <li><strong>Anthropic</strong> writes sessions, only when you ask.</li>
+  <li><strong>Anthropic</strong> writes sessions and reads routines you bring, only when you ask.</li>
   <li><strong>Photon/komoot and MET Norway</strong> provide city and weather estimates, only after your location consent, as described above.</li>
   <li><strong>GitHub Pages</strong> serves the app's files and its updates. Like any web host, it sees the IP address of the device downloading them.</li>
 </ul>

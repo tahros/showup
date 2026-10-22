@@ -14,13 +14,16 @@
 // The gateway verifies the Supabase JWT (the app's anon key or a signed-in
 // user's token) before this code runs.
 
+import { AI_DAILY, useAllowance, ANALYZE_SYSTEM, analyzeUser, analyzeOk, readAnalysis } from "./analyze.ts";
+
 const MODEL = Deno.env.get("WRITER_MODEL") || "claude-sonnet-4-5";
 const MAX_BODY = 120_000;
 const ORIGINS = ["https://tahros.github.io", "capacitor://localhost", "http://localhost:8898", "http://localhost:8899", "http://localhost:8080"];
 
 const cors = (origin: string | null) => ({
   "Access-Control-Allow-Origin": origin && ORIGINS.some(o => origin.startsWith(o)) ? origin : ORIGINS[0],
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-device",
+  "Access-Control-Expose-Headers": "x-ai-left, x-ai-limit",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
 });
@@ -106,8 +109,37 @@ Deno.serve(async (req: Request) => {
   if (raw.length > MAX_BODY) return new Response(JSON.stringify({ error: "payload too large" }), { status: 413, headers: H });
   let payload: any;
   try { payload = JSON.parse(raw); } catch { return new Response(JSON.stringify({ error: "bad json" }), { status: 400, headers: H }); }
-  if (!payload || payload.v !== 1 || !Array.isArray(payload.days) || !payload.days.length)
+  const analyze = payload && payload.action === "analyze";
+  if (analyze ? !analyzeOk(payload) : (!payload || payload.v !== 1 || !Array.isArray(payload.days) || !payload.days.length))
     return new Response(JSON.stringify({ error: "bad payload" }), { status: 400, headers: H });
+
+  // v4.6.390: today's AI allowance -- counted before the model is called; not counted, it goes through
+  const env = (k: string) => Deno.env.get(k);
+  const quota = await useAllowance(req, env, fetch, AI_DAILY);
+  if (quota && quota.over) return new Response(JSON.stringify({ error: "daily_cap", limit: quota.limit }), { status: 429, headers: { ...H, "x-ai-left": "0", "x-ai-limit": String(quota.limit) } });
+  if (quota) Object.assign(H, { "x-ai-left": String(quota.left), "x-ai-limit": String(quota.limit) });
+
+  // v4.6.390: reading a routine someone brought to setup (analyze.ts)
+  if (analyze) {
+    const ctlA = new AbortController(); const tA = setTimeout(() => ctlA.abort(), 35_000);
+    let textA = "";
+    try {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST", signal: ctlA.signal,
+        headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json",
+          ...(Deno.env.get("ANTHROPIC_WORKSPACE_ID") ? { "anthropic-workspace-id": Deno.env.get("ANTHROPIC_WORKSPACE_ID")! } : {}) },
+        body: JSON.stringify({ model: MODEL, max_tokens: 3000, temperature: 0.2, system: ANALYZE_SYSTEM, messages: [{ role: "user", content: analyzeUser(payload) }] }),
+      });
+      if (!r.ok) return new Response(JSON.stringify({ error: "model " + r.status }), { status: 502, headers: H });
+      const j = await r.json();
+      textA = (j.content || []).map((c: any) => c.text || "").join("");
+    } catch (_e) {
+      return new Response(JSON.stringify({ error: "model unreachable" }), { status: 504, headers: H });
+    } finally { clearTimeout(tA); }
+    const read = readAnalysis(textA);
+    if (!read) return new Response(JSON.stringify({ error: "unreadable answer" }), { status: 502, headers: H });
+    return new Response(JSON.stringify(read), { headers: H });
+  }
 
   const workspace = payload.workspace?.version === 1 ? payload.workspace : null;
   if (workspace && (payload.days.length > 7 || !Array.isArray(workspace.schedule)))

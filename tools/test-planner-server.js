@@ -1,6 +1,8 @@
 // Execute the actual TypeScript Edge handler with Deno/fetch replaced. No network.
 const ts=require('typescript'),fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
-const source=fs.readFileSync(path.join(process.argv[2]||'.','supabase/functions/write-session/index.ts'),'utf8');
+/* v4.6.390: the handler imports ./analyze.ts (reading a routine, the daily allowance). The bare vm has no
+   module loader, so that one import line is lifted out and the module's real exports are handed in. */
+const source=fs.readFileSync(path.join(process.argv[2]||'.','supabase/functions/write-session/index.ts'),'utf8').replace(/^import \{[^}]+\} from "\.\/analyze\.ts";\n/m,'');
 /* v4.3.6: ignoreDeprecations. This suite has been red since v4.0.2 and it was
    never the server's fault -- TypeScript began ERRORING on `module: None`
    rather than warning, and the assertion below reads any error as broken
@@ -11,7 +13,8 @@ const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarge
 assert(!compiled.diagnostics.some(d=>d.category===ts.DiagnosticCategory.Error),'server TypeScript syntax');
 let handler,called=[];
 const response={days:[{date:'2026-09-11',part:'Legs',title:'Legs',text:'Squat\n  205 lb × 8 8 8'}],reason:null};
-vm.runInNewContext(compiled.outputText,{Deno:{env:{get:k=>k==='ANTHROPIC_API_KEY'?'test-only':undefined},serve:f=>handler=f},Request,Response,AbortController,setTimeout,clearTimeout,fetch:async(url,opts)=>{called.push(JSON.parse(opts.body));return new Response(JSON.stringify({content:[{text:JSON.stringify(response)}]}));}});
+import(require('url').pathToFileURL(path.join(process.argv[2]||'.','supabase/functions/write-session/analyze.ts')).href).then(AN=>{
+vm.runInNewContext(compiled.outputText,{...AN,Deno:{env:{get:k=>k==='ANTHROPIC_API_KEY'?'test-only':undefined},serve:f=>handler=f},Request,Response,AbortController,setTimeout,clearTimeout,fetch:async(url,opts)=>{called.push(JSON.parse(opts.body));return new Response(JSON.stringify({content:[{text:JSON.stringify(response)}]}));}});
 const base={v:1,days:['2026-09-11'],date:'2026-09-11',unit:'lb',scope:'day',objective:'grow',history:[],skeleton:[{date:'2026-09-11',resting:[{part:'Chest',on:'2026-09-10'}],due:['Legs']}],shape:{min:3,median:5,max:6},recovery_days:2};
 async function invoke(body){return handler(new Request('https://example.test/write-session',{method:'POST',body:JSON.stringify(body)}));}
 (async()=>{
@@ -21,5 +24,11 @@ async function invoke(body){return handler(new Request('https://example.test/wri
   assert.equal((await invoke({...base,workspace})).status,200);const next=called.at(-1);assert.equal(next.model,old.model);assert.equal(next.system,old.system);assert.equal(next.temperature,old.temperature);
   assert(next.messages[0].content.includes(JSON.stringify(workspace)));assert(next.messages[0].content.includes('Today is 2026-09-10'));assert(next.messages[0].content.includes('Change ONLY the number of sets'));assert(next.messages[0].content.includes('locked_exercises exactly'));
   const invalid=await invoke({...base,workspace,days:Array(8).fill('2026-09-11')});assert.equal(invalid.status,400);assert.equal(called.length,2);
+  /* v4.6.390: reading a routine reaches the model with its own instructions, and an answer that is not a routine is refused */
+  const an=await invoke({action:'analyze',v:1,source:'paste',text:'Push\nBench 185 x 5',unit:'lb',catalog:{Chest:['Barbell Bench Press']},today:'2026-10-22'});
+  const ac=called.at(-1);assert.equal(an.status,502);assert.equal(ac.temperature,.2);assert(/read one person's strength-training routine/.test(ac.system));assert(/PASTE:\nPush\nBench 185 x 5/.test(ac.messages[0].content));
+  assert.equal((await invoke({action:'analyze',v:1,source:'paste',text:' '})).status,400);
+  console.log('PASS Edge handler: reading a routine uses its own instructions and refuses an answer that is not a routine');
   console.log('PASS Edge handler: unchanged model/system/temperature; calendar, shape, explicit focus, fixed edits and total-set contract included; bounded request');
 })().catch(e=>{console.error(e);process.exit(1)});
+});
