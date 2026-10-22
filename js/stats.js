@@ -1657,9 +1657,15 @@ document.addEventListener('click',e=>{
    set's primary muscle -- so the two cards beside each other never disagree. Order is the body's own
    (fixed places you learn) or most first (Sungjee, 2026-10-14). */
 const PS_PARTS=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack','Run'];
-function psState(){const s=DB.settings.partShelf||{};return {m:s.m==='w'||s.m==='s'?s.m:'d',p:s.p==='m'?'m':'y',o:s.o==='most'?'most':'body'};}
+function psState(){const s=DB.settings.partShelf||{};return {m:s.m==='w'||s.m==='s'?s.m:'d',p:s.p==='w'||s.p==='m'?s.p:'y',o:s.o==='most'?'most':'body'};}
+/* v4.6.384: a third period, the week (Sungjee, 2026-10-22). Weeks start on the day the
+   person chose (Sunday or Monday), the same week the header's seven squares show. */
+function psFrom(per){
+  if(per==='w'){const t=new Date(todayISO+'T12:00');t.setDate(t.getDate()-((t.getDay()-(typeof weekStartDow==='function'?weekStartDow():0)+7)%7));return t.toLocaleDateString('en-CA');}
+  return per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01';}
+const psPer=per=>per==='w'?'this week':per==='m'?'this month':'this year';
 function psData(per){
-  const t=new Date(todayISO+'T00:00'),from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01';
+  const from=psFrom(per);
   const g={};PS_PARTS.forEach(p=>g[p]={days:new Set(),kg:0,km:0,sets:0});
   for(const iso of Object.keys(DB.days||{})){if(iso<from||iso>todayISO)continue;
     const rows=iso===todayISO?((DB.days[iso]||{}).w||[]).filter(s=>s.completed!==false).map(s=>[s.part,s.ex,s.w,s.reps||[]]):(SEED.sessions[iso]||[]);
@@ -1707,11 +1713,12 @@ function psBody(){
   const rank=x=>{const v=val(x);return peer(x)?(v==null?-2:v):-1;};   /* miles, runs and body weight cannot outrank pounds or sets */
   const list=st.o==='most'?[...parts].sort((a,b)=>rank(b)-rank(a)):parts;
   const pool=parts.filter(x=>peer(x)&&val(x)!=null),hi=[...pool].sort((a,b)=>val(b)-val(a))[0],lo=[...pool].sort((a,b)=>val(a)-val(b))[0];
-  const when=st.p==='m'?new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}):todayISO.slice(0,4)+' so far';
+  const md=iso=>new Date(iso+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const when=st.p==='w'?(from===todayISO?md(from):md(from)+' – '+(from.slice(5,7)===todayISO.slice(5,7)?String(+todayISO.slice(8)):md(todayISO))):st.p==='m'?new Date(todayISO+'T00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}):todayISO.slice(0,4)+' so far';
   const nm=p=>p==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(p):p);
   const btn=(k,v,on,label)=>`<button type="button" data-ps="${k}" value="${v}" aria-pressed="${on}">${label}</button>`;
   return `<div class="ps-seg" role="group" aria-label="Measure">${btn('m','d',st.m==='d','Days')}${btn('m','s',ss,'Sets')}${btn('m','w',w,'Weight')}</div>
-    <div class="ps-row"><span class="ps-pill" role="group" aria-label="Period">${btn('p','m',st.p==='m','This month')}${btn('p','y',st.p==='y','This year')}</span>
+    <div class="ps-row"><span class="ps-pill" role="group" aria-label="Period">${btn('p','w',st.p==='w','Week')}${btn('p','m',st.p==='m','Month')}${btn('p','y',st.p==='y','Year')}</span>
       <span class="ps-pill" role="group" aria-label="Order">${btn('o','body',st.o==='body','Body')}${btn('o','most',st.o==='most','Most')}</span></div>
     <div class="ps-cap"><b>${cap}</b> · ${when}</div>
     <div class="ps-shelf">${list.map(x=>{const v=val(x),o=odd(x);return `<button type="button" class="ps-t${!v?' ps-zero':''}${psToday().has(x.p)?' ps-today':''}" data-part="${x.p}" aria-label="${nm(x.p)}: ${show(v)} ${o==='BW'?'body weight':o||cap.toLowerCase()}. Open muscles">${psFigure(x.p)}<b><i class="ps-n">${o==='BW'?'BW':show(v)}</i>${o&&o!=='BW'?`<small> ${o}</small>`:''}</b><span>${nm(x.p)}</span></button>`;}).join('')}</div>
@@ -1777,7 +1784,7 @@ function psMuscleSVG(view,fill){
   g+=`<rect x="45.5" y="28" width="9" height="11" rx="4" fill="${N}"/><ellipse cx="50" cy="19" rx="11.4" ry="13" fill="${N}"/>`;
   return `<svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${d}${g}</svg>`;}
 function psMuscles(part,per){
-  const from=per==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01',mus={},pdays=new Set();
+  const from=psFrom(per),mus={},pdays=new Set();
   (PART_MUSCLES[part]||[]).forEach(m=>mus[m]={days:new Set(),sets:0,kg:0,last:'',ex:{}});
   for(const iso of Object.keys(DB.days||{}).sort()){if(iso>todayISO)continue;
     const rows=iso===todayISO?((DB.days[iso]||{}).w||[]).filter(s=>s.completed!==false).map(s=>[s.part,s.ex,s.w,s.reps||[]]):(SEED.sessions[iso]||[]);
@@ -1788,7 +1795,7 @@ function psMuscles(part,per){
   Object.defineProperty(mus,'_days',{value:pdays.size});return mus;}
 function psAgo(iso){if(!iso)return '';const n=Math.round((new Date(todayISO+'T00:00')-new Date(iso+'T00:00'))/864e5);return n===0?'today':n===1?'yesterday':n+' days ago';}
 function psSheet(part){
-  const st=psState(),per=st.p==='m'?'this month':'this year',nm=part==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(part):part);
+  const st=psState(),per=psPer(st.p),nm=part==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(part):part);
   const col=PART_COLORS[part]||'var(--muted)';let body='';
   if(part==='Run'){const {parts}=psData(st.p),r=parts.find(x=>x.p==='Run');let last='';for(const iso of Object.keys(DB.days||{}))if(iso<=todayISO&&(DB.days[iso].w||[]).some(s=>s.ex==='Run'||s.part==='Run')&&iso>last)last=iso;
     body=`<div class="ps-figs"><svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${psDraw('Run')}</svg></div>
@@ -1805,7 +1812,7 @@ function psSheet(part){
        that reached the muscle (a day can reach several, so they need not add up) (Sungjee, 2026-10-14) */
     const base=st.m==='d'?mus._days:keys.reduce((a,k)=>a+mv(k),0),pct=n=>base?Math.round(n/base*100):0;
     const {parts}=psData(st.p),me=parts.find(x=>x.p===part),allDays=new Set();
-    for(const iso of Object.keys(DB.days||{}))if(iso<=todayISO&&iso>=(st.p==='m'?todayISO.slice(0,8)+'01':todayISO.slice(0,5)+'01-01')&&(DB.days[iso].w||[]).length)allDays.add(iso);
+    for(const iso of Object.keys(DB.days||{}))if(iso<=todayISO&&iso>=psFrom(st.p)&&(DB.days[iso].w||[]).length)allDays.add(iso);
     const whole=st.m==='d'?allDays.size:parts.filter(x=>x.p!=='Run').reduce((a,x)=>a+(st.m==='s'?x.sets:x.kg),0),mine=st.m==='d'?me.days:st.m==='s'?me.sets:me.kg;
     const lead=whole?Math.round(mine/whole*100):0;
     body=`<p class="ps-share"><b>${lead}%</b> ${st.m==='d'?`of your training days ${per}`:st.m==='s'?`of all your sets ${per}`:`of all the weight you moved ${per}`}</p>`+body;

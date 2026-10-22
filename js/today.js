@@ -72,9 +72,18 @@ function demoEl(){
   }
   return el;
 }
+/* v4.6.384: maybeOnboard could open the first run but never close it. Signing in
+   from the blue door to an account with history pulled the history, marked the
+   app onboarded, and left the door on top of it (Sungjee, 2026-10-22). Once the
+   app is onboarded, an open first run has nothing left to ask: it closes, and
+   Today shows the training that just arrived. */
+function onbCloseDone(){
+  const el=document.getElementById('onb'); if(!el||el.hidden) return false;
+  el.hidden=true; onbShown=0; onbHist=[]; render(); return true;
+}
 function maybeOnboard(){
-  if(DB.settings.onboarded||DB.settings.demo) return;
-  if(hasAnyDays()||SEED.totals.sessions>0){ DB.settings.onboarded='auto'; save(); return; }
+  if(DB.settings.onboarded||DB.settings.demo){ onbCloseDone(); return; }
+  if(hasAnyDays()||SEED.totals.sessions>0){ DB.settings.onboarded='auto'; save(); onbCloseDone(); return; }
   const signedIn=!!localStorage.getItem(SKEY);
   if(signedIn&&!pulledOK) return;                  // cloud may still hold their history — wait for the verdict
   onbHist=[]; onbStep=signedIn?'you':1; onbRender();

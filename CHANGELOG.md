@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.384 (2026-10-22) — Choose your Google account; sign-in opens the app; Week on Every part
+
+- **Google sign-in always asks which account.** The sign-in sheet shares Safari's cookies, so with one Google account signed in Google answered at once and the sheet closed before you could choose. The sign-in link now carries `prompt=select_account`, in the iOS app and on the web.
+- **Signing in from the blue welcome screen opens the app.** With an account that already has history, the history arrived but the welcome screen stayed on top: the first-run check could open it but never close it. It now closes once the app counts as set up, and Today shows. An account with no history still goes on to the setup steps.
+- **Stats › Every part counts a week.** The period reads Week · Month · Year; the caption names the week's dates (Sets · Oct 18 – 22). The week starts on your chosen day, like the header's squares. A part's sheet says "this week".
+- New test: test-signin-door (fails on v4.6.383, passes here).
+
 ## v4.6.383 — "Changed on another device": only when the workout changed, and it shows what changed
 - **Reported:** "Sat, Oct 24 changed on another device" -- what changed, where to see it, what "draft" and "newer plan" mean.
 - **Cause (false alarm):** the save check compared the saved plan's raw record with a snapshot taken when you started editing. A day's plan is kept in two copies (the day slot, stamped with its date; the week, stamped with its title), and which one is read depends on which day was last saved on its own. Saving another day switched the copy, so identical workouts looked "changed on another device".
