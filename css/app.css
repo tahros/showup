@@ -5252,3 +5252,32 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .data-owner{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:8px;padding-top:10px;border-top:1px dashed var(--line)}
 .data-owner>span{font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
 .data-owner .data-link{padding:4px 0}
+
+/* v4.6.390: bring your routine -- the paste step, what the AI read, the found routine */
+#onb .ob-paste-box{position:relative;margin-top:18px}
+#onb .ob-paste-box textarea{box-sizing:border-box;width:100%;min-height:240px;padding:14px 14px 48px;border-radius:18px;border:1.5px solid var(--line);background:var(--surface);color:var(--chalk);font:400 15px/1.5 var(--mono);resize:vertical;box-shadow:var(--shadow)}
+#onb .ob-paste-box textarea:focus{outline:none;border-color:var(--accent)}
+#onb .ob-paste-box textarea::placeholder{color:var(--faint)}
+#onb .ob-paste-chip{all:unset;position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:17px;background:color-mix(in srgb,var(--chalk) 7%,transparent);color:var(--chalk);font:500 13px var(--body);cursor:pointer}
+#onb .ob-paste-chip .ic{width:14px;height:14px}
+#onb .ob-paste-hint{margin:10px 2px 0;font:400 12.5px/1.45 var(--body);color:var(--muted)}
+#onb .ob-paste-ai{display:flex;align-items:center;gap:8px;margin:14px 2px 0;font:500 13px var(--body);color:var(--accent-ink)}
+#onb .ob-paste-ai .ic{width:15px;height:15px;animation:aiPulse 1.2s ease-in-out infinite}
+@keyframes aiPulse{0%,100%{opacity:.35}50%{opacity:1}}
+#onb .ob-go:disabled{opacity:.45}
+#onb .ob-rt-exs{margin:0;font:400 12.5px/1.4 var(--body);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#onb .ob-rt-unread{display:flex;flex-direction:column;gap:3px;margin:10px 0 0;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--chalk) 5%,transparent)}
+#onb .ob-rt-unread b{font:600 13px var(--body);color:var(--chalk)}
+#onb .ob-rt-unread span{font:400 12px/1.4 var(--mono);color:var(--muted)}
+@media(prefers-reduced-motion:reduce){#onb .ob-paste-ai .ic{animation:none}}
+/* v4.6.390: today's AI allowance -- a quiet line near the end, a short sheet at the end */
+.ai-left{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px 0 0;font:400 12px var(--body);color:var(--muted)}
+.ai-left .ic{width:12px;height:12px;color:var(--accent-ink)}
+.ai-cap{position:fixed;inset:0;z-index:120;display:flex;align-items:flex-end;justify-content:center;padding:0 12px calc(env(safe-area-inset-bottom,0px) + 12px);background:rgba(0,0,0,.32);animation:aiCapIn .18s ease-out}
+.ai-cap-card{box-sizing:border-box;width:100%;max-width:440px;padding:22px 22px 18px;border-radius:24px;background:var(--surface);color:var(--chalk);box-shadow:0 18px 50px rgba(0,0,0,.3);text-align:center;animation:aiCapUp .24s cubic-bezier(.22,.7,.25,1)}
+.ai-cap-ic{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink)}
+.ai-cap-card h3{margin:12px 0 6px;font:600 18px var(--body)}
+.ai-cap-card p{margin:0 0 6px;font:400 14px/1.45 var(--body);color:var(--muted)}
+.ai-cap-card .btn{margin:14px 0 0;width:100%;min-height:48px;border:0;border-radius:14px;background:var(--accent);color:#fff;font:600 15px var(--body);cursor:pointer}
+@keyframes aiCapIn{from{opacity:0}}@keyframes aiCapUp{from{transform:translateY(24px);opacity:0}}
+@media(prefers-reduced-motion:reduce){.ai-cap,.ai-cap-card{animation:none}}

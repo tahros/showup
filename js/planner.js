@@ -813,6 +813,7 @@ async function pwGenerate(adjust=false,rewrite=false){
   if(!dates.length)dates.push(s.active);
   if(dates.some(d=>d<todayISO)){s.error='Choose today or a future date before writing.';return pwRender();}
   const b=pwDay(s.active);if(adjust){b.target=Number(b.target||pwCounts(b.rows).total);if(!Number.isInteger(b.target)||b.target<1||b.target>100){s.error='Choose a whole number from 1 to 100.';return pwRender();}}
+  if(typeof aiCapped==='function'&&aiCapped()){aiCapSheet();return;}   // v4.6.390: today's AI plans are spent -- say when they come back, start nothing
   const payload=pwPayload(dates,adjust?'adjust':'generate'),token=++pwRequest,owner=pwKey();
   s.task=adjust?'adjust':'generate';s.busy=true;s.step='busy';s.error='';pwPersist();pwRender();writerWaitStart();
   const cancelled=()=>token!==pwRequest||owner!==pwKey();
@@ -846,7 +847,7 @@ async function pwGenerate(adjust=false,rewrite=false){
       candidate={type:'generate',days,reason:chk.reason};
     }
     if(cancelled())return;if(typeof pfValidateCandidate==='function'&&pfOn())pfValidateCandidate(candidate,dates);s.candidate=candidate;s.step='candidate';s.busy=false;pwPersist();if(typeof pfOn==='function'&&pfOn()){const miss=candidate.missing||[];pwApply();if(miss.length)toast(miss.map(d=>pfShort(d)).join(', ')+(miss.length===1?' did':' did')+' not come back from the writer. Tap Plan again for '+(miss.length===1?'it.':'them.'));return;}if(view==='today'&&lift.plan==='workspace')pwRender();
-  }catch(e){if(cancelled())return;s.busy=false;s.step=adjust?'adjust':'edit';s.error=e.refused?`Could not use that answer: ${e.refused}. Nothing saved.`:e.message||'Could not write. Your draft is unchanged.';pwPersist();if(view==='today'&&lift.plan==='workspace')pwRender();}
+  }catch(e){if(cancelled())return;if(e&&e.cap){writerWaitStop();s.busy=false;s.step=adjust?'adjust':'edit';s.error='';pwPersist();if(view==='today'&&lift.plan==='workspace')pwRender();aiCapSheet();return;}s.busy=false;s.step=adjust?'adjust':'edit';s.error=e.refused?`Could not use that answer: ${e.refused}. Nothing saved.`:e.message||'Could not write. Your draft is unchanged.';pwPersist();if(view==='today'&&lift.plan==='workspace')pwRender();}
 }
 function pwSave(){
   const s=pw();

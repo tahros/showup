@@ -506,9 +506,52 @@ function writerResponseWithLocked(resp,payload){
   return {...(resp||{}),days:[...generated,...kept]};
 }
 
+/* ---- v4.6.390: TODAY'S AI, AND ITS DAILY CAP ----
+   Every AI call (a written plan, a paste line the phone could not read) counts against a daily
+   allowance the server keeps per account or device. The server says what is left on each answer
+   (x-ai-left / x-ai-limit) and answers 429 {error:'daily_cap'} once it is spent; the phone keeps
+   that for today only. Near the end the Plan footer says so quietly; at the end a short sheet says
+   when it comes back. Nothing ever waits on the AI: the routine's own plan is always there. */
+const AI_QUOTA_KEY='showup:ai-quota',AI_DAILY=10;
+function aiQuota(){try{const q=JSON.parse(localStorage.getItem(AI_QUOTA_KEY)||'null');return q&&q.day===todayISO?q:null;}catch(e){return null;}}
+function aiQuotaSet(left,limit){try{localStorage.setItem(AI_QUOTA_KEY,JSON.stringify({day:todayISO,left:Math.max(0,Math.floor(+left||0)),limit:Math.floor(+limit||0)||AI_DAILY}));}catch(e){}}
+function aiCapped(){const q=aiQuota();return !!q&&q.left<=0;}
+function aiQuotaFrom(r){try{const l=r.headers.get('x-ai-left');if(l!=null&&l!=='')aiQuotaSet(+l,+r.headers.get('x-ai-limit')||AI_DAILY);}catch(e){}}
+function aiCapError(){const e=new Error('daily cap');e.cap=true;return e;}
+async function aiCapFrom(r){if(r.status!==429)return false;let j={};try{j=await r.clone().json();}catch(e){}if(j.error!=='daily_cap')return false;aiQuotaSet(0,j.limit||AI_DAILY);return true;}
+function aiLeftHTML(){const q=aiQuota();if(!q||q.left<=0||q.left>2)return '';
+  return `<p class="ai-left">${icon('sparkle',ICON_SZ.sm)}<span>${q.left} AI ${q.left===1?'plan':'plans'} left today · more tomorrow</span></p>`;}
+function aiCapSheet(){
+  document.getElementById('aiCap')?.remove();const q=aiQuota(),n=q?.limit||AI_DAILY;
+  const el=document.createElement('div');el.id='aiCap';el.className='ai-cap';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','aiCapH');
+  el.innerHTML=`<div class="ai-cap-card"><span class="ai-cap-ic">${icon('sparkle',ICON_SZ.md)}</span><h3 id="aiCapH">That’s today’s AI plans.</h3>
+    <p>You’ve used all ${n} for today. ${n} more arrive tomorrow.</p><p>Your routine still plans the week, and you can edit or paste any day yourself.</p>
+    <button type="button" class="btn" data-aicap-ok>Got it</button></div>`;
+  document.body.appendChild(el);el.querySelector('[data-aicap-ok]').focus();
+}
+document.addEventListener('click',e=>{const c=document.getElementById('aiCap');if(!c)return;if(e.target.closest('[data-aicap-ok]')||e.target===c)c.remove();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('aiCap')?.remove();});
+/* the paste lines the phone could not read, read by the AI: {line: plan text, or '' for "not an exercise"} -- null when it cannot */
+async function aiReadLines(lines){
+  if(!lines||!lines.length)return {};
+  if(aiCapped())return null;
+  if(typeof AI_READ_STUB==='function'){try{return await AI_READ_STUB(lines);}catch(e){return null;}}
+  if(typeof navigator!=='undefined'&&navigator.onLine===false)return null;
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),20000);
+  try{
+    const tok=(typeof freshToken==='function'?await freshToken():null)||cloudCfg().anon;
+    const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok},
+      body:JSON.stringify({action:'read',lines:lines.slice(0,40).map(l=>String(l).slice(0,200)),unit:DB.settings.unit==='lb'?'lb':'kg'})});
+    aiQuotaFrom(r);if(await aiCapFrom(r))return null;if(!r.ok)return null;
+    const j=await r.json(),out={};for(const x of (j.items||[]))if(x&&typeof x.line==='string')out[x.line]=typeof x.text==='string'?x.text:'';
+    return out;
+  }catch(e){return null;}finally{clearTimeout(t);}
+}
+
 /* ---- the call ---- */
 async function writeSession(payload){
   if(typeof writerGate==='function'&&!writerGate()) throw new Error('The plan writer is part of membership.');   // v4.6.144
+  if(aiCapped()) throw aiCapError();                                       // v4.6.390
   if(typeof WRITER_STUB==='function') return WRITER_STUB(payload);        // tests
   if(typeof navigator!=='undefined'&&navigator.onLine===false) throw new Error('offline');
   const ctl=new AbortController(); lift.writeAbort=ctl;
@@ -518,6 +561,7 @@ async function writeSession(payload){
     const r=await fetch(cloudCfg().url+WRITER_PATH,{method:'POST',signal:ctl.signal,
       headers:{'Content-Type':'application/json',apikey:cloudCfg().anon,Authorization:'Bearer '+tok},
       body:JSON.stringify(payload)});
+    aiQuotaFrom(r);if(await aiCapFrom(r)) throw aiCapError();             // v4.6.390
     if(!r.ok) throw new Error('http '+r.status);
     if(typeof mTrack==='function') mTrack('plan_written');   // v4.6.142: a count, for the writer's cost
     return await r.json();

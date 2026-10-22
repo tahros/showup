@@ -814,8 +814,8 @@ function impRender(){
   }else if(I.step==='done'){
     const wk=new Set(I.sets.filter(s=>I.doneDays.includes(s.iso)).map(s=>s.wk)).size;
     b=`<div class="im-top"><span class="im-back"></span><span>Import complete</span></div><div class="im-pipwrap">${pip}${lines}</div><h1 class="im-h im-c">Your work came with you.</h1><div class="im-count"><b>${fmt(wk)}</b><span>workouts imported</span></div>
-      ${I.doneDays.length?impHeat(I.doneDays):''}<p class="im-sub im-c">Your past sets are ready for comparison.</p><div class="im-sp"></div>
-      <button type="button" class="im-go" data-imp="progress">View my progress</button><button type="button" class="im-go2" data-imp="log">Log a workout</button>
+      ${I.doneDays.length?impHeat(I.doneDays):''}<p class="im-sub im-c">${I.from==='onboarding'?'Next: we read your routine from it, so today is already planned.':'Your past sets are ready for comparison.'}</p><div class="im-sp"></div>
+      ${I.from==='onboarding'?`<button type="button" class="im-go" data-imp="routine">See my routine →</button><button type="button" class="im-go2" data-imp="log">Just log a workout</button>`:`<button type="button" class="im-go" data-imp="progress">View my progress</button><button type="button" class="im-go2" data-imp="log">Log a workout</button>`}
       <button type="button" class="im-link" data-imp="undo">Undo this import</button><p class="im-foot">Batch · imported just now</p>`;
   }
   el.innerHTML=`<div class="im im-${I.step}">${b}</div>`;
@@ -847,8 +847,9 @@ document.addEventListener('click',e=>{
   else if(a==='toconfirm'){if(!impPending())I.step='confirm';}
   else if(a==='commit'){impCommit();return;}
   else if(a==='undo'){const k=impUndo(I.batch);impClose();render();toast(`Import undone · ${fmt(k)} sets removed`);return;}
+  else if(a==='routine'){impClose();if(typeof onbFoundImport==='function')onbFoundImport();return;}   // v4.6.390: setup reads your routine from what came in
   else if(a==='progress'){impClose();view='stats';render();return;}
-  else if(a==='log'){impClose();if(typeof liftEnter==='function')liftEnter({});view='lift';render();return;}
+  else if(a==='log'){impClose();if(I.from==='onboarding'&&!DB.settings.onboarded&&typeof onbFinish==='function'){onbFinish(false,'train');return;}if(typeof liftEnter==='function')liftEnter({});view='lift';render();return;}
   impRender();
 });
 /* Settings: the latest import can be undone here too */

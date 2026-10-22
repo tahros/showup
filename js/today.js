@@ -79,7 +79,7 @@ function demoEl(){
    Today shows the training that just arrived. */
 function onbCloseDone(){
   const el=document.getElementById('onb'); if(!el||el.hidden) return false;
-  if(onbLater) return false;   // v4.6.387: a routine being set up from Today is not the first run -- a sync landing mid-setup leaves it open
+  if(onbLater||(onbPath==='have'&&['have','paste','routine'].includes(onbStep))) return false;   // v4.6.390: nor is a routine being brought in (an import itself marks the record as having days); v4.6.387: a routine being set up from Today is not the first run -- a sync landing mid-setup leaves it open
   el.hidden=true; onbShown=0; onbHist=[]; render(); return true;
 }
 function maybeOnboard(){
@@ -199,7 +199,7 @@ function onbSesNamed(parts){
 }
 function onbSesTemplate(parts){const lifts=parts.filter(t=>t!=='Run'),key=x=>x.slice().sort().join(),cur=onbF&&onbF.template;   /* the template you are in names first: Legs + Core is Legs in Push / Pull / Legs, Lower in Upper / Lower */
   for(const z of [...PF_SPLITS.filter(x=>x[0]===cur),...PF_SPLITS.filter(x=>x[0]!==cur)])if(z[3])for(const [n,ps] of z[3])if(key(ps)===key(lifts))return n;return '';}
-function onbRename(){for(const c of onbF.cards)if(!c.rest)c.name=onbSesNamed(c.parts);if(onbF.extra)onbF.extra.name=onbSesNamed(onbF.extra.parts);}
+function onbRename(){for(const c of onbF.cards)if(!c.rest&&!c.keepName)c.name=onbSesNamed(c.parts);if(onbF.extra)onbF.extra.name=onbSesNamed(onbF.extra.parts);}
 /* the sessions a template makes for n days: its own sessions in turn, one per training day */
 function onbCards(k,n){
   n=Math.max(1,n);
@@ -212,8 +212,87 @@ function onbCards(k,n){
    (Upper, Lower -- not Upper, Lower, Upper, which would put two uppers back to
    back the next week); anything you arranged is kept exactly as you left it */
 function onbRotation(){
+  if(onbF.found==='import'&&onbF.cycle&&!onbF.touched)return {preset:'own',sessions:onbF.cycle.map(x=>({name:x.name,parts:x.parts.slice()}))};   // v4.6.390
   if(!onbF.edited&&['full','ul','ppl'].includes(onbF.template)){const z=PF_SPLITS.find(x=>x[0]===onbF.template);return {preset:onbF.template,sessions:z[3].map(([name,parts])=>({name,parts:parts.slice()}))};}
-  return {preset:'own',sessions:onbF.cards.filter(c=>c.parts.length).map(c=>({name:onbSesTemplate(c.parts),parts:c.parts.slice()}))};
+  return {preset:'own',sessions:onbF.cards.filter(c=>!c.rest&&c.parts.length).map(c=>({name:c.keepName?c.name:onbSesTemplate(c.parts),parts:c.parts.slice(),...(c.text?{text:c.text}:{})}))};
+}
+/* ---- v4.6.390: BRING YOUR ROUTINE ----
+   Whatever you bring ends where starting fresh ends: the Routine screen, then Today with today's
+   workout planned. A paste is read into days (headings split it; "Rest" is a day off), each day
+   keeping your exercises and numbers; an import is read from your log (your order, your days a
+   week; the exercises and loads then come from your own history). */
+let onbPasteText='',onbReading='';
+const ONB_PASTE_EG='Push\nBench Press 185 x 5 5 5\nIncline DB Press 60 x 10 10 10\n\nPull\nDeadlift 275 x 5\nLat Pulldown 3x10\n\nRest\n\nLegs\nSquat 225 x 5 5 5';
+function onbPasteSync(){const b=document.querySelector('#onb [data-onbact="pread"]');if(b)b.disabled=!onbPasteText.trim()||!!onbReading;}
+function onbTouched(c){if(!c)return;c.text=null;c.keepName=false;}
+function onbExNames(c){const t=rtDayText(c)||'';return t.split('\n').filter(l=>l&&!/^\s/.test(l)&&!/^Run\b/.test(l)).map(l=>l.replace(/^Barbell |^Dumbbell /,'')).slice(0,4).join(' · ')+((t.split('\n').filter(l=>l&&!/^\s/.test(l)).length>4)?' …':'');}
+const ONB_HEAD=/^(day\s*\d+|session\s*[a-z0-9]+|workout\s*[a-z0-9]+|week\s*\d+|(mon|tue|wed|thu|fri|sat|sun)[a-z]*|push|pull|legs?|leg day|upper|lower|full[\s-]*body|arms?|chest|back|shoulders?|core|abs|cardio|rest|off|recovery)\b/i;
+function onbIsRest(t){return /^(day\s*\d+\s*[:\-–—]?\s*)?(rest|off|recovery)(\s*day)?\s*$/i.test(t.trim());}
+function onbIsHead(line){const t=line.trim(),u=t.replace(/[:\-–—]+$/,'').trim();if(!u||u.length>36||/^\s/.test(line))return false;
+  if(/\d\s*(x|×|sets?\b|reps?\b|lb|kg)/i.test(u))return false;if(/:$/.test(t))return true;
+  const it=parsePlan(u)[0];if(it&&it.ex&&!ONB_HEAD.test(u))return false;return ONB_HEAD.test(u)||onbIsRest(u);}
+/* sets-and-reps shorthand the paste reader does not know: "3x12", "4 sets of 10", "185 3x5" */
+function onbNormLine(L){if(/^\s/.test(L))return L;
+  let m=L.match(/^(.*?[a-z].*?)\s+(\d+(?:\.\d+)?)\s*(lb|lbs|kg)?\s+(\d{1,2})\s*[x×]\s*(\d{1,3})\s*$/i);
+  if(m&&+m[4]<=10)return `${m[1]}\n  ${m[2]}${m[3]?' '+m[3].replace(/lbs/i,'lb'):''} × ${Array(+m[4]).fill(m[5]).join(' ')}`;
+  m=L.match(/^(.*?[a-z].*?)\s+(\d{1,2})\s*(?:sets?\s*(?:of|x|×)|[x×])\s*(\d{1,3})\s*(?:reps?)?\s*$/i);
+  if(m&&+m[2]<=10)return `${m[1]}\n  by feel × ${Array(+m[2]).fill(m[3]).join(' ')}`;
+  return L;}
+function onbLineText(ex,lines){const u=DB.settings.unit==='lb'?'lb':'kg';
+  const ls=(lines||[]).filter(l=>(l.reps||[]).length).map(l=>`  ${l.bw?'bodyweight':l.w>0?`${+l.w} ${l.unit||u}`:'by feel'} × ${l.reps.join(' ')}`);
+  return `${ex}\n${ls.length?ls.join('\n'):'  by feel × 10 10 10'}`;}
+function onbReadRoutine(text){
+  const blocks=[];let cur=null;
+  for(const raw of String(text||'').replace(/\r/g,'').split('\n')){const L=raw.replace(/\t/g,'  ');if(!L.trim())continue;
+    if(onbIsHead(L)){const h=L.trim().replace(/[:\-–—]+$/,'').trim();cur={head:h,rest:onbIsRest(h),lines:[]};blocks.push(cur);continue;}
+    if(!cur){cur={head:'',rest:false,lines:[]};blocks.push(cur);}cur.lines.push(onbNormLine(L));}
+  const sessions=[],unread=[];
+  for(const bl of blocks){
+    if(bl.rest){if(sessions.length)sessions.push({rest:true});continue;}
+    const items=parsePlan(bl.lines.join('\n')),out=[],parts=[];
+    for(const it of items){
+      if(it.kind==='cardio'){out.push(it.raw);if(!parts.includes('Run'))parts.unshift('Run');continue;}
+      const ex=it.ex||(it.kind==='ex'&&(it.lines||[]).length&&it.cands&&it.cands[0])||null;
+      if(!ex){if(it.raw&&it.raw.trim())unread.push({line:it.raw.split('\n')[0].trim(),at:sessions.length});continue;}
+      out.push(onbLineText(ex,it.lines));const pt=homePartOf(ex);if(pt&&!parts.includes(pt))parts.push(pt);}
+    if(!out.length&&!parts.length){if(bl.head&&!ONB_HEAD.test(bl.head))unread.push({line:bl.head,at:sessions.length});continue;}
+    const named=bl.head&&!/^(day|session|workout|week)\b|^(mon|tue|wed|thu|fri|sat|sun)/i.test(bl.head)?bl.head.replace(/\s+day$/i,'').replace(/^./,ch=>ch.toUpperCase()):'';
+    sessions.push({name:named||onbSesNamed(parts),keepName:!!named,parts,text:out.join('\n')});}
+  return {sessions:sessions.slice(0,7),unread};
+}
+async function onbPasteRead(){
+  const r=onbReadRoutine(onbPasteText);
+  /* only what the phone could not read goes to the AI -- and only if there is something left */
+  if(r.unread.length&&typeof aiReadLines==='function'){
+    onbReading=`Reading ${r.unread.length} ${r.unread.length===1?'line':'lines'} with AI…`;onbRender();
+    const got=await aiReadLines(r.unread.map(x=>x.line));onbReading='';
+    if(got){const still=[];for(const u of r.unread){const t=got[u.line];const s2=t?(()=>{for(let i=Math.min(u.at,r.sessions.length-1);i>=0;i--)if(!r.sessions[i].rest)return r.sessions[i];return r.sessions.find(x=>!x.rest);})():null;   // the day the line was written under
+        if(t&&s2){const it=parsePlan(t).find(x=>x.ex);if(it){s2.text=(s2.text?s2.text+'\n':'')+onbLineText(it.ex,it.lines);const pt=homePartOf(it.ex);if(pt&&!s2.parts.includes(pt))s2.parts.push(pt);if(!s2.keepName)s2.name=onbSesNamed(s2.parts);continue;}}
+        if(t==='')continue;still.push(u);}
+      r.unread=still;}}
+  const train=r.sessions.filter(x=>!x.rest);
+  if(!train.length){onbReading='';toast('Couldn’t find exercises in that. Try one exercise per line.');onbRender();return;}
+  onbFreshInit();Object.assign(onbF,{found:'paste',foundFrom:`Read from your notes: ${train.length} ${train.length===1?'day':'days'}, ${train.reduce((n,x)=>n+x.text.split('\n').filter(l=>l&&!/^\s/.test(l)).length,0)} exercises.`,
+    unread:r.unread.map(x=>x.line),cards:r.sessions.map(x=>x.rest?ONB_REST():x),count:train.length,template:'own',edited:true,goal:DB.settings.objective||'grow',notice:'Your routine, as you wrote it.'});
+  onbGo('routine');
+}
+/* an import: your order read from the log, your days a week from the last eight weeks */
+function onbFoundImport(){
+  onbFreshInit();
+  const info=typeof pfRotLearn==='function'?pfRotLearn(Object.keys(SEED.catalog||{}).filter(p=>p!=='Run')):null;
+  const wk={};const cut=rtAddDays(todayISO,-56);for(const d of Object.keys(DB.days))if(d>=cut&&d<=todayISO&&rtTrained(d))wk[rtWeekOf(d)]=(wk[rtWeekOf(d)]||0)+1;
+  const per=Object.values(wk).sort((a,b)=>a-b),n=per.length?Math.max(2,Math.min(7,per[Math.floor(per.length/2)])):3;
+  const read=info&&(info.kind==='log'||info.kind==='changed')&&info.sessions.length;
+  /* your cycle, starting from the session that comes next -- so Day 1 is today. Untouched, the cycle
+     itself is what gets saved (Push, Pull, Legs keeps turning over five days a week); the cards show
+     it laid over your days */
+  let cycle=read?info.sessions.map(x=>({name:onbSesNamed(x.parts),parts:x.parts.slice()})):null,ses=null;
+  if(cycle){const k=typeof pfRotNext==='function'?pfRotNext(cycle):0;cycle=[...cycle.slice(k),...cycle.slice(0,k)];
+    ses=cycle.length>=n?cycle.map(x=>({...x,parts:x.parts.slice()})):Array.from({length:n},(_,i)=>({...cycle[i%cycle.length],parts:cycle[i%cycle.length].parts.slice()}));}
+  const workouts=Object.keys(DB.days).filter(d=>rtTrained(d)).length;
+  if(!ses){onbF.count=n;onbF.template=onbSuggest();ses=onbCards(onbF.template,n);}
+  Object.assign(onbF,{found:'import',foundFrom:read?`Read from your ${fmt(workouts)} workouts: your order, your exercises, your numbers.`:`Not enough history yet to read your order, so here’s a start built for ${n} days.`,cards:ses,cycle,touched:false,count:ses.length,template:read?'own':onbF.template,edited:!!read,goal:DB.settings.objective||'grow'});
+  onbPath='have';onbHave='import';onbHist=['have'];onbStep='routine';onbShown=0;onbRender();
 }
 function onbFreshInit(){
   const mon=!/^en-(US|CA)|^ja|^ko/i.test(navigator.language||'en-US');
@@ -222,13 +301,13 @@ function onbFreshInit(){
 function onbRoutineReady(){   // the arrangement when Basics hands over: suggested, unless you already shaped one
   if(!onbF.cards||(!onbF.edited&&onbF.cards.length!==onbF.count)){onbF.template=onbF.template&&onbF.edited?onbF.template:onbSuggest();onbF.cards=onbCards(onbF.template,onbF.count);}
 }
-function onbSnap(){onbF.hist.push(JSON.stringify({template:onbF.template,cards:onbF.cards,edited:onbF.edited,count:onbF.count,extra:onbF.extra}));if(onbF.hist.length>12)onbF.hist.shift();}
+function onbSnap(){if(onbF)onbF.touched=true;onbF.hist.push(JSON.stringify({template:onbF.template,cards:onbF.cards,edited:onbF.edited,count:onbF.count,extra:onbF.extra}));if(onbF.hist.length>12)onbF.hist.shift();}
 function onbSay(t){onbF.notice=t;const l=document.getElementById('onbLive');if(l)l.textContent=t;}
 function onbPut(part,to,from){const c=onbCardAt(to);if(!c||from===to)return;
   if(c.rest){onbSay('A rest day stays empty.');onbRender();return;}
   if(c.parts.includes(part)){onbSay(partLabel(part)+' is already in '+c.name+'.');onbRender();return;}
-  onbSnap();if(part==='Run')c.parts.unshift(part);else c.parts.push(part);
-  if(from!=null&&onbCardAt(from))onbCardAt(from).parts=onbCardAt(from).parts.filter(p=>p!==part);
+  onbSnap();if(part==='Run')c.parts.unshift(part);else c.parts.push(part);onbTouched(c);
+  if(from!=null&&onbCardAt(from)){onbCardAt(from).parts=onbCardAt(from).parts.filter(p=>p!==part);onbTouched(onbCardAt(from));}
   const was=c.name;onbF.sel=null;onbF.edited=true;onbRename();onbSay(partLabel(part)+(from!=null?' moved to ':' added to ')+was+'.');onbRender();
   const el=document.querySelector(`#onb [data-rtcard="${to}"]`);if(el){el.classList.remove('ob-settle');void el.offsetWidth;el.classList.add('ob-settle');}}
 function onbMove(from,to){if(from===to||to<0||to>=onbF.cards.length)return;onbSnap();const c=onbF.cards.splice(from,1)[0];onbF.cards.splice(to,0,c);onbF.menu=-1;onbF.edited=true;onbSay(c.name+' moved to '+(onbDayLab(to)||'session '+(to+1))+'.');onbRender();}
@@ -250,8 +329,12 @@ function onbFreshApply(){
   for(const c of onbF.cards){if(c.rest){const at=si<0?'last':si;restAfter[at]=(restAfter[at]||0)+1;}else if(c.parts.length)si++;}
   if(restAfter.last){restAfter[si]=(restAfter[si]||0)+restAfter.last;delete restAfter.last;}
   DB.settings.plannerPreferences={...prev,frequency:onbTrainN(),trainDays:[],rotation:rot,restAfter:Object.keys(restAfter).length?restAfter:null,extra:onbF.extra&&onbF.extra.parts.length?{name:onbSesTemplate(onbF.extra.parts),parts:onbF.extra.parts.slice()}:null,orderMode:'own',avoid:prev.avoid||[]};
-  const text=(T.cardio?'Run — by feel\n':'')+T.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n');
-  try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan){ DB.plan.title=T.name; DB.plan.auto='routine'; } DB.settings.routineAutoAt=todayISO; DB.settings.routineWrote={[todayISO]:text}; DB.settings.routineAuto=true; }catch(e){}
+  let text=(T.cardio?'Run — by feel\n':'')+T.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n'),title=T.name;
+  /* v4.6.390: a routine you brought plans today from itself: the session that comes next in your order
+     (read from your log when there is one), your exercises, your last numbers */
+  if(onbF.found){const ses=onbF.cards.filter(c=>!c.rest&&c.parts.length),k=0,x=ses[0];   // Day 1 is today: an import's cards start from the session that comes next
+    if(x){const t2=rtDayText(x);if(t2){text=t2;title=x.keepName?x.name:onbSesTemplate(x.parts)||onbSesNamed(x.parts);if(typeof rtIdx==='function'&&rtRests(ses.length))rtIdx()[todayISO]=k;}}}
+  try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan){ DB.plan.title=title; DB.plan.auto='routine'; } DB.settings.routineAutoAt=todayISO; DB.settings.routineWrote={[todayISO]:text}; DB.settings.routineAuto=true; }catch(e){}
   if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
 }
 /* v4.6.375: Basics changes in place. A tap used to redraw the screen, so the
@@ -280,7 +363,7 @@ function onbSheetPatch(){
 }
 function onbGo(step){ onbHist.push(onbStep); onbStep=step; onbRender(); }
 function onbPos(){   // where this screen sits in its path, and how long the path is
-  const path=onbLater?['basics','routine']:onbPath==='have'?['you','crew','fork','have']:['you','crew','fork','basics','routine'];
+  const path=onbLater?['basics','routine']:onbPath==='have'?['you','crew','fork','have',...(onbHave==='paste'?['paste','routine']:onbF&&onbF.found?['routine']:[])]:['you','crew','fork','basics','routine'];
   return [Math.max(1,path.indexOf(onbStep)+1),path.length,!onbLater&&(onbStep==='you'||onbStep==='crew')];   // name and crew can be skipped, as before
 }
 function onbChoice(act,val,title,sub,on){
@@ -320,6 +403,18 @@ function onbRender(){
       <p class="ob-sub ob-rise" ${d(.15)}>Bring it in once. Pick up where you left off.</p>
       ${[['import','In another app','Strong, Hevy or a spreadsheet: bring your history',ONB_IMPORT],['paste','In my notes or my head','Paste or type it, we turn it into your plan',ICON_PASTE_ONB],['log','I\'ll log as I go','Pick what you train and start today',ONB_PLUS]].map(([v,t,sub,ic],i)=>`<button type="button" class="ob-card ob-rise${onbHave===v?' on':''}" ${d((.3+i*.1).toFixed(2))} data-onbact="have" data-v="${v}"><span class="ob-ic">${ic}</span><span class="ob-ct"><b>${t}</b><span>${sub}</span></span>${ONB_AR}</button>`).join('')}
       <div class="ob-sp"></div></div>`;
+  }else if(onbStep==='paste'){
+    /* v4.6.390: PASTE YOUR ROUTINE. Your days as you keep them in your notes; the app reads them on the
+       phone, and only the lines it cannot read go to the AI. Nothing is logged: this is your routine. */
+    b=`<div class="ob ob-step ob-paste">${onbTop(...onbPos())}
+      <h1 class="ob-h ob-rise" ${d(.05)}>Paste your<br>routine.</h1>
+      <p class="ob-sub ob-rise" ${d(.12)}>Your days as you’d write them in your notes. We’ll turn them into your week.</p>
+      <div class="ob-paste-box ob-rise" ${d(.2)}><textarea id="onbPaste" spellcheck="false" autocapitalize="off" placeholder="${hesc(ONB_PASTE_EG)}">${hesc(onbPasteText)}</textarea>
+        <button type="button" class="ob-paste-chip" data-onbact="ppaste">${ICON_PASTE_ONB}Paste</button></div>
+      <p class="ob-paste-hint ob-rise" ${d(.26)}>A name per day (Push, Day 1, Monday…), then its exercises. Weights and reps if you have them. “Rest” for a day off.</p>
+      ${onbReading?`<p class="ob-paste-ai" role="status">${icon('sparkle',ICON_SZ.sm)}<span>${hesc(onbReading)}</span></p>`:''}
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="pread" ${onbPasteText.trim()&&!onbReading?'':'disabled'}>Read my routine →</button>
+      <p class="ob-foot2">Nothing is logged. This becomes your plan.</p></div>`;
   }else if(onbStep==='basics'){
     const n=onbF.count,lb=onbUnit==='lb',g=PF_GOALS.find(x=>x[0]===onbF.goal)||PF_GOALS[0];
     b=`<div class="ob ob-step pf-workspace ob-basics">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Make it fit<br>your life.</h1><p class="ob-sub ob-rise" ${d(.12)}>A few basics. Nothing set in stone.</p>
@@ -338,15 +433,15 @@ function onbRender(){
     const order=(i,drop)=>onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button>${drop}</div>`:'';
     const restCard=(c,i)=>`<section class="ob-rt-ses ob-rt-rest" data-rtcard="${i}" aria-label="${onbDayLab(i)}, rest day">${side(i,'Rest','move the rest day')}<div class="ob-rt-main"><b class="ob-rt-name">Rest</b><p class="ob-rt-restnote">A day off. Nothing to log.</p>${order(i,`<button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}">Remove rest day</button>`)}</div></section>`;
     const cards=onbF.cards.map((c,i)=>c.rest?restCard(c,i):`<section class="ob-rt-ses" data-rtcard="${i}" aria-label="${onbDayLab(i)}, ${hesc(c.name)}">${side(i,c.name,'move '+hesc(c.name))}<div class="ob-rt-main"><b class="ob-rt-name">${hesc(c.name)}</b>
-      <div class="ob-rt-chips">${(E?c.parts:c.parts.slice(0,3)).map(p=>chipE(p,i)).join('')}${!E&&c.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${c.parts.length-3}</button>`:''}${!c.parts.length?'<em>Drop body parts here</em>':''}</div>
+      <div class="ob-rt-chips">${(E?c.parts:c.parts.slice(0,3)).map(p=>chipE(p,i)).join('')}${!E&&c.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${c.parts.length-3}</button>`:''}${!c.parts.length?'<em>Drop body parts here</em>':''}</div>${onbF.found&&!E&&c.parts.length?(n=>n?`<p class="ob-rt-exs">${hesc(n)}</p>`:'')(onbExNames(c)):''}
       ${sel&&!c.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="${i}">+ Add ${hesc(partLabel(sel))}</button>`:''}
       ${order(i,`<button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}" ${onbTrainN()<=1?'disabled':''}>Remove day</button>`)}</div></section>`).join('');
     const XC=onbF.extra,xcard=XC?`<section class="ob-rt-ses ob-rt-extra" data-rtcard="-1" aria-label="Extra day, ${hesc(XC.name)}"><div class="ob-rt-side ob-rt-side-x"><span class="ob-rt-day">Extra</span></div><div class="ob-rt-main"><div class="ob-rt-top"><b class="ob-rt-name">${hesc(XC.name)}</b><button type="button" class="ob-rt-xdel" data-onbact="fdropx" aria-label="Remove the extra day">${X}</button></div>
       <div class="ob-rt-chips">${(E?XC.parts:XC.parts.slice(0,3)).map(p=>chipE(p,-1)).join('')}${!E&&XC.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${XC.parts.length-3}</button>`:''}${!XC.parts.length?'<em>Drop body parts here</em>':''}</div>
       ${sel&&!XC.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="-1">+ Add ${hesc(partLabel(sel))}</button>`:''}
       <p class="ob-rt-xnote">Optional. Offered once your ${onbTrainN()} days are done.</p></div></section>`:`<button type="button" class="ob-rt-addses ob-rt-addx" data-onbact="faddx">+ Add an extra day</button>`;
-    b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>
-      <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${hesc(t[1])}</b><span>${onbDaysText()}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">Change</button></div>
+    b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}${onbF.found?`<h1 class="ob-h ob-rise" ${d(.05)}>We found<br>your routine.</h1><p class="ob-sub ob-rise" ${d(.12)}>${hesc(onbF.foundFrom||'Read from what you brought.')} Keep it, or make it yours.</p>`:`<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>`}
+      <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${onbF.found?'Your routine':hesc(t[1])}</b><span>${onbDaysText()}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">${onbF.found?'Start fresh':'Change'}</button></div>${onbF.unread&&onbF.unread.length?`<div class="ob-rt-unread ob-rise" ${d(.2)}><b>${onbF.unread.length} ${onbF.unread.length===1?'line':'lines'} kept as notes</b><span>${onbF.unread.slice(0,3).map(hesc).join(' · ')}${onbF.unread.length>3?' …':''}</span></div>`:''}
       ${E?(()=>{   /* v4.6.387: the tray says which parts are in your week and which are not in it yet */
         const use=p=>onbF.cards.filter(c=>!c.rest&&c.parts.includes(p)).length+(onbF.extra&&onbF.extra.parts.includes(p)?1:0);
         const pool=p=>{const n=use(p);return `<button type="button" class="pf-pal-chip ob-rt-pool ${n?'used':'fresh'}${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}" aria-label="${hesc(partLabel(p))}, ${n?`in ${n} ${n===1?'day':'days'}`:'not in your week yet'}"><i class="ob-dots" aria-hidden="true"></i><span>${hesc(partLabel(p))}</span>${n?`<i class="ob-rt-n">×${n}</i>`:''}</button>`;};
@@ -389,6 +484,7 @@ function onbRender(){
   if(!replay)el.scrollTop=keepY;
   if(onbStep==='crew'&&typeof adoptBind==='function'){const r=el.querySelector('.ob-adopt');if(r)adoptBind(r,()=>{onbGo('fork');});}
   if(onbStep===1)onbWorldMount(el);
+  if(onbStep==='paste'){const ta=el.querySelector('#onbPaste');ta?.addEventListener('input',()=>{onbPasteText=ta.value;onbPasteSync();});}
   if(onbStep==='you'||onbStep==='basics'){
     const nm=el.querySelector('#onbName'), bw=el.querySelector('#onbBw'), bb=el.querySelector('#onbBubble');
     nm?.addEventListener('input',()=>{ onbName=nm.value.slice(0,40); nm.classList.toggle('filled',!!onbName); if(bb){ bb.innerHTML=onbBubble(); bb.classList.remove('bump'); void bb.offsetWidth; bb.classList.add('bump'); } });
@@ -396,7 +492,7 @@ function onbRender(){
   }
 }
 function onbPathFinish(){
-  if(onbPath==='fresh'){ onbFreshApply(); onbFinish(false,'fresh'); return; }
+  if(onbPath==='fresh'||(onbF&&onbF.found)){ onbFreshApply(); onbFinish(false,'fresh'); return; }
   onbFinish(false,onbHave==='import'?'import':onbHave==='paste'?'paste':'train');
 }
 function onbFinish(skip,go){
@@ -407,7 +503,7 @@ function onbFinish(skip,go){
     view='today';render();if(go==='fresh')toast('Your routine is set. Today is planned.');return;
   }
   if(!skip){
-    if(onbPath!=='fresh') DB.settings.myParts=[...onbSel];
+    if(onbPath!=='fresh'&&!(onbF&&onbF.found)) DB.settings.myParts=[...onbSel];
     DB.settings.unit=onbUnit;
     const nm=onbName.trim().slice(0,40);
     if(nm) DB.settings.name=nm;
@@ -581,7 +677,13 @@ document.addEventListener('click',e=>{
   else if(act==='apple'){ if(typeof appleReady==='function'&&appleReady()&&typeof signInApple==='function') signInApple(); else toast('Apple sign-in arrives with the App Store app'); }
   else if(act==='local'){ onbHist=[]; onbStep='you'; onbRender(); }
   else if(act==='path'){ onbPath=a.dataset.v; if(onbPath==='fresh'&&!onbF)onbFreshInit(); onbGo(onbPath==='fresh'?'basics':'have'); }
-  else if(act==='have'){ onbHave=a.dataset.v; onbPathFinish(); }
+  else if(act==='have'){ onbHave=a.dataset.v;
+    /* v4.6.390: bringing a routine stays inside setup until it is read -- Back always returns here */
+    if(onbHave==='paste'){ onbGo('paste'); }
+    else if(onbHave==='import'&&typeof impOpen==='function'){ impOpen('onboarding'); }
+    else onbPathFinish(); }
+  else if(act==='pread'){ onbPasteRead(); }
+  else if(act==='ppaste'){ (async()=>{try{const t=await navigator.clipboard.readText();if(t){onbPasteText=t;const ta=document.getElementById('onbPaste');if(ta)ta.value=t;onbPasteSync();}}catch(e){toast('Paste with a long press in the box.');}})(); }
   else if(act==='fgoal'){ onbF.goal=a.dataset.v; if(!onbBasicsPatch()) onbRender(); }
   else if(act==='fcount'){ onbF.count=+a.dataset.v; if(!onbBasicsPatch()) onbRender(); }
   else if(act==='fprofile'){ onbF.profileOpen=!onbF.profileOpen; }   /* <details> toggles itself; remembered across re-renders */
@@ -589,12 +691,12 @@ document.addEventListener('click',e=>{
   else if(act==='fchange'){ onbF.sheet=onbF.template||onbSuggest(); onbRender(); document.querySelector('#onb .ob-tpl.on')?.focus(); }
   else if(act==='ftpl'){ onbF.sheet=a.dataset.v; if(!onbSheetPatch()) onbRender(); document.querySelector(`#onb .ob-tpl[data-v="${a.dataset.v}"]`)?.focus(); }
   else if(act==='fclose'||(act==='fsheetbg'&&e.target===a)){ onbF.sheet=null; onbRender(); document.querySelector('#onb [data-onbact="fchange"]')?.focus(); }
-  else if(act==='fapply'){ onbSnap(); onbF.template=onbF.sheet; onbF.cards=onbCards(onbF.template,onbF.cards.length); onbF.edited=onbF.template==='own'; onbF.edit=onbF.template==='own'; onbF.sel=null; onbF.sheet=null; onbSay('New arrangement. All yours to adjust.'); onbRender(); }
+  else if(act==='fapply'){ onbSnap(); onbF.found=null; onbF.unread=null; onbF.template=onbF.sheet; onbF.cards=onbCards(onbF.template,onbF.cards.length); onbF.edited=onbF.template==='own'; onbF.edit=onbF.template==='own'; onbF.sel=null; onbF.sheet=null; onbSay('New arrangement. All yours to adjust.'); onbRender(); }
   else if(act==='fcustom'){ onbF.edit=true; onbSay('Drag to arrange. Tap works too.'); onbRender(); }
   else if(act==='fdone'){ onbF.edit=false; onbF.sel=null; onbSay('Your routine is ready.'); onbRender(); }
   else if(act==='fpool'){ if(onbDragJust)return; onbF.sel=onbF.sel===a.dataset.v?null:a.dataset.v; onbSay(onbF.sel?'Tap a session to add '+partLabel(onbF.sel)+'.':'Drag to arrange. Tap works too.'); onbRender(); }
   else if(act==='fplace'){ onbPut(onbF.sel,+a.dataset.v,null); }
-  else if(act==='frm'){ if(onbDragJust)return; onbSnap(); const c=onbCardAt(+a.dataset.v); c.parts=c.parts.filter(p=>p!==a.dataset.p); onbF.edited=true; onbRename(); onbSay(partLabel(a.dataset.p)+' removed.'); onbRender(); }
+  else if(act==='frm'){ if(onbDragJust)return; onbSnap(); const c=onbCardAt(+a.dataset.v); c.parts=c.parts.filter(p=>p!==a.dataset.p); onbTouched(c); onbF.edited=true; onbRename(); onbSay(partLabel(a.dataset.p)+' removed.'); onbRender(); }
   else if(act==='fmenu'){ if(onbDragJust)return; const v=+a.dataset.v; onbF.menu=onbF.menu===v?-1:v; onbRender(); }
   else if(act==='fmove'){ onbMove(+a.dataset.v,+a.dataset.v+(+a.dataset.dir)); }
   else if(act==='fundo'){ const h=onbF.hist.pop(); if(h){ Object.assign(onbF,JSON.parse(h)); onbF.sel=null; onbF.menu=-1; onbSay('Change undone.'); onbRender(); } }
@@ -731,6 +833,9 @@ function rtTrained(iso){return (DB.days[iso]?.w||[]).some(s=>(s.reps||[]).length
 /* a session as plan text: Cardio as last logged, then per body part your most
    recent exercises at their last line, or the starters by feel */
 function rtDayText(ses){
+  if(ses&&ses.text){   // v4.6.390: a day you brought keeps its exercises; each load is your latest once you have logged it
+    return parsePlan(ses.text).map(it=>{if(it.kind==='cardio')return it.raw;if(!it.ex)return null;const l=typeof pwLastLine==='function'?pwLastLine(it.ex):null;
+      return l?`${it.ex}\n  ${l.load} × ${l.reps.join(' ')}`:onbLineText(it.ex,it.lines);}).filter(Boolean).join('\n');}
   const parts=ses.parts,lifts=parts.filter(t=>t!=='Run'),main=lifts.filter(t=>t!=='Sixpack'),lines=[];
   /* core is one exercise when it shares the day; the rest of the six go to the main parts */
   const perOf=t=>t==='Sixpack'?(main.length?1:3):Math.max(1,Math.min(3,Math.ceil((6-(lifts.includes('Sixpack')&&main.length?1:0))/Math.max(1,main.length))));
