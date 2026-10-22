@@ -117,7 +117,7 @@ function onbLockup(){
     (m?'<span class="showuppp-character"><i class="showuppp-ground" aria-hidden="true"></i>'+m+'</span>':'')+showupppCompletionLettersHTML()+'</div>';
 }
 function onbTop(cur,total=4,skip=false){
-  return `<div class="ob-top"><button type="button" class="ob-back" data-onbact="back" aria-label="Back" style="visibility:${cur>1?'visible':'hidden'}">‹</button>`+
+  return `<div class="ob-top"><button type="button" class="ob-back" data-onbact="back" aria-label="${onbLater&&cur<=1?'Close':'Back'}" style="visibility:${cur>1||onbLater?'visible':'hidden'}">‹</button>`+
     `<div class="ob-prog" aria-label="Step ${cur} of ${total}">${Array.from({length:total},(_,k)=>`<i class="${k+1<=cur?'on':''}"></i>`).join('')}</div>`+
     (skip?`<button type="button" class="ob-skip" data-onbact="skip">Skip</button>`:`<span class="ob-stepn">${String(cur).padStart(2,'0')} / ${String(total).padStart(2,'0')}</span>`)+`</div>`;
 }
@@ -131,7 +131,27 @@ function onbTop(cur,total=4,skip=false){
             rotation, with session 1 planned for today, weights by feel.
    you   -- name and units, last, for both.
    The crew member is met after the first finished workout, not here. */
-let onbPath=null,onbHave=null,onbHist=[],onbF=null;
+let onbPath=null,onbHave=null,onbHist=[],onbF=null,onbLater=false;
+/* v4.6.384: SET UP A ROUTINE LATER. Whoever skipped the routine at first run
+   (Just looking around, I'll log as I go) meets the same screens from Today:
+   the nudge on the Today card, or Plan while nothing is planned. Name and crew
+   are already chosen, so it starts at the fork. Back on the first screen, or
+   Not now, closes it and nothing is saved. */
+function rtNeedsSetup(){
+  const rot=(DB.settings.plannerPreferences||{}).rotation;   // a routine you chose, not the starter order the planner falls back on
+  if(rtOn()||(rot&&(Array.isArray(rot)?rot.length:rot.sessions?.length)))return false;
+  if(pwSaved(todayISO)?.items?.length)return false;
+  const ahead=[...(DB.plan?.d>todayISO?[DB.plan.d]:[]),...Object.keys(DB.week?.days||{}).filter(d=>d>todayISO)];
+  return !ahead.some(d=>pwSaved(d)?.items?.length);
+}
+function onbRoutineOpen(){
+  onbLater=true;onbPath=null;onbHave=null;onbHist=[];onbShown=0;
+  onbFreshInit();const s=DB.settings;
+  if(ONB_GOALS.some(g=>g[0]===s.objective))onbF.goal=s.objective;
+  if(s.weekStart==='monday'||s.weekStart==='sunday')onbF.weekStart=s.weekStart;
+  onbStep='fork';onbRender();
+}
+function onbLaterClose(){onbLater=false;onbF=null;onbPath=null;onbEl().hidden=true;onbShown=0;}
 /* v4.6.372: START ME FRESH, the approved four-screen flow (handoff 2026-10-21):
    01 Start  -- the fork.
    02 Basics -- goal, the days you train, units, and an optional name and
@@ -248,8 +268,8 @@ function onbSheetPatch(){
 }
 function onbGo(step){ onbHist.push(onbStep); onbStep=step; onbRender(); }
 function onbPos(){   // where this screen sits in its path, and how long the path is
-  const path=onbPath==='have'?['you','crew','fork','have']:['you','crew','fork','basics','routine'];
-  return [Math.max(1,path.indexOf(onbStep)+1),path.length,onbStep==='you'||onbStep==='crew'];   // name and crew can be skipped, as before
+  const path=onbLater?(onbPath==='have'?['fork','have']:['fork','basics','routine']):onbPath==='have'?['you','crew','fork','have']:['you','crew','fork','basics','routine'];
+  return [Math.max(1,path.indexOf(onbStep)+1),path.length,!onbLater&&(onbStep==='you'||onbStep==='crew')];   // name and crew can be skipped, as before
 }
 function onbChoice(act,val,title,sub,on){
   return `<button type="button" class="ob-card ob-pick ob-rise${on?' on':''}" data-onbact="${act}" data-v="${val}" aria-pressed="${!!on}"><span class="ob-ct"><b>${title}</b>${sub?`<span>${sub}</span>`:''}</span>${ONB_AR}</button>`;
@@ -276,17 +296,17 @@ function onbRender(){
        rise one by one -- and asks the one question that decides the rest: how are you starting? */
     const n=onbName.trim();
     b=`<div class="ob ob-step ob-goal">${onbTop(...onbPos())}
-      <p class="ob-in ob-rise" ${d(.05)}>You're in${n?', '+hesc(n):''}.</p>
+      <p class="ob-in ob-rise" ${d(.05)}>${onbLater?'Let’s plan your week'+(n?', '+hesc(n):''):'You’re in'+(n?', '+hesc(n):'')}.</p>
       <p class="ob-q ob-rise" ${d(.15)}>How are you starting?</p>
       <div class="ob-jump">${(typeof companionHTML==='function'&&companionHTML('ob-comp'))||(typeof mascotHTML==='function'?mascotHTML('hello','ob-pip'):'')}<svg class="ob-lines" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12l4-9M12 17l12-6M14 25h10"/></svg></div>
       <button type="button" class="ob-card pri ob-rise" ${d(1.1)} data-onbact="path" data-v="fresh"><span class="ob-ic">${ONB_PLUS}</span><span class="ob-ct"><b>Start me fresh</b><span>A starting point. Made yours.</span></span>${ONB_AR}</button>
       <button type="button" class="ob-card ob-rise" ${d(1.25)} data-onbact="path" data-v="have"><span class="ob-ic">${ONB_IMPORT}</span><span class="ob-ct"><b>I have a routine</b><span>Bring it over and keep going</span></span>${ONB_AR}</button>
-      <div class="ob-sp"></div><button type="button" class="ob-link ob-look ob-rise" ${d(1.45)} data-onbact="look">Just looking around</button><p class="ob-foot ob-rise" ${d(1.6)}>Either way, you'll know what to do today.</p></div>`;
+      <div class="ob-sp"></div>${onbLater?`<button type="button" class="ob-link ob-look ob-rise" ${d(1.45)} data-onbact="later-close">Not now</button><p class="ob-foot ob-rise" ${d(1.6)}>You can always log without a plan.</p>`:`<button type="button" class="ob-link ob-look ob-rise" ${d(1.45)} data-onbact="look">Just looking around</button><p class="ob-foot ob-rise" ${d(1.6)}>Either way, you’ll know what to do today.</p>`}</div>`;
   }else if(onbStep==='have'){
     b=`<div class="ob ob-step">${onbTop(...onbPos())}
       <h1 class="ob-h ob-rise" ${d(.05)}>Where's your<br>routine now?</h1>
       <p class="ob-sub ob-rise" ${d(.15)}>Bring it in once. Pick up where you left off.</p>
-      ${[['import','In another app','Strong, Hevy or a spreadsheet: bring your history',ONB_IMPORT],['paste','In my notes or my head','Paste or type it, we turn it into your plan',ICON_PASTE_ONB],['log','I\'ll log as I go','Pick what you train and start today',ONB_PLUS]].map(([v,t,sub,ic],i)=>`<button type="button" class="ob-card ob-rise${onbHave===v?' on':''}" ${d((.3+i*.1).toFixed(2))} data-onbact="have" data-v="${v}"><span class="ob-ic">${ic}</span><span class="ob-ct"><b>${t}</b><span>${sub}</span></span>${ONB_AR}</button>`).join('')}
+      ${[['import','In another app','Strong, Hevy or a spreadsheet: bring your history',ONB_IMPORT],['paste','In my notes or my head','Paste or type it, we turn it into your plan',ICON_PASTE_ONB],['log','I\'ll log as I go','Pick what you train and start today',ONB_PLUS]].filter(x=>!(onbLater&&x[0]==='log')).map(([v,t,sub,ic],i)=>`<button type="button" class="ob-card ob-rise${onbHave===v?' on':''}" ${d((.3+i*.1).toFixed(2))} data-onbact="have" data-v="${v}"><span class="ob-ic">${ic}</span><span class="ob-ct"><b>${t}</b><span>${sub}</span></span>${ONB_AR}</button>`).join('')}
       <div class="ob-sp"></div></div>`;
   }else if(onbStep==='basics'){
     const n=onbF.count,lb=onbUnit==='lb',g=PF_GOALS.find(x=>x[0]===onbF.goal)||PF_GOALS[0];
@@ -357,6 +377,12 @@ function onbPathFinish(){
   onbFinish(false,onbHave==='import'?'import':onbHave==='paste'?'paste':'train');
 }
 function onbFinish(skip,go){
+  if(onbLater){   // v4.6.384: set up from Today -- name, units, parts and first-run tips stay as they were
+    onbLater=false;DB.settingsAt=Date.now();save(true);onbEl().hidden=true;onbShown=0;
+    if(go==='import'&&typeof impOpen==='function'){view='today';render();impOpen('onboarding');return;}
+    if(go==='paste'&&typeof pwOpen==='function'){view='today';render();pwOpen(todayISO);try{const s=pw();s.pasteText='';s.editIndex=undefined;s.editAll=false;pwGo('paste');}catch(e){}return;}
+    view='today';render();if(go==='fresh')toast('Your routine is set. Today is planned.');return;
+  }
   if(!skip){
     if(onbPath!=='fresh') DB.settings.myParts=[...onbSel];
     DB.settings.unit=onbUnit;
@@ -563,7 +589,8 @@ document.addEventListener('click',e=>{
   else if(act==='notnow'){ onbBw=''; onbGo('crew'); }
   else if(act==='look'){ onbFinish(false,'look'); }
   else if(act==='rotedit'){ if(typeof pwOpen==='function'){ view='today'; render(); pwOpen(todayISO); try{ const j=pfState(); j.prefOrigin='dates'; j.prefs=pfStagePrefs(); pfNavigate('prefs'); }catch(e){} } }
-  else if(act==='back'){ if(onbHist.length){ onbStep=onbHist.pop(); onbRender(); } }
+  else if(act==='back'){ if(onbHist.length){ onbStep=onbHist.pop(); onbRender(); } else if(onbLater) onbLaterClose(); }
+  else if(act==='later-close'){ onbLaterClose(); }
   else if(act==='skip'){ DB.settings.companionAsked=todayISO; if(!DB.settings.companionName){DB.settings.clubAvatar='pip';DB.settings.companionFree='pip';} onbHist.push(onbStep); onbStep='fork'; onbRender(); }   // v4.6.311: skip goes past the companion too; the dealt one comes along
   else if(act==='go') onbFinish(false,a.dataset.onbgo);
   else if(act==='finish') onbFinish(false);
@@ -775,7 +802,8 @@ function focusedTodayHTML(){
   let h=`<section class="today-focus"><div class="su-hello-row">${fresh?'<div class="hello"><span class="hi">Welcome to ShowUppp.</span></div>':helloCard()}${(typeof companionHTML==='function'&&companionHTML('su-hello-comp'))||mascotHTML('hello')}</div>${typeof trialCardHTML==='function'?trialCardHTML():''}<div class="card today-focus-card"><div class="today-focus-kicker">${items.length?'Today’s workout':'Today'}</div>${items.length?'':`<h3>${fresh?'Start with one set.':'What’s today’s workout?'}</h3>`}`;
   if(items.length){
     h+=`<details class="today-focus-plan" data-pw-fold="focus:${todayISO}" ${pwFoldOpen('focus:'+todayISO)?'open':'' }><summary><div class="today-focus-title"><h3>${hesc(parts||'Your workout')}</h3>${icon('chevron',ICON_SZ.md)}</div><div class="mono muted today-focus-meta">${sets} ${sets===1?'set':'sets'} · ${items.length} ${items.length===1?'exercise':'exercises'}</div></summary><div class="today-focus-plan-content">${planCardHTML(now,false)}</div></details>${todayFirstHTML(items)}`;
-  }else h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>`;
+  }else{const setup=!future.length&&rtNeedsSetup();   // v4.6.384: no routine and nothing planned -- offer the routine setup, under the one set
+    h+=`<p class="today-focus-copy">Choose an exercise and log what you do.${fresh&&!setup?' No plan needed.':''}</p><button class="btn" id="goLift">Choose exercise →</button>${setup?`<button type="button" class="today-routine" data-routine-setup><span>Want a routine? <b>Set one up in a minute</b></span>${icon('arrowR',ICON_SZ.sm)}</button>`:''}`;}
   /* v4.6.287: "Just looking around" -- sample data lives here now, not on the first screen */
   const sampleLink=fresh&&DB.settings.lookAround&&!DB.settings.demo?`<button type="button" class="today-sample" data-onbact="demo">See it with sample data</button>`:'';
   h+='</div>';
@@ -1587,3 +1615,6 @@ document.addEventListener('keydown',e=>{
   const h=e.target.closest&&e.target.closest('#onb [data-rthandle]');
   if(h&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();const from=+h.dataset.rthandle,to=from+(e.key==='ArrowUp'?-1:1);onbMove(from,to);document.querySelector(`#onb [data-rthandle="${Math.max(0,Math.min(to,onbF.cards.length-1))}"]`)?.focus();}
 });
+
+/* v4.6.384: the Today card's routine nudge */
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-routine-setup]')){e.preventDefault();onbRoutineOpen();}});

@@ -5170,3 +5170,10 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 /* v4.6.382: a planned run on the plan card reads its distance and time in the weight column's place */
 .planrow .pl.pl-cardio,:root[data-flow="refined"] #view[data-flow-view="today"] .planrow .pl.pl-cardio{display:block}
 .planrow .pl-cardio .pv{color:var(--muted)}
+
+/* v4.6.384: the routine nudge under Choose exercise -- a quiet line, not a second button */
+.today-routine{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:6px;margin-top:16px;font:400 14px/1.35 var(--body);color:var(--muted);-webkit-tap-highlight-color:transparent}
+.today-routine b{font-weight:600;color:var(--accent)}
+.today-routine svg{color:var(--accent);flex:none}
+.today-routine:active{opacity:.6}
+.today-routine:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}

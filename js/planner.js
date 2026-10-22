@@ -904,6 +904,7 @@ function pwHandle(e){
     if(a==='plan-copy'){const p=pwSaved(d),text=p?planText(p):'';if(!text)return true;
       const done=()=>toast((d===todayISO?'Today’s workout':'This workout')+' copied');
       try{navigator.clipboard.writeText(text).then(done,()=>toast('Could not copy. Try again.'));}catch(e){toast('Could not copy. Try again.');}return true;}
+    if(a==='open'&&!el.classList.contains('pw-text')&&typeof rtNeedsSetup==='function'&&rtNeedsSetup()&&typeof onbRoutineOpen==='function'){onbRoutineOpen();return true;}   // v4.6.384: no routine, nothing planned -- Plan starts the routine setup
     if(a==='open'||a==='resume'){if(a==='open')pw().datesFrom='today';pwOpen(null,a==='open'?'dates':undefined);return true;}
     if(a==='open-date'||a==='paste-open'){
       /* v4.1.5: A CLEAR THAT WAS NEVER SAVED IS NOT THE RECORD.
