@@ -59,4 +59,16 @@ ok('a plan you saved is never overwritten', run(`DB.plan.items.length===1&&DB.pl
 ok('...it takes its turn: the next day is Lower', run(`DB.week.days['2026-10-23'].title`)==='Lower');
 setup('2026-10-22',`DB.settings.routineAuto=false;`);
 ok('switched off: nothing is written and no week card', !run('DB.plan')&&!run('DB.week')&&!q('.tw'));
+/* v4.6.377: no set weekdays. Three a week plus an Extra; the week fills from today */
+const flex=(today,extra='')=>setup(today,`DB.settings.plannerPreferences={frequency:3,trainDays:[],orderMode:'own',rotation:{preset:'ul',sessions:[{name:'Upper',parts:['Chest','Back','Shoulder','Biceps','Triceps']},{name:'Lower',parts:['Legs','Sixpack']}],extra:{name:'',parts:['Biceps','Triceps']}}};${extra}`);
+const names=()=>run(`rtWeek().map(x=>x.kind==='rest'?'-':x.kind==='extra'?'X':x.name).join()`);
+flex('2026-10-21');   // Wednesday, nothing done this week (weeks start Sunday)
+ok('flex: the next free days take the sessions, then the Extra, then rest', names()==='Upper,Lower,Upper,X,Lower,Upper,Lower', names());
+ok('...the Extra is written into Plan, marked as the Extra', /^Extra · /.test(run(`DB.week.days['2026-10-24'].title`))&&!!q('.tw-day.tw-extra'));
+q('[data-rtday="2026-10-24"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+ok('...and says it is optional', /Optional · once your 3 days are done/.test(q('.tw-detail')?.textContent||''));
+flex('2026-10-21',`for(const d of ['2026-10-19','2026-10-20'])DB.days[d]={w:[{ex:'Leg Press',part:'Legs',w:100,reps:[10],at:Date.parse(d+'T12:00')}]};`);
+ok('flex: two done this week -- one main left, then the Extra, then rest until the new week', names()==='Upper,X,-,-,Lower,Upper,Lower', names());
+flex('2026-10-21');run(`todayISO='2026-10-22';SEED=deriveAll();render();`);
+ok('flex: skip a day and the rest move up; this week has no room left for the Extra; next week\'s comes after its three', names()==='Upper,Lower,Upper,Lower,Upper,Lower,X', names());
 console.log(fails?`\n${fails} FAILED`:'\nALL PASS');process.exit(fails?1:0);

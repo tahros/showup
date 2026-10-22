@@ -142,9 +142,14 @@ const ONB_GOALS=[['grow','Build muscle'],['strength','Get stronger'],['lose','Lo
 const ONB_TRAY=['Chest','Back','Shoulder','Legs','Biceps','Triceps','Sixpack','Run'];
 const ONB_TPLS=[['full','Full body','A little of everything, each session.'],['ul','Upper / Lower','Alternate upper-body and lower-body sessions.'],['ppl','Push / Pull / Legs','Group pushing, pulling and leg work.'],['body','Body-part days','Give each session its own focus.'],['own','My own','Arrange your own body-part combinations.']];
 function onbDayOrder(){return onbF.weekStart==='monday'?[1,2,3,4,5,6,0]:[0,1,2,3,4,5,6];}
-function onbDaysSorted(){const o=onbDayOrder();return o.filter(d=>onbF.days.includes(d));}
-function onbDayLab(i){const ds=onbDaysSorted();return ds.length?PF_DOW[ds[i%ds.length]]:'';}
-function onbSuggest(){const n=onbF.days.length;return n<=3?'full':n===4?'ul':'ppl';}
+/* v4.6.377: A ROUTINE IS A NUMBER OF DAYS, NOT A SET OF WEEKDAYS. Days shift,
+   so first-run asks how many days a week, the sessions read Day 1, Day 2..., the
+   Routine screen adds and removes days, and an optional Extra day sits apart: it
+   is offered once the week's main days are done and never stands in for one. */
+function onbDayLab(i){return 'Day '+(i+1);}
+function onbCardAt(i){return i===-1?onbF.extra:onbF.cards[i];}
+function onbSuggest(){const n=onbF.count;return n<=3?'full':n===4?'ul':'ppl';}
+function onbDaysText(){const n=onbF.cards?onbF.cards.length:onbF.count;return `${n} ${n===1?'day':'days'}${onbF.extra?' + extra':''} · any days`;}
 /* v4.6.374: a session's title is what is in it. A set that is one of the
    splits keeps that split's name (Push, Upper, Full body); anything else reads
    its body parts ("Chest + Back"), with Cardio in front when it is there. */
@@ -157,7 +162,7 @@ function onbSesNamed(parts){
 }
 function onbSesTemplate(parts){const lifts=parts.filter(t=>t!=='Run'),key=x=>x.slice().sort().join(),cur=onbF&&onbF.template;   /* the template you are in names first: Legs + Core is Legs in Push / Pull / Legs, Lower in Upper / Lower */
   for(const z of [...PF_SPLITS.filter(x=>x[0]===cur),...PF_SPLITS.filter(x=>x[0]!==cur)])if(z[3])for(const [n,ps] of z[3])if(key(ps)===key(lifts))return n;return '';}
-function onbRename(){for(const c of onbF.cards)c.name=onbSesNamed(c.parts);}
+function onbRename(){for(const c of onbF.cards)c.name=onbSesNamed(c.parts);if(onbF.extra)onbF.extra.name=onbSesNamed(onbF.extra.parts);}
 /* the sessions a template makes for n days: its own sessions in turn, one per training day */
 function onbCards(k,n){
   n=Math.max(1,n);
@@ -175,17 +180,17 @@ function onbRotation(){
 }
 function onbFreshInit(){
   const mon=!/^en-(US|CA)|^ja|^ko/i.test(navigator.language||'en-US');
-  onbF={goal:'grow',weekStart:mon?'monday':'sunday',days:[1,3,5],template:null,cards:null,edited:false,edit:false,sel:null,menu:-1,hist:[],notice:'A starting point, not a commitment.',sheet:null,profileOpen:false};
+  onbF={goal:'grow',weekStart:mon?'monday':'sunday',count:3,extra:null,template:null,cards:null,edited:false,edit:false,sel:null,menu:-1,hist:[],notice:'A starting point, not a commitment.',sheet:null,profileOpen:false};
 }
 function onbRoutineReady(){   // the arrangement when Basics hands over: suggested, unless you already shaped one
-  if(!onbF.cards||(!onbF.edited&&onbF.cards.length!==onbF.days.length)){onbF.template=onbF.template&&onbF.edited?onbF.template:onbSuggest();onbF.cards=onbCards(onbF.template,onbF.days.length);}
+  if(!onbF.cards||(!onbF.edited&&onbF.cards.length!==onbF.count)){onbF.template=onbF.template&&onbF.edited?onbF.template:onbSuggest();onbF.cards=onbCards(onbF.template,onbF.count);}
 }
-function onbSnap(){onbF.hist.push(JSON.stringify({template:onbF.template,cards:onbF.cards,edited:onbF.edited}));if(onbF.hist.length>12)onbF.hist.shift();}
+function onbSnap(){onbF.hist.push(JSON.stringify({template:onbF.template,cards:onbF.cards,edited:onbF.edited,count:onbF.count,extra:onbF.extra}));if(onbF.hist.length>12)onbF.hist.shift();}
 function onbSay(t){onbF.notice=t;const l=document.getElementById('onbLive');if(l)l.textContent=t;}
-function onbPut(part,to,from){const c=onbF.cards[to];if(!c||from===to)return;
+function onbPut(part,to,from){const c=onbCardAt(to);if(!c||from===to)return;
   if(c.parts.includes(part)){onbSay(partLabel(part)+' is already in '+c.name+'.');onbRender();return;}
   onbSnap();if(part==='Run')c.parts.unshift(part);else c.parts.push(part);
-  if(from!=null&&onbF.cards[from])onbF.cards[from].parts=onbF.cards[from].parts.filter(p=>p!==part);
+  if(from!=null&&onbCardAt(from))onbCardAt(from).parts=onbCardAt(from).parts.filter(p=>p!==part);
   const was=c.name;onbF.sel=null;onbF.edited=true;onbRename();onbSay(partLabel(part)+(from!=null?' moved to ':' added to ')+was+'.');onbRender();
   const el=document.querySelector(`#onb [data-rtcard="${to}"]`);if(el){el.classList.remove('ob-settle');void el.offsetWidth;el.classList.add('ob-settle');}}
 function onbMove(from,to){if(from===to||to<0||to>=onbF.cards.length)return;onbSnap();const c=onbF.cards.splice(from,1)[0];onbF.cards.splice(to,0,c);onbF.menu=-1;onbF.edited=true;onbSay(c.name+' moved to '+(onbDayLab(to)||'session '+(to+1))+'.');onbRender();}
@@ -203,7 +208,7 @@ function onbFreshApply(){
   DB.settings.myParts=[...BODY_PARTS.filter(p=>used.has(p)||!onbF.edited),...(used.has('Run')?['Run']:[])];
   DB.settings.objective=onbF.goal;DB.settings.weekStart=onbF.weekStart;DB.settings.onbRoutine=todayISO;
   const prev=DB.settings.plannerPreferences||{};
-  DB.settings.plannerPreferences={...prev,frequency:onbF.days.length,trainDays:onbF.days.slice(),rotation:rot,orderMode:'own',avoid:prev.avoid||[]};
+  DB.settings.plannerPreferences={...prev,frequency:onbF.cards.length,trainDays:[],rotation:{...rot,extra:onbF.extra&&onbF.extra.parts.length?{name:onbSesTemplate(onbF.extra.parts),parts:onbF.extra.parts.slice()}:null},orderMode:'own',avoid:prev.avoid||[]};
   const text=(T.cardio?'Run — by feel\n':'')+T.items.map(x=>`${x.ex}\n  by feel × ${Array(x.sets).fill(x.reps).join(' ')}`).join('\n');
   try{ const {items}=planItemsFrom(parsePlan(text)); planSave(items,'',text,todayISO); if(DB.plan){ DB.plan.title=T.name; DB.plan.auto='routine'; } DB.settings.routineAutoAt=todayISO; DB.settings.routineWrote={[todayISO]:text}; DB.settings.routineAuto=true; }catch(e){}
   if(typeof pwState!=='undefined'&&pwState&&typeof pw==='function'){ try{ pw().objective=onbF.goal; }catch(e){} }
@@ -217,18 +222,18 @@ function onbBasicsPatch(){
   if(seg)seg.style.setProperty('--i',String(Math.max(0,gi)));
   el.querySelectorAll('.pf-segb').forEach(b=>{const on=b.dataset.v===onbF.goal;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
   const caps=el.querySelectorAll('.pf-pref-cap');if(caps[0])caps[0].innerHTML=g[2];
-  el.querySelectorAll('.pf-dowb').forEach(b=>{const on=onbF.days.includes(+b.dataset.v);b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
-  const n=onbF.days.length;if(caps[1])caps[1].innerHTML=n?`<strong>${n} ${n===1?'day':'days'} a week</strong> · ${onbDaysSorted().map(x=>PF_DOW[x]).join(', ')}`:'Pick at least one day.';
-  const go=el.querySelector('[data-onbact="frt"]');if(go)go.disabled=!n;
+  el.querySelectorAll('.pf-dowb').forEach(b=>{const on=+b.dataset.v===onbF.count;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
+  if(caps[1])caps[1].innerHTML=onbCountCap();
   return true;
 }
 /* v4.6.375: picking a template changes the sheet in place: the tick moves, the
    week preview and the button follow, and nothing slides or jumps */
+function onbCountCap(){const n=onbF.count;return `<strong>${n} days a week</strong> · any days you like. Miss one and the rest move up.`;}
 function onbSheetPatch(){
   const sh=document.querySelector('#onb .ob-sheet');if(!sh||!onbF.sheet)return false;
   const k=onbF.sheet,pick=ONB_TPLS.find(x=>x[0]===k),CK=icon('check',ICON_SZ.sm);
   sh.querySelectorAll('.ob-tpl').forEach(b=>{const on=b.dataset.v===k;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));const ic=b.querySelector(':scope > .ic');if(on&&!ic)b.insertAdjacentHTML('beforeend',CK);if(!on&&ic)ic.remove();});
-  const wk=sh.querySelector('.ob-tpl-week');if(wk)wk.innerHTML=onbCards(k,onbF.days.length).map((c,i)=>`<div><small>${onbDayLab(i)}</small><span>${hesc(c.name)}</span></div>`).join('');
+  const wk=sh.querySelector('.ob-tpl-week');if(wk)wk.innerHTML=onbCards(k,onbF.cards?onbF.cards.length:onbF.count).map((c,i)=>`<div><small>${onbDayLab(i)}</small><span>${hesc(c.name)}</span></div>`).join('');
   const go=sh.querySelector('[data-onbact="fapply"]');if(go)go.textContent='Use '+pick[1];
   return true;
 }
@@ -284,33 +289,39 @@ function onbRender(){
       ${[['import','In another app','Strong, Hevy or a spreadsheet: bring your history',ONB_IMPORT],['paste','In my notes or my head','Paste or type it, we turn it into your plan',ICON_PASTE_ONB],['log','I\'ll log as I go','Pick what you train and start today',ONB_PLUS]].map(([v,t,sub,ic],i)=>`<button type="button" class="ob-card ob-rise${onbHave===v?' on':''}" ${d((.3+i*.1).toFixed(2))} data-onbact="have" data-v="${v}"><span class="ob-ic">${ic}</span><span class="ob-ct"><b>${t}</b><span>${sub}</span></span>${ONB_AR}</button>`).join('')}
       <div class="ob-sp"></div></div>`;
   }else if(onbStep==='basics'){
-    const n=onbF.days.length,lb=onbUnit==='lb',g=PF_GOALS.find(x=>x[0]===onbF.goal)||PF_GOALS[0];
+    const n=onbF.count,lb=onbUnit==='lb',g=PF_GOALS.find(x=>x[0]===onbF.goal)||PF_GOALS[0];
     b=`<div class="ob ob-step pf-workspace ob-basics">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Make it fit<br>your life.</h1><p class="ob-sub ob-rise" ${d(.12)}>A few basics. Nothing set in stone.</p>
       <div class="ob-sec ob-rise" ${d(.2)}><span class="ob-lbl">What are you training for?</span><div class="pf-seg" role="group" aria-label="Goal" style="--n:3;--i:${ONB_GOALS.findIndex(x=>x[0]===onbF.goal)}">${ONB_GOALS.map(([v,t])=>`<button type="button" class="pf-segb${v===onbF.goal?' on':''}" data-onbact="fgoal" data-v="${v}" aria-pressed="${v===onbF.goal}">${t}</button>`).join('')}</div><p class="pf-pref-cap">${g[2]}</p></div>
-      <div class="ob-sec ob-rise" ${d(.28)}><span class="ob-lbl">Which days work for you?</span><div class="pf-dow" role="group" aria-label="Days you train">${onbDayOrder().map(x=>`<button type="button" class="pf-dowb${onbF.days.includes(x)?' on':''}" data-onbact="fday" data-v="${x}" aria-pressed="${onbF.days.includes(x)}" aria-label="${PF_DOW[x]}">${PF_DOW[x][0]}</button>`).join('')}</div>
-        <p class="pf-pref-cap" aria-live="polite">${n?`<strong>${n} ${n===1?'day':'days'} a week</strong> · ${onbDaysSorted().map(x=>PF_DOW[x]).join(', ')}`:'Pick at least one day.'}</p></div>
-      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="frt" ${n?'':'disabled'}>See my routine →</button><p class="ob-foot2">Change any of this later in Settings.</p></div>`;
+      <div class="ob-sec ob-rise" ${d(.28)}><span class="ob-lbl">How many days a week?</span><div class="pf-dow ob-count" role="group" aria-label="Days a week">${[2,3,4,5,6,7].map(x=>`<button type="button" class="pf-dowb${x===n?' on':''}" data-onbact="fcount" data-v="${x}" aria-pressed="${x===n}" aria-label="${x} days a week">${x}</button>`).join('')}</div>
+        <p class="pf-pref-cap" aria-live="polite">${onbCountCap()}</p></div>
+      <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="frt">See my routine →</button><p class="ob-foot2">Change any of this later in Settings.</p></div>`;
   }else if(onbStep==='routine'){
     const t=ONB_TPLS.find(x=>x[0]===onbF.template)||ONB_TPLS[0],E=onbF.edit,sel=onbF.sel,X=icon('close',ICON_SZ.sm),GR=icon('grip',ICON_SZ.sm);
-    const chip=(p,i)=>E?`<button type="button" class="pf-rot-tag ob-rt-chip${p==='Run'?' cardio':''}" data-rtdrag="${p}" data-rtfrom="${i}" data-onbact="frm" data-v="${i}" data-p="${p}" aria-label="Remove ${hesc(partLabel(p))} from ${hesc(onbF.cards[i].name)}; drag to move">${hesc(partLabel(p))}${X}</button>`:`<span class="pf-rot-tag${p==='Run'?' cardio':''}">${hesc(partLabel(p))}</span>`;
+    const chip=(p,i)=>E?`<button type="button" class="pf-rot-tag ob-rt-chip${p==='Run'?' cardio':''}" data-rtdrag="${p}" data-rtfrom="${i}" data-onbact="frm" data-v="${i}" data-p="${p}" aria-label="Remove ${hesc(partLabel(p))} from ${hesc(onbCardAt(i).name)}; drag to move">${hesc(partLabel(p))}${X}</button>`:`<span class="pf-rot-tag${p==='Run'?' cardio':''}">${hesc(partLabel(p))}</span>`;
     const cards=onbF.cards.map((c,i)=>`<section class="ob-rt-ses" data-rtcard="${i}" aria-label="${onbDayLab(i)}, ${hesc(c.name)}"><div class="ob-rt-head"><span class="ob-rt-day">${onbDayLab(i)}</span><b>${hesc(c.name)}</b><button type="button" class="ob-rt-grip" data-rthandle="${i}" data-onbact="fmenu" data-v="${i}" aria-label="Move ${hesc(c.name)}. Drag, or choose up or down." aria-expanded="${onbF.menu===i}">${GR}</button></div>
       <div class="ob-rt-chips">${(E?c.parts:c.parts.slice(0,3)).map(p=>chip(p,i)).join('')}${!E&&c.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${c.parts.length-3}</button>`:''}${!c.parts.length?'<em>Drop body parts here</em>':''}</div>
       ${sel&&!c.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="${i}">+ Add ${hesc(partLabel(sel))}</button>`:''}
-      ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button></div>`:''}</section>`).join('');
+      ${onbF.menu===i?`<div class="ob-rt-order"><button type="button" data-onbact="fmove" data-v="${i}" data-dir="-1" ${i===0?'disabled':''}>↑ Move up</button><button type="button" data-onbact="fmove" data-v="${i}" data-dir="1" ${i===onbF.cards.length-1?'disabled':''}>↓ Move down</button><button type="button" class="ob-rt-drop" data-onbact="fdrop" data-v="${i}" ${onbF.cards.length<=1?'disabled':''}>Remove day</button></div>`:''}</section>`).join('');
+    const XC=onbF.extra,xcard=XC?`<section class="ob-rt-ses ob-rt-extra" data-rtcard="-1" aria-label="Extra day, ${hesc(XC.name)}"><div class="ob-rt-head"><span class="ob-rt-day">Extra</span><b>${hesc(XC.name)}</b><button type="button" class="ob-rt-grip ob-rt-xdel" data-onbact="fdropx" aria-label="Remove the extra day">${X}</button></div>
+      <div class="ob-rt-chips">${(E?XC.parts:XC.parts.slice(0,3)).map(p=>chip(p,-1)).join('')}${!E&&XC.parts.length>3?`<button type="button" class="ob-rt-more" data-onbact="fcustom" aria-label="Show all body parts">+${XC.parts.length-3}</button>`:''}${!XC.parts.length?'<em>Drop body parts here</em>':''}</div>
+      ${sel&&!XC.parts.includes(sel)?`<button type="button" class="ob-rt-add" data-onbact="fplace" data-v="-1">+ Add ${hesc(partLabel(sel))}</button>`:''}
+      <p class="ob-rt-xnote">Optional. Offered once your ${onbF.cards.length} days are done.</p></section>`:`<button type="button" class="ob-rt-addses ob-rt-addx" data-onbact="faddx">+ Add an extra day</button>`;
     b=`<div class="ob ob-step pf-workspace ob-routine">${onbTop(...onbPos())}<h1 class="ob-h ob-rise" ${d(.05)}>Your week,<br>your way.</h1><p class="ob-sub ob-rise" ${d(.12)}>We've made a start. Keep it, or make it yours.</p>
-      <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${hesc(t[1])}</b><span>${onbF.days.length} ${onbF.days.length===1?'day':'days'} · ${onbDaysSorted().map(x=>PF_DOW[x]).join(', ')}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">Change</button></div>
+      <div class="ob-rt-plan ob-rise" ${d(.18)}><div><b>${hesc(t[1])}</b><span>${onbDaysText()}</span></div><button type="button" class="ob-rt-link" data-onbact="fchange">Change</button></div>
       ${E?`<div class="ob-rt-tray"><div class="ob-rt-tray-h"><b>Add a body part</b><button type="button" class="ob-rt-link" data-onbact="fdone">Done</button></div><p>Drag onto a session, or tap a chip, then a session.</p><div class="ob-rt-chips">${ONB_TRAY.map((p,k)=>`<button type="button" style="--k:${k}" class="pf-pal-chip ob-rt-pool${sel===p?' held':''}" data-rtdrag="${p}" data-onbact="fpool" data-v="${p}" aria-pressed="${sel===p}">${hesc(partLabel(p))}</button>`).join('')}</div></div>`
         :`<div class="ob-rt-bar"><span>Your sessions</span><button type="button" class="ob-rt-link" data-onbact="fcustom">Customize</button></div>`}
       <div class="ob-rt-list">${cards}</div>
-      ${E?`<button type="button" class="ob-rt-addses" data-onbact="faddses">+ Add a session</button>`:''}
+      ${onbF.cards.length<7?`<button type="button" class="ob-rt-addses" data-onbact="faddses">+ Add a day</button>`:''}
+      <div class="ob-rt-bar ob-rt-xbar"><span>When you have time</span></div>
+      ${xcard}
       <div class="ob-rt-feed"><span>${hesc(onbF.notice)}</span>${onbF.hist.length?`<button type="button" class="ob-rt-link" data-onbact="fundo">Undo</button>`:''}</div>
       <div class="ob-sp"></div><button type="button" class="ob-go" data-onbact="fsave">Looks good →</button><p class="ob-foot2">Miss a day? Your next session waits for you.</p>
       <div class="ob-live" id="onbLive" aria-live="polite"></div></div>`;
     if(onbF.sheet){const k=onbF.sheet,pick=ONB_TPLS.find(x=>x[0]===k),sug=onbSuggest();
       b+=`<div class="ob-sheet-wrap" data-onbact="fsheetbg"><section class="ob-sheet" role="dialog" aria-modal="true" aria-labelledby="obSheetT"><div class="ob-sheet-grip"></div><div class="ob-sheet-h"><div class="ob-sheet-t" id="obSheetT" role="heading" aria-level="2">Find your rhythm.</div><button type="button" class="ob-sheet-x" data-onbact="fclose" aria-label="Close">${X}</button></div>
-        <p class="ob-sub">Same ${onbF.days.length} ${onbF.days.length===1?'day':'days'}. A different way to arrange them.</p>
+        <p class="ob-sub">Same ${onbF.cards.length} ${onbF.cards.length===1?'day':'days'}. A different way to arrange them.</p>
         ${ONB_TPLS.map(([v,name,desc])=>`<button type="button" class="ob-tpl${v===k?' on':''}" data-onbact="ftpl" data-v="${v}" aria-pressed="${v===k}"><span><b>${name}</b><small>${desc}</small></span>${v===sug?'<i>Suggested</i>':''}${v===k?icon('check',ICON_SZ.sm):''}</button>`).join('')}
-        <div class="ob-tpl-week">${onbCards(k,onbF.days.length).map((c,i)=>`<div><small>${onbDayLab(i)}</small><span>${hesc(c.name)}</span></div>`).join('')}</div>
+        <div class="ob-tpl-week">${onbCards(k,onbF.cards.length).map((c,i)=>`<div><small>${onbDayLab(i)}</small><span>${hesc(c.name)}</span></div>`).join('')}</div>
         <button type="button" class="ob-go" data-onbact="fapply">Use ${hesc(pick[1])}</button><p class="ob-foot2">Replaces your sessions. You can undo.</p></section></div>`;}
   }else if(onbStep==='you'){
     const lb=onbUnit==='lb';
@@ -525,23 +536,31 @@ document.addEventListener('click',e=>{
   else if(act==='path'){ onbPath=a.dataset.v; if(onbPath==='fresh'&&!onbF)onbFreshInit(); onbGo(onbPath==='fresh'?'basics':'have'); }
   else if(act==='have'){ onbHave=a.dataset.v; onbPathFinish(); }
   else if(act==='fgoal'){ onbF.goal=a.dataset.v; if(!onbBasicsPatch()) onbRender(); }
-  else if(act==='fday'){ const v=+a.dataset.v,i=onbF.days.indexOf(v); if(i>=0)onbF.days.splice(i,1); else onbF.days.push(v); if(!onbBasicsPatch()) onbRender(); }
+  else if(act==='fcount'){ onbF.count=+a.dataset.v; if(!onbBasicsPatch()) onbRender(); }
   else if(act==='fprofile'){ onbF.profileOpen=!onbF.profileOpen; }   /* <details> toggles itself; remembered across re-renders */
-  else if(act==='frt'){ if(!onbF.days.length)return; onbRoutineReady(); onbGo('routine'); }
+  else if(act==='frt'){ onbRoutineReady(); onbGo('routine'); }
   else if(act==='fchange'){ onbF.sheet=onbF.template||onbSuggest(); onbRender(); document.querySelector('#onb .ob-tpl.on')?.focus(); }
   else if(act==='ftpl'){ onbF.sheet=a.dataset.v; if(!onbSheetPatch()) onbRender(); document.querySelector(`#onb .ob-tpl[data-v="${a.dataset.v}"]`)?.focus(); }
   else if(act==='fclose'||(act==='fsheetbg'&&e.target===a)){ onbF.sheet=null; onbRender(); document.querySelector('#onb [data-onbact="fchange"]')?.focus(); }
-  else if(act==='fapply'){ onbSnap(); onbF.template=onbF.sheet; onbF.cards=onbCards(onbF.template,onbF.days.length); onbF.edited=onbF.template==='own'; onbF.edit=onbF.template==='own'; onbF.sel=null; onbF.sheet=null; onbSay('New arrangement. All yours to adjust.'); onbRender(); }
+  else if(act==='fapply'){ onbSnap(); onbF.template=onbF.sheet; onbF.cards=onbCards(onbF.template,onbF.cards.length); onbF.edited=onbF.template==='own'; onbF.edit=onbF.template==='own'; onbF.sel=null; onbF.sheet=null; onbSay('New arrangement. All yours to adjust.'); onbRender(); }
   else if(act==='fcustom'){ onbF.edit=true; onbSay('Drag to arrange. Tap works too.'); onbRender(); }
   else if(act==='fdone'){ onbF.edit=false; onbF.sel=null; onbSay('Your routine is ready.'); onbRender(); }
   else if(act==='fpool'){ if(onbDragJust)return; onbF.sel=onbF.sel===a.dataset.v?null:a.dataset.v; onbSay(onbF.sel?'Tap a session to add '+partLabel(onbF.sel)+'.':'Drag to arrange. Tap works too.'); onbRender(); }
   else if(act==='fplace'){ onbPut(onbF.sel,+a.dataset.v,null); }
-  else if(act==='frm'){ if(onbDragJust)return; onbSnap(); const c=onbF.cards[+a.dataset.v]; c.parts=c.parts.filter(p=>p!==a.dataset.p); onbF.edited=true; onbRename(); onbSay(partLabel(a.dataset.p)+' removed.'); onbRender(); }
+  else if(act==='frm'){ if(onbDragJust)return; onbSnap(); const c=onbCardAt(+a.dataset.v); c.parts=c.parts.filter(p=>p!==a.dataset.p); onbF.edited=true; onbRename(); onbSay(partLabel(a.dataset.p)+' removed.'); onbRender(); }
   else if(act==='fmenu'){ if(onbDragJust)return; const v=+a.dataset.v; onbF.menu=onbF.menu===v?-1:v; onbRender(); }
   else if(act==='fmove'){ onbMove(+a.dataset.v,+a.dataset.v+(+a.dataset.dir)); }
   else if(act==='fundo'){ const h=onbF.hist.pop(); if(h){ Object.assign(onbF,JSON.parse(h)); onbF.sel=null; onbF.menu=-1; onbSay('Change undone.'); onbRender(); } }
-  else if(act==='faddses'){ onbSnap(); onbF.cards.push({name:'Empty session',parts:[]}); onbF.edited=true; onbF.sel=null; onbSay('New session added to the rotation.'); onbRender(); }
-  else if(act==='fsave'){ if(onbF.cards.some(c=>!c.parts.length)){ onbSay('Add a body part to each empty session first.'); onbRender(); return; } if(onbF.edited&&onbF.template!=='own') onbF.template=onbF.template; onbPathFinish(); }
+  else if(act==='faddses'){ const n=onbF.cards.length; if(n>=7)return; onbSnap();
+    /* an untouched template grows the way it would have been made for one more day; anything you arranged gets an empty day to fill */
+    if(!onbF.edited&&onbF.template!=='own')onbF.cards=onbCards(onbF.template,n+1); else { onbF.cards.push({name:'Empty session',parts:[]}); onbF.edit=true; }
+    onbF.count=onbF.cards.length; onbF.sel=null; onbF.menu=-1; onbSay(onbDayLab(n)+' added. '+onbF.cards.length+' days a week.'); onbRender(); }
+  else if(act==='fdrop'){ const i=+a.dataset.v,n=onbF.cards.length; if(n<=1)return; onbSnap(); const gone=onbF.cards[i];
+    if(!onbF.edited&&onbF.template!=='own')onbF.cards=onbCards(onbF.template,n-1); else onbF.cards.splice(i,1);
+    onbF.count=onbF.cards.length; onbF.menu=-1; onbSay((gone?gone.name+' removed. ':'')+onbF.cards.length+' days a week.'); onbRender(); }
+  else if(act==='faddx'){ onbSnap(); onbF.extra={name:'',parts:['Biceps','Triceps']}; onbRename(); onbSay('Extra day added. It never takes a main day\'s place.'); onbRender(); }
+  else if(act==='fdropx'){ onbSnap(); onbF.extra=null; onbSay('Extra day removed.'); onbRender(); }
+  else if(act==='fsave'){ if(onbF.cards.some(c=>!c.parts.length)||(onbF.extra&&!onbF.extra.parts.length)){ onbSay('Add a body part to each empty session first.'); onbRender(); return; } if(onbF.edited&&onbF.template!=='own') onbF.template=onbF.template; onbPathFinish(); }
   else if(act==='toCrew'){ onbGo('crew'); }
   else if(act==='notnow'){ onbBw=''; onbGo('crew'); }
   else if(act==='look'){ onbFinish(false,'look'); }
@@ -643,7 +662,14 @@ function dayCountUp(){
    never written over. */
 function rtSessions(){try{const r=typeof pfOrderRot==='function'?pfOrderRot():null;return r&&r.sessions&&r.sessions.length?r.sessions:null;}catch(e){return null;}}
 function rtTrainDays(){const p=DB.settings.plannerPreferences||{};return Array.isArray(p.trainDays)?p.trainDays:[];}
-function rtOn(){return DB.settings.routineAuto===true&&!!rtSessions()&&rtTrainDays().length>0;}
+function rtFreq(){return Math.max(0,Math.min(7,+(DB.settings.plannerPreferences||{}).frequency||0));}
+/* v4.6.377: no set weekdays -- the week fills from today: the next main session
+   each day until the week has its number, then the Extra once, then rest */
+function rtFlex(){return !rtTrainDays().length&&rtFreq()>0;}
+function rtExtra(){const x=(DB.settings.plannerPreferences||{}).rotation?.extra;return x&&x.parts&&x.parts.length?x:null;}
+function rtKinds(){const s=DB.settings;if(!s.routineKinds||typeof s.routineKinds!=='object')s.routineKinds={};return s.routineKinds;}
+function rtWeekOf(d){const t=new Date(d+'T12:00'),off=(t.getDay()-(DB.settings.weekStart==='monday'?1:0)+7)%7;t.setDate(t.getDate()-off);return t.toLocaleDateString('en-CA');}
+function rtOn(){return DB.settings.routineAuto===true&&!!rtSessions()&&(rtTrainDays().length>0||rtFlex());}
 function rtName(x){return x?(x.name||x.parts.filter(t=>t!=='Run').map(partLabel).join(' + ')||'Cardio'):'';}
 function rtAddDays(iso,n){const t=new Date(iso+'T12:00');t.setDate(t.getDate()+n);return t.toLocaleDateString('en-CA');}
 function rtTrained(iso){return (DB.days[iso]?.w||[]).some(s=>(s.reps||[]).length||isCardio(s));}
@@ -682,31 +708,36 @@ function rtOwn(d){const b=typeof pwSaved==='function'?pwSaved(d):null,w=rtWrote(
   if(b&&b.items&&b.items.length){if(w==null)return 'saved';if(String(b.raw||'')===w)return 'auto';
     try{return rtSig(b.items)===rtSig(planItemsFrom(parsePlan(w)).items)?'auto':'saved';}catch(e){return 'saved';}}
   return w!=null?'gone':null;}
-function rtPut(d,x,text){
-  const {items}=planItemsFrom(parsePlan(text)),title=rtName(x),wk=DB.week&&DB.week.days?DB.week:{days:{}};
+function rtPut(d,x,text,kind){
+  const {items}=planItemsFrom(parsePlan(text)),title=kind==='extra'?'Extra · '+rtName(x):rtName(x),wk=DB.week&&DB.week.days?DB.week:{days:{}};
   if(DB.plan&&DB.plan.d!==d&&DB.plan.d>=todayISO&&DB.plan.items?.length&&!wk.days[DB.plan.d])wk.days[DB.plan.d]={title:DB.plan.title||'',items:DB.plan.items,note:DB.plan.note||'',raw:DB.plan.raw||''};
   wk.days[d]={title,items,note:'',raw:text};
   if(d===todayISO||DB.plan?.d===d)DB.plan={d,items,note:'',raw:text,title,auto:'routine'};
-  DB.week=wk;rtWrote()[d]=text;}
-function rtDrop(d){if(DB.week?.days)delete DB.week.days[d];if(DB.plan?.d===d)DB.plan=null;delete rtWrote()[d];}
+  DB.week=wk;rtWrote()[d]=text;if(kind==='extra')rtKinds()[d]='extra';else delete rtKinds()[d];}
+function rtDrop(d){if(DB.week?.days)delete DB.week.days[d];if(DB.plan?.d===d)DB.plan=null;delete rtWrote()[d];delete rtKinds()[d];}
 function rtSyncWeek(o={}){
   if(!rtOn())return false;const ses=rtSessions();if(!ses)return false;
-  const days=rtTrainDays(),wrote=rtWrote(),before=JSON.stringify([DB.week,DB.plan,wrote]);
+  const days=rtTrainDays(),wrote=rtWrote(),before=JSON.stringify([DB.week,DB.plan,wrote,rtKinds()]);
   /* the days behind you: a routine day you never touched or trained leaves the plan */
   for(const d of Object.keys(wrote))if(d<todayISO){if(rtOwn(d)==='auto'&&!rtTrained(d)&&DB.week?.days)delete DB.week.days[d];delete wrote[d];}
+  for(const d of Object.keys(rtKinds()))if(d<todayISO)delete rtKinds()[d];
+  const flex=rtFlex(),N=rtFreq(),XS=rtExtra(),cnt={},xUsed={};
+  if(flex){const w0=rtWeekOf(todayISO);let n=0;for(let x=w0;x<todayISO;x=rtAddDays(x,1))if(rtTrained(x))n++;cnt[w0]=n;}
   let k=pfRotNext(ses);
-  for(let i=0;i<7;i++){const d=rtAddDays(todayISO,i),dow=new Date(d+'T12:00').getDay(),st=rtOwn(d);
-    if(i===0&&rtTrained(d))continue;                       // logged: frozen, and already counted in the order
-    if(st==='saved'){k++;continue;}                         // yours: takes its turn
+  for(let i=0;i<7;i++){const d=rtAddDays(todayISO,i),dow=new Date(d+'T12:00').getDay(),st=rtOwn(d),wk=rtWeekOf(d);cnt[wk]=cnt[wk]||0;
+    if(i===0&&rtTrained(d)){cnt[wk]++;continue;}            // logged: frozen, and already counted in the order
+    if(st==='saved'){k++;cnt[wk]++;continue;}               // yours: takes its turn
     if(st==='gone')continue;                                // you removed it: stepped round
-    if(i===0&&st==='auto'&&!o.today&&DB.settings.routineAutoAt===todayISO){k++;continue;}   // this morning's session, once written today, stays as written
-    if(!days.includes(dow)){if(st==='auto')rtDrop(d);continue;}
-    const x=ses[k%ses.length];k++;const text=rtDayText(x);if(!text)continue;
-    const cur=st==='auto'?pwSaved(d):null;
-    if(!cur||cur.raw!==text||(DB.week?.days?.[d]?.title||'')!==rtName(x))rtPut(d,x,text);}
+    if(i===0&&st==='auto'&&!o.today&&DB.settings.routineAutoAt===todayISO){if(rtKinds()[d]==='extra')xUsed[wk]=1;else{k++;cnt[wk]++;}continue;}   // this morning's session, once written today, stays as written
+    let x,kind='main';
+    if(flex){if(cnt[wk]<N){x=ses[k%ses.length];k++;cnt[wk]++;}else if(XS&&!xUsed[wk]){x=XS;kind='extra';xUsed[wk]=1;}else{if(st==='auto')rtDrop(d);continue;}}
+    else{if(!days.includes(dow)){if(st==='auto')rtDrop(d);continue;}x=ses[k%ses.length];k++;}
+    const text=rtDayText(x);if(!text)continue;
+    const cur=st==='auto'?pwSaved(d):null,title=kind==='extra'?'Extra · '+rtName(x):rtName(x);
+    if(!cur||cur.raw!==text||(DB.week?.days?.[d]?.title||'')!==title||(rtKinds()[d]||'main')!==kind)rtPut(d,x,text,kind);}
   if(DB.week?.days){const all=Object.keys(DB.week.days).sort();if(all.length){DB.week.from=all[0];DB.week.to=all.at(-1);DB.week.raw=DB.week.raw||'';}else DB.week=null;}
   const fresh=DB.settings.routineAutoAt!==todayISO;DB.settings.routineAutoAt=todayISO;
-  if(JSON.stringify([DB.week,DB.plan,wrote])===before){if(fresh)save(true);return false;}
+  if(JSON.stringify([DB.week,DB.plan,wrote,rtKinds()])===before){if(fresh)save(true);return false;}
   DB.weekAt=DB.planAt=Date.now();
   if(typeof planRailRefresh==='function')planRailRefresh();save(true);return true;
 }
@@ -716,7 +747,7 @@ function rtWeek(n=7){
   for(let i=0;i<n;i++){const d=rtAddDays(todayISO,i);
     if(i===0&&rtTrained(d)){out.push({d,kind:'done',name:'Trained'});continue;}
     const st=rtOwn(d),b=pwSaved(d);
-    if(st==='auto'||st==='saved'){out.push({d,kind:st,name:(DB.week?.days?.[d]?.title)||(b.title)||pwParts(pwRead(planText(b))).map(partLabel).join(' + ')});continue;}
+    if(st==='auto'||st==='saved'){out.push({d,kind:st==='auto'&&rtKinds()[d]==='extra'?'extra':st,name:(DB.week?.days?.[d]?.title)||(b.title)||pwParts(pwRead(planText(b))).map(partLabel).join(' + ')});continue;}
     out.push({d,kind:'rest',name:'Rest'});}
   return out;
 }
@@ -734,17 +765,17 @@ function rtWeekHTML(){
   const restToday=wk[0]&&wk[0].kind==='rest'&&!planNow();
   const open=wk.find(x=>x.d===rtOpenDay&&x.d!==todayISO);
   let detail='';
-  if(open&&(open.kind==='auto'||open.kind==='saved')){
+  if(open&&(open.kind==='auto'||open.kind==='saved'||open.kind==='extra')){
     const saved=pwSaved(open.d),text=saved?planText(saved):'',rows=pwRead(text).filter(r=>r.kind==='ex'||pfIsCardioRow(r));
-    detail=`<div class="tw-detail"><div class="tw-detail-h"><b>${hesc(wd(open.d))} · ${hesc(open.name)}</b><span>${open.kind==='saved'?'Edited by you · stays put':'In your plan · from your routine'}</span></div>
+    detail=`<div class="tw-detail"><div class="tw-detail-h"><b>${hesc(wd(open.d))} · ${hesc(open.name)}</b><span>${open.kind==='saved'?'Edited by you · stays put':open.kind==='extra'?`Optional · once your ${rtFreq()} days are done`:'In your plan · from your routine'}</span></div>
       ${rows.map(r=>pfIsCardioRow(r)?`<div class="tw-ex"><span>${hesc(String(r.raw||'').split(/\s+[—–]\s+/)[0])}</span><em>${hesc(String(r.raw||'').split(/\s+[—–]\s+/).slice(1).join(' '))}</em></div>`:`<div class="tw-ex"><span>${hesc(r.ex)}</span><em>${loadHTML(typeof pfLoadText==='function'?pfLoadText(r.lines[0]):'')} × ${hesc(r.lines.flatMap(l=>l.reps).length)} sets</em></div>`).join('')}
       <div class="tw-detail-a"><button type="button" class="pw-btn" data-pw="open-date" data-date="${open.d}">${icon('edit',ICON_SZ.sm)}Edit this day</button></div></div>`;
   }
   return `<section class="tw"><div class="tw-h"><span>This week</span><button type="button" class="tw-edit" data-onbact="rotedit">Routine</button></div>
-    <div class="tw-days" role="list">${wk.map((x,i)=>`<button type="button" role="listitem" class="tw-day tw-${x.kind}${i===0?' today':''}${x.d===rtOpenDay&&i>0?' open':''}" data-rtday="${x.d}" ${x.kind==='rest'&&i>0?'disabled':''} aria-label="${wd(x.d)}: ${hesc(x.name)}"><small>${i===0?'Today':wd(x.d)}</small><b>${dn(x.d)}</b><span>${hesc(x.kind==='rest'?'Rest':x.name)}</span>${x.kind==='saved'?'<i aria-hidden="true"></i>':''}</button>`).join('')}</div>
+    <div class="tw-days" role="list">${wk.map((x,i)=>`<button type="button" role="listitem" class="tw-day tw-${x.kind}${i===0?' today':''}${x.d===rtOpenDay&&i>0?' open':''}" data-rtday="${x.d}" ${x.kind==='rest'&&i>0?'disabled':''} aria-label="${wd(x.d)}: ${hesc(x.name)}"><small>${i===0?'Today':wd(x.d)}</small><b>${dn(x.d)}</b><span>${hesc(x.kind==='rest'?'Rest':x.kind==='extra'?'Extra':x.name)}</span>${x.kind==='saved'?'<i aria-hidden="true"></i>':''}</button>`).join('')}</div>
     ${restToday?`<div class="tw-restline"><span>Rest day.${next?` Next up: <b>${hesc(wd(next.d))} · ${hesc(next.name)}</b>`:''}</span><button type="button" class="btn ghost tw-anyway" data-rtanyway>Train anyway</button></div>`:''}
     ${detail}
-    <p class="tw-foot">Your routine writes these days into Plan. Miss one and the rest move up; days you edit stay put.</p></section>`;
+    <p class="tw-foot">${rtFlex()?`Your routine fills the next free days: ${rtFreq()} a week${rtExtra()?', then your extra':''}. Skip a day and the rest move up.`:'Your routine writes these days into Plan. Miss one and the rest move up; days you edit stay put.'}</p></section>`;
 }
 document.addEventListener('click',e=>{
   const d=e.target.closest('[data-rtday]');if(d){const v=d.dataset.rtday;
@@ -1525,7 +1556,7 @@ document.addEventListener('pointerdown',e=>{
    a chip is the whole of itself already. */
 function onbLiftCard(D,e){
   const card=D.src.closest('.ob-rt-ses'),sc=document.getElementById('onb');if(!card||!sc)return false;
-  const list=[...sc.querySelectorAll('.ob-rt-ses[data-rtcard]')],r=card.getBoundingClientRect();
+  const list=[...sc.querySelectorAll('.ob-rt-list .ob-rt-ses[data-rtcard]')],r=card.getBoundingClientRect();
   const g=card.cloneNode(true);g.removeAttribute('data-rtcard');g.removeAttribute('aria-label');g.setAttribute('aria-hidden','true');
   g.querySelectorAll('[data-rtcard],[data-rthandle],[data-rtdrag],[data-onbact],[id]').forEach(n=>['data-rtcard','data-rthandle','data-rtdrag','data-onbact','id'].forEach(a=>n.removeAttribute(a)));
   g.classList.add('ob-rt-lift');g.style.width=r.width+'px';g.style.height=r.height+'px';card.parentNode.appendChild(g);

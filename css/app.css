@@ -5182,3 +5182,17 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-rt-ses.ob-rt-slot>*{visibility:hidden}
 .ob-dragging #onb .ob-rt-ses[data-rtcard]{transition:transform .22s var(--settle),border-color .16s,background-color .16s}
 @media (prefers-reduced-motion:reduce){#onb .ob-rt-lift,.ob-dragging #onb .ob-rt-ses[data-rtcard]{transition:none}}
+/* v4.6.377: sessions are numbered days; an optional Extra day sits apart */
+#onb .ob-rt-day{width:46px}
+#onb .ob-rt-ses .ob-rt-chips,#onb .ob-rt-order,#onb .ob-rt-xnote{margin-left:56px}
+#onb .ob-rt-order{flex-wrap:wrap}
+#onb .ob-rt-order .ob-rt-drop{flex-basis:100%;color:var(--muted)}
+#onb .ob-rt-xbar{margin-top:14px}
+#onb .ob-rt-ses.ob-rt-extra{background:transparent;box-shadow:none;border:1.5px dashed var(--line)}
+#onb .ob-rt-extra .ob-rt-day{color:var(--accent-ink)}
+#onb .ob-rt-xnote{margin-top:8px;margin-bottom:0;font:400 12px var(--body);font-size:12px;color:var(--muted)}
+#onb .ob-rt-addx{align-self:flex-start;margin-top:4px}
+#onb .ob-count .pf-dowb{font-variant-numeric:tabular-nums}
+.tw-day.tw-extra{background:none;border-style:dashed;border-color:var(--accent-ink)}
+.tw-day.tw-extra span{color:var(--accent-ink)}
+:root .pf-workspace .pf-dow.ob-count{grid-template-columns:repeat(6,1fr)}
