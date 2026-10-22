@@ -5161,3 +5161,9 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .lt .lt-tip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 14px 12px 16px;border:1.5px dashed color-mix(in srgb,var(--muted) 45%,transparent);border-radius:16px;font:400 13px/1.38 var(--body);font-size:13px;color:var(--muted)}
 .lt .lt-tip b{color:var(--chalk);font-weight:600}
 .lt .lt-tip button{flex:none;min-height:36px;padding:0 4px;border:0;background:none;color:var(--accent-ink);font:500 12px var(--body);font-size:12px;cursor:pointer;white-space:nowrap}
+/* the tip points at the bar it is about: an up arrow in the app's own glyph, nudging upward */
+.lt .lt-tip span{flex:1;min-width:0}
+.lt .lt-tip-up{flex:none;display:grid;place-items:center;width:30px;height:30px;margin:0 -2px 0 -4px;border-radius:50%;background:color-mix(in srgb,var(--live) 12%,transparent);color:var(--live)}
+.lt .lt-tip-up .ic{width:16px;height:16px}
+@media(prefers-reduced-motion:no-preference){.lt .lt-tip-up .ic{animation:ltTipUp 1.6s var(--settle) infinite}}
+@keyframes ltTipUp{0%,100%{transform:translateY(2px)}50%{transform:translateY(-3px)}}
