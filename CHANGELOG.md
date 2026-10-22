@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.383 — "Changed on another device": only when the workout changed, and it shows what changed
+- **Reported:** "Sat, Oct 24 changed on another device" -- what changed, where to see it, what "draft" and "newer plan" mean.
+- **Cause (false alarm):** the save check compared the saved plan's raw record with a snapshot taken when you started editing. A day's plan is kept in two copies (the day slot, stamped with its date; the week, stamped with its title), and which one is read depends on which day was last saved on its own. Saving another day switched the copy, so identical workouts looked "changed on another device".
+- **Fix:** the check compares the workout itself (exercises, sets, loads, the note where a run line lives). If the saved plan already matches your edits, it simply saves. Drafts opened before this version are read the same way, so they raise no last false alarm.
+- **A real change** (say, the iOS app edited the day while you edited on the web) now reads "<day> changed while you were editing": only the exercises that differ, each with Saved and Yours; ones in only one version are tagged; the rest fold into "N exercises are the same in both". Buttons: Use the saved one / Keep my edits. The separate warning banner no longer repeats it.
+- Test: test-plan-conflict.js (new); test-planner.js and test-planner-flow.js follow.
+
 ## v4.6.382 — Cardio is read, not kept as a note
 - **Reported:** the app "cannot read running properly" -- a planned run showed as "Kept as a note · check this line".
 - **Cause:** the plan reader understood one shape, a lift and its weight × reps. Every run line, the app's own "Run — by feel" included, became note text; only Plan's editor and Today's card checked notes for a run, so the review card ("changed on another device"), the paste preview and the paste toast all treated the run as unreadable. Common spellings ("Run 2 mi", "Running — 5 km", "Treadmill 20 min") were not recognised anywhere.
