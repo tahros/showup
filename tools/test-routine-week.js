@@ -29,6 +29,9 @@ ok('...and Today does not repeat them as a planned-days list', !q('.today-focus-
 q('[data-rtday="2026-10-23"]').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
 ok('a weight not known yet is the hollow dumbbell, not words', !!q('.tw-detail .feel-ic')&&!/by feel/i.test(q('.tw-detail').textContent), q('.tw-detail')?.innerHTML.slice(0,300));
 ok('tapping a day shows what it holds, with Edit this day', /Fri · Lower/.test(q('.tw-detail')?.textContent||'')&&!!q('.tw-detail [data-pw="open-date"][data-date="2026-10-23"]'));
+w.matchMedia=()=>({matches:true,addEventListener(){},removeEventListener(){},addListener(){}});   // reduced motion: the fold opens at once
+q('.tw-day.today').dispatchEvent(new w.MouseEvent('click',{bubbles:true}));
+ok('tapping Today opens today\'s workout card and closes the open day', !q('.tw-detail')&&q('.today-focus-plan')?.open===true, {detail:!!q('.tw-detail'),open:q('.today-focus-plan')?.open});
 run(`todayISO='2026-10-23';SEED=deriveAll();render();`);   // Thursday was missed
 ok('a missed day: the session waits', run(`DB.plan.d===todayISO&&DB.plan.title==='Upper'`), run('DB.plan&&DB.plan.title'));
 ok('...the rest of the week moves up in Plan', run(`['2026-10-26','2026-10-27','2026-10-29'].map(d=>DB.week.days[d]?.title).join()`)==='Lower,Upper,Lower', run(`JSON.stringify(Object.fromEntries(Object.entries(DB.week.days).map(([d,v])=>[d,v.title])))`));

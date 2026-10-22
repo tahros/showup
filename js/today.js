@@ -747,7 +747,10 @@ function rtWeekHTML(){
     <p class="tw-foot">Your routine writes these days into Plan. Miss one and the rest move up; days you edit stay put.</p></section>`;
 }
 document.addEventListener('click',e=>{
-  const d=e.target.closest('[data-rtday]');if(d){const v=d.dataset.rtday;if(v===todayISO)return;rtOpenDay=rtOpenDay===v?null:v;render();return;}
+  const d=e.target.closest('[data-rtday]');if(d){const v=d.dataset.rtday;
+    /* Today's chip opens today's workout card above rather than repeating it below */
+    if(v===todayISO){if(rtOpenDay){rtOpenDay=null;render();}const f=document.querySelector('.today-focus-plan');if(f){if(!f.open)f.querySelector('summary')?.click();f.closest('.today-focus-card')?.scrollIntoView?.({behavior:'smooth',block:'nearest'});}return;}
+    rtOpenDay=rtOpenDay===v?null:v;render();return;}
   if(e.target.closest('[data-rtanyway]')){if(rtTrainAnyway())render();return;}
 });
 function todayRotationHTML(){
