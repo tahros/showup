@@ -5290,7 +5290,8 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 @keyframes obLineIn{from{opacity:0;transform:translateY(6px)}}
 #onb .ob-read-sub{margin:8px 0 0;font:400 13px var(--body);color:var(--muted)}
 #onb .ob-read-quick{margin-top:22px}
-@media(prefers-reduced-motion:reduce){#onb .ob-read-crew .ob-read-comp,#onb .ob-read-quick[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){#onb .ob-read-line.in{animation:none}}
+#onb .ob-read-quick[hidden]{display:none}
 /* v4.6.390: import review -- one answer for every duplicate */
 #imp .im-bulk{border:1.5px solid color-mix(in srgb,var(--accent) 40%,var(--line))}
 #imp .im-more{margin:4px 4px 8px;font:400 13px var(--body);color:var(--muted);text-align:center}

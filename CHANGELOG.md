@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.391 (2026-10-22) — The streak wall shows
+
+- Fix: an edit in v4.6.390 left a reduced-motion block open in css/app.css, so every rule after it applied only with Reduce Motion on. On a normal phone the reading screen showed no streak wall and no crew, and the import's answer-all card, the day ×, its confirm row, the one-line "We found your routine." and Edit lost their styles. The block is closed.
+- buildcheck now fails on any stylesheet whose braces do not balance.
+
 ## v4.6.390 (2026-10-22) — Bring your routine; the AI reads it
 
 - Setup, "Where's your routine now?": pasting and importing stay inside setup (Back returns there). **Paste your routine** takes your days as you keep them in your notes; an import ends on **See my routine →**.

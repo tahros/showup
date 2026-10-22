@@ -1461,6 +1461,22 @@ if _fn.exists():
         except ValueError:
             fail.append("the writer prompt: SYSTEM literal is not delimited (v3.3.433)")
 
+# v4.6.391: every stylesheet closes what it opens. v4.6.390 shipped an @media(prefers-reduced-motion)
+# block left open by an edit: every rule after it applied only with Reduce Motion on, so the
+# reading screen's streak wall, the import's answer-all card and the day x all lost their styles
+# on a normal phone -- and no test noticed, because nothing counted braces.
+for _cf in sorted((d/"css").glob("*.css")):
+    _t = re.sub(r"/\*.*?\*/", "", _cf.read_text(encoding="utf-8"), flags=re.S)
+    _t = re.sub(r'"[^"\n]*"|\'[^\'\n]*\'', "", _t)
+    _dep = 0; _neg = False
+    for _ch in _t:
+        if _ch == "{": _dep += 1
+        elif _ch == "}":
+            _dep -= 1
+            if _dep < 0: _neg = True
+    if _dep != 0 or _neg:
+        fail.append(f"{_cf.name}: unbalanced braces (depth {_dep}) -- an unclosed block swallows every rule after it (v4.6.391)")
+
 if fail:
     print("BUILDCHECK FAIL"); [print(" -", f) for f in fail]; sys.exit(1)
 print(f"BUILDCHECK PASS  v{appv}  shell={n}B  assets={len(assets)}  cssvars={len(used)} used / {len(defined)} defined")
