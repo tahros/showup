@@ -219,4 +219,7 @@ html.gym-tour-open,html.gym-tour-open body{overflow:hidden}
 /* v4.6.379: your crew takes the ink crossing too -- visible over the flood, white for the blue */
 #dayDone.dd-ink .dd-numrow>.dd-companion{visibility:visible}
 #dayDone.dd-inked .dd-numrow>.dd-companion{z-index:3}   /* over the ink, as Pip's lockup is */
-#dayDone .dd-numrow>.dd-companion.dd-white{filter:brightness(0) invert(1)}
+#dayDone .dd-companion .dd-white-art{visibility:hidden}
+#dayDone .dd-companion.dd-white .dd-white-art{visibility:visible}
+#dayDone .dd-companion.dd-white .crew-art:not(.dd-white-art){visibility:hidden}
+#dayDone .dd-numrow>.dd-companion.dd-white.dd-white-flat{filter:brightness(0) invert(1)}

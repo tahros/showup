@@ -33,7 +33,7 @@ const seed=crew=>`
         return {cls:o.className,x:ir.left+ir.width/2,y:ir.top+ir.height/2,white:hero.classList.contains('dd-white'),visible:getComputedStyle(hero).visibility,
           flying:hero.getAnimations().some(a=>a.effect.getKeyframes().some(k=>/px/.test(k.translate||''))),
           moved:Math.round(hero.getBoundingClientRect().top),rest:Math.round(o.querySelector('.ddn').getBoundingClientRect().top),
-          filter:getComputedStyle(hero).filter,
+          whiteArt:(()=>{const w=hero.querySelector('.dd-white-art'),c=hero.querySelector('.crew-art:not(.dd-white-art)');return {src:w?.getAttribute('src')||'',shown:!!w&&getComputedStyle(w).visibility==='visible'&&w.naturalWidth>0,colourHidden:!!c&&getComputedStyle(c).visibility==='hidden',filter:getComputedStyle(hero).filter};})(),
           src:document.querySelector('[data-replayday] .su-companion').style.visibility,
           clip:ink.getAnimations().some(a=>a.effect.getKeyframes().some(k=>'clipPath' in k))};});
       assert(/dd-ink/.test(start.cls)&&/dd-comp/.test(start.cls),crew+': the entrance starts in ink, as a crew entrance');
@@ -41,10 +41,10 @@ const seed=crew=>`
       assert(start.visible==='visible'&&start.white,crew+': the crew shows through the flood, white');
       assert(start.flying,crew+': the crew flies');
       assert(Math.abs(start.moved-from.y)<120,`${crew}: ...and is actually moved: it starts on the card (top ${start.moved}, card crew at ${Math.round(from.y)})`);
-      assert(/invert/.test(start.filter),crew+': white through a filter on the crew, not on its locked art');
+      assert(start.whiteArt.shown&&start.whiteArt.colourHidden&&start.whiteArt.src==='assets/crew/white/'+crew+'.webp'&&start.whiteArt.filter==='none',crew+': it crosses in its own shaded white render, not a flat silhouette: '+JSON.stringify(start.whiteArt));
       assert.equal(start.src,'hidden',crew+': the card crew steps aside for its double');
       assert(!start.clip,crew+': the ink only scales');
-      await p.waitForFunction(()=>{const o=document.getElementById('dayDone'),ink=o?.querySelector('.ddink');if(!ink)return false;const a=ink.getAnimations();return !o.querySelector('.dd-white')&&a.length&&a.every(x=>x.playState==='finished')&&new DOMMatrix(getComputedStyle(ink).transform).a<.01;},{timeout:20000,polling:50});
+      await p.waitForFunction(()=>{const o=document.getElementById('dayDone'),ink=o?.querySelector('.ddink');if(!ink)return false;const a=ink.getAnimations();const w=o.querySelector('.dd-white-art');if(w&&getComputedStyle(w).visibility!=='hidden')return false;return !o.querySelector('.dd-white')&&a.length&&a.every(x=>x.playState==='finished')&&new DOMMatrix(getComputedStyle(ink).transform).a<.01;},{timeout:20000,polling:50});
       const done=await p.evaluate(()=>{const o=document.getElementById('dayDone'),hero=o.querySelector('.dd-numrow>.dd-companion'),r=hero.getBoundingClientRect(),ir=o.querySelector('.ddink').getBoundingClientRect();
         return {hx:r.left+r.width/2,hy:r.top+r.height*.62,ix:ir.left+ir.width/2,iy:ir.top+ir.height/2,n:o.querySelector('.ddn').textContent};});
       assert(Math.abs(done.ix-done.hx)<=2&&Math.abs(done.iy-done.hy)<=2,crew+': the ink drained into where the crew landed');

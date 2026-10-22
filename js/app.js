@@ -2097,6 +2097,13 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
        on screen together during the 180ms the overlay would have faded in */
     const restore=()=>{source.style.visibility='';if(!comp&&typeof mascotHold==='function')mascotHold(source,false);};
     o.addEventListener('dd-left',restore,{once:true});
+    /* a crew crosses in its own white render (assets/crew/white), shaded as
+       drawn -- laid over its colour art and shown for the crossing, so the
+       colour art (and whatever crew-motion is playing in it) is never swapped.
+       Only if the white render will not load does a flat silhouette stand in. */
+    let whiteArt=null;
+    if(comp){const body=hero.querySelector('.club-avatar');if(body){whiteArt=document.createElement('img');whiteArt.className='crew-art dd-white-art';whiteArt.alt='';whiteArt.width=384;whiteArt.height=384;
+      whiteArt.onerror=()=>{whiteArt.remove();whiteArt=null;hero.classList.add('dd-white-flat');};whiteArt.src='assets/crew/white/'+hero.dataset.companion+'.webp';body.appendChild(whiteArt);}}
     const tint=tone=>{if(comp)hero.classList.toggle('dd-white',tone==='white');else if(typeof mascotTint==='function')mascotTint(hero,tone);};
     if(!to.width||!to.height){o.classList.remove('dd-ink');restore();countUpEl(o.querySelector('.ddn'),1100);}
     else{
@@ -2118,7 +2125,7 @@ function celebrateDayDone(nowrite, forceCount, forceMile, forceShow, sourceCard)
          translate and scale properties: the same path, uniform scale, composited */
       const at=(x,y,z)=>comp?{translate:`${x}px ${y}px`,scale:`${z}`}:{transform:`translate(${x}px,${y}px) scale(${z})`};
       Object.assign(hero.style,at(dx,dy,k));
-      const decoded=comp?Promise.resolve():Promise.all(['white','blue'].map(t=>{const im=new Image();im.src='assets/mascot-'+t+'-body.png';return im.decode?im.decode().catch(()=>{}):null;}));
+      const decoded=comp?(whiteArt&&whiteArt.decode?whiteArt.decode().catch(()=>{}):Promise.resolve()):Promise.all(['white','blue'].map(t=>{const im=new Image();im.src='assets/mascot-'+t+'-body.png';return im.decode?im.decode().catch(()=>{}):null;}));
       Promise.race([decoded,new Promise(r=>setTimeout(r,140))]).then(()=>{
       if(!o.isConnected)return;
       /* the card's mascot hands over to its double in the frame the flood starts:
