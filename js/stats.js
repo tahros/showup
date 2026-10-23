@@ -1558,7 +1558,7 @@ function renderStats(){
      than a clinical one. */
   /* v4.6.395: the seven-day grid became a body map (js/bodymap.js); muscleCard stays for the
      tests that drive it until it is retired. */
-  h+=`<h2>Your body, lately${hActs('mc','Days since each muscle last had work, from the sets you logged: brightest today, a step fainter each day, gone after six. A set counts for its main muscle, and more lightly for the muscles that help. Tap a body part to see what its exercises lean on. An estimate from your log, not a measurement.','About your body, lately')}</h2>
+  h+=`<h2>Your body, lately${hActs('mc','Slide through the last 30 days. Each day paints what it trained: the main muscle full, the muscles that help lighter. Marks on the track are days you trained. Tap an exercise to see it alone. An estimate from your log, not a measurement.','About your body, lately')}</h2>
       <div class="card bmcard">${bodyMapCard()}</div>`;
   cut('mc');
   h+=partShelfSection();   /* v4.6.318 */
