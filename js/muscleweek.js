@@ -49,6 +49,8 @@ const MW_ROWS=[['Upper',[['Chest',['upper-chest','chest','lower-chest']],['Front
 /* v4.6.400: THE MARK IS YOURS TO MOVE. It starts at 10 -- the studies' figure, and the card says
    so -- and a tap on the number picks another (DB.settings.mwMark, synced like any setting). */
 const MW_MARK=10,MW_SCALE=20,MW_MARKS=[6,8,10,12,14,16,18,20];
+/* "Why 10?": the IUSCA position stand on resistance training for hypertrophy (Schoenfeld et al., 2021) */
+const MW_WHY='https://journal.iusca.org/index.php/Journal/article/view/81';
 const mwMark=()=>{const v=+DB.settings?.mwMark;return MW_MARKS.includes(v)?v:MW_MARK;};
 function mwRows(iso){
   if(iso===todayISO)return ((DB.days[iso]||{}).w||[]).map(s=>({part:s.part,ex:s.ex,w:s.w,reps:s.reps||[]}));
@@ -108,8 +110,9 @@ function muscleWeekCard(){
     <div class="mw-stick"><div class="mw-figs">${mwFig(fig+'-front',vals,'Front')}${mwFig(fig+'-back',vals,'Back')}</div>
     <div class="mw-key" aria-hidden="true"><span><b style="opacity:.3"></b>1–4</span><span><b style="opacity:.6"></b>5–9</span><span><b></b>10+ sets</span></div></div>
     <div class="mw-rows">${rows}<span></span><span class="mw-marktrack"><span class="mw-mark" style="left:clamp(68px,${mk}%,calc(100% - 68px))">
-      <label>Mark at <select class="mw-pick" aria-label="Where the mark sits, in sets">${MW_MARKS.map(v=>`<option value="${v}"${v===mark?' selected':''}>${v}</option>`).join('')}</select> sets</label>
-      <small>10 is the figure from studies</small></span></span><span></span></div>
+      <label><select class="mw-pick" aria-label="Where the mark sits, in sets per muscle per week">${MW_MARKS.map(v=>`<option value="${v}"${v===mark?' selected':''}>${v}</option>`).join('')}</select> sets per muscle per week</label>
+      <small>${mark===MW_MARK?'A research-backed starting point for muscle growth':'10 is the research-backed starting point for muscle growth'}</small>
+      <a class="mw-why" href="${MW_WHY}" target="_blank" rel="noopener">Why 10?</a></span></span><span></span></div>
     ${loose?`<p class="mw-foot">${loose} set${loose===1?'':'s'} with no muscle set aren’t in a bar</p>`:''}`;
 }
 document.addEventListener('change',e=>{
