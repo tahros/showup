@@ -36,7 +36,7 @@ What it sets, and why:
                         iPad" builds on Mac or Vision Pro. Shipping iPad means
                         a mandatory iPad screenshot set and an iPad review.
 It never touches the bundle identifier: that is chosen per signing account
-(.dev on a personal team, the real one under YOOOOOOOOO LLC).
+(.dev on a personal team, the real one on Sungjee Yoo's developer account).
 """
 import json, pathlib, plistlib, re, shutil, sys
 

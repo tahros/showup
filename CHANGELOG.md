@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.396 (2026-10-23) — Who makes ShowUppp, and where to write
+
+- **Support and Privacy Policy name the maker correctly.** Both pages now say "ShowUppp is made by Sungjee Yoo" (the App Store developer account is an individual one), not YOOOOOOOOO LLC.
+- **One contact address:** showupppapp@gmail.com on the Support page and in the Privacy Policy, replacing sungjee@yooooooooo.co. Privacy Policy effective date moves to October 23, 2026.
+- tools/ios-config.py: a comment no longer names the LLC. No behaviour change. Changes from v4.6.395 are retained.
+
 ## v4.6.395 (2026-10-23) — Twelve living cities
 
 - The first signup screen now rotates through twelve matching pixel-art gyms. Seoul has a distinct warm dawn view; Tokyo retains its nighttime railway. The approved logo, Pip animation, cream signup panel and existing entry actions stay in place.
