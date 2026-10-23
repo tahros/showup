@@ -26,8 +26,8 @@ try{
  await p.route('**/*',r=>r.request().url().startsWith(BASE)?r.continue():r.abort());await p.goto(BASE);await p.waitForLoadState('networkidle').catch(()=>{});await p.waitForTimeout(3500);
  await p.evaluate(()=>{todayISO='2026-10-14';SEED=deriveAll();view='stats';render();});await p.waitForTimeout(1500);
  const order=await p.evaluate(()=>[...document.querySelectorAll('#view h2')].map(h=>h.firstChild?.textContent?.trim()));
- const i7=order.findIndex(t=>/This week|last 7/.test(t||'')),iP=order.findIndex(t=>/Every part/.test(t||''));
- ok('the shelf sits right under "This week"',i7>=0&&iP===i7+1,order);
+ const i7=order.findIndex(t=>/Muscle this week/.test(t||''))   /* v4.6.399: the week grid became Muscle this week */,iP=order.findIndex(t=>/Every part/.test(t||''));
+ ok('the shelf sits right under "Muscle this week"',i7>=0&&iP===i7+1,order);
  const read=()=>p.evaluate(()=>Object.fromEntries([...document.querySelectorAll('#psCard .ps-t')].map(t=>[t.dataset.part,t.querySelector('.ps-n').textContent])));
  /* let the entrance finish before reading numbers */
  await p.evaluate(()=>{const c=document.getElementById('psCard');c.scrollIntoView({block:'center'});});await p.waitForTimeout(2600);
@@ -35,7 +35,7 @@ try{
  let v=await read();
  ok('this month, days: Chest 3, Back 2, Legs 1 (the deadlift), Shoulders 1, Cardio 1',v.Chest==='3'&&v.Back==='2'&&v.Legs==='1'&&v.Shoulder==='1'&&v.Run==='1',v);
  ok('eight tiles in body order',(await p.evaluate(()=>[...document.querySelectorAll('#psCard .ps-t')].map(t=>t.dataset.part).join())) ==='Chest,Back,Shoulder,Legs,Biceps,Triceps,Sixpack,Run');
- ok('Core is called Core, here and in "This week"',await p.evaluate(()=>/Core/.test(document.getElementById('psCard').textContent)&&!/Sixpack/.test(document.querySelector('.mccard').textContent)));
+ ok('Core is called Core, here and in "Muscle this week"',await p.evaluate(()=>/Core/.test(document.getElementById('psCard').textContent)&&/Core/.test(document.querySelector('.mwcard').textContent)&&!/Sixpack/.test(document.querySelector('.mwcard').textContent)));
  ok('today\'s part is marked to glow',await p.evaluate(()=>document.querySelector('.ps-t[data-part="Chest"]').classList.contains('ps-today')&&!document.querySelector('.ps-t[data-part="Back"]').classList.contains('ps-today')));
  await p.click('[data-ps="o"][value="most"]');await p.waitForTimeout(500);
  ok('Most puts Chest first and remembers it',(await p.evaluate(()=>document.querySelector('#psCard .ps-t').dataset.part))==='Chest'&&(await p.evaluate(()=>DB.settings.partShelf.o))==='most');

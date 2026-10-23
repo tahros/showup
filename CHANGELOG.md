@@ -1,5 +1,14 @@
 # ShowUppp — changelog
 
+## v4.6.399 (2026-10-23) — Muscle this week
+
+- **Progress: "The last 7 days" grid becomes "Muscle this week"** (js/muscleweek.js). One bar per muscle (14, grouped Upper / Core & legs), each running 0–20 working sets with a hairline mark at 10 — the 2026 ACSM figure for muscle growth. No advice on the card; the mark is a reference.
+- **What counts:** working sets only (`realSets()` — warm-ups and burnouts out); the exercise's main muscle counts 1, the muscles that help count ½ (`MW_HELP`; every press and dip counts front delts and triceps), the counting that best predicted growth in the 2026 *Sports Medicine* meta-analysis. Chest adds upper, mid and lower. A set whose exercise has no muscle set is in no bar and the card says how many. The week is the Settings week.
+- **The body above the bars:** flat front and back figures (the approved lean figures, M/F from Settings), each muscle shaded on the bars' own scale — 1–4 light, 5–9 mid, 10+ full. Tap a bar or a muscle to see it alone. The figures stay pinned under the header while the bars scroll.
+- **Figure finish:** tools/bodymap/ builds the figures from the artwork (source/figures.png): regions traced on an 8× grid from the artwork's own anti-aliased edges and fitted with curves, the drawing's lines kept as even gaps, specks and slivers dropped.
+- `muscleCard` (the old grid) stays in stats.js for its tests until retired. Shell: 41 assets, 33 scripts.
+- Tests: test-muscle-week.js (new); test-muscle-coverage, test-everyweek, test-stats-217, test-todayhero, test-repweight, smoke follow the new card.
+
 ## v4.6.398 (2026-10-23) — Denser living city lighting
 
 - Expands each city's animated light detail count fivefold, from 3,057 to 15,285 across twelve cities. Retains existing masks and maps additional illuminated pixels on more facades, distant windows and architectural light strips. Counts describe individual light details, including sections of connected light strips, rather than whole buildings or windows. No duplicate pixels are added to the existing masks.
