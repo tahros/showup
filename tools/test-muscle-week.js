@@ -39,7 +39,7 @@ ok('the loose sets are named in the footnote',/2 sets with no muscle set/.test(r
 run(`(function(){DB.days[todayISO]={w:Array.from({length:30},(_,k)=>({part:'Legs',ex:'Leg Press',w:100,reps:[10],at:900+k})),upd:1};SEED=deriveAll();render();})()`);
 {const q=J(`(()=>{const n=[...document.querySelectorAll('.mw-name')].find(n=>n.textContent==='Quads');return {w:n.nextElementSibling.querySelector('i').style.width,v:n.nextElementSibling.nextElementSibling.textContent,m:muscleWeek().m.quads};})()`);
  ok('past 20 the bar stays full, the number keeps counting',parseFloat(q.w)===100&&q.v==='30',q);}
-ok('the body sits above the bars, front and back',run(`document.querySelectorAll('.mwcard .mw-view svg').length`)===2&&run(`!!document.querySelector('.mwcard .mw-figs + .mw-key + .mw-rows')`));
+ok('the body sits above the bars, front and back, in the pinned block',run(`document.querySelectorAll('.mwcard .mw-view svg').length`)===2&&run(`!!document.querySelector('.mwcard .mw-stick > .mw-figs + .mw-key')`)&&run(`!!document.querySelector('.mwcard .mw-stick + .mw-rows')`));
 ok('a muscle\'s shade on the body is its bar\'s band (chest 7 = mid)',J(`MW_TONE[mwBand(7)]`)===.6&&run(`document.querySelector('.mwcard .mw-tint[d]')!==null`));
 run(`document.querySelector('.mwcard .mw-row[data-mw-bar="Chest"]').click();`);
 ok('tapping a bar picks it: the other bars dim and the body shows that muscle alone',run(`document.querySelector('.mw-row[data-mw-bar="Chest"]').getAttribute('aria-pressed')`)==='true'&&run(`document.querySelectorAll('.mw-row.dim').length`)===13&&run(`document.querySelectorAll('.mw-tint.off').length`)>0&&run(`[...document.querySelectorAll('.mw-hit.sel')].every(p=>p.dataset.mwBar==='Chest')`));
