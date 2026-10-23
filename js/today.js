@@ -987,9 +987,14 @@ function rtSyncWeek(o={}){
     if(last&&IX[last]!=null)k=(IX[last]+1)%n;
     for(const d of Object.keys(IX))if(d<(last||todayISO))delete IX[d];
     if(last){owed=after(k-1);if(last<todayISO)owed=Math.max(0,owed-(Math.round((new Date(todayISO+'T12:00')-new Date(last+'T12:00'))/864e5)-1));}}
+  /* v4.6.402: A DAY OPEN IN THE PLANNER IS NOT REWRITTEN UNDER YOU. With the planner open, the
+     routine kept refreshing its own days (a new latest weight, a changed order) -- including the
+     ones you were editing -- so Save then found "changed while you were editing" for a change you
+     never made. While the planner holds a date, that date keeps its turn and is left alone. */
+  const held=d=>typeof pw==='function'&&typeof lift!=='undefined'&&lift.plan==='workspace'&&(pw().dates||[]).includes(d);
   for(let i=0;i<7;i++){const d=rtAddDays(todayISO,i),dow=new Date(d+'T12:00').getDay(),st=rtOwn(d),wk=rtWeekOf(d);cnt[wk]=cnt[wk]||0;
     if(i===0&&rtTrained(d)){cnt[wk]++;continue;}            // logged: frozen, and already counted in the order
-    if(st==='saved'){mark(d,k);k++;cnt[wk]++;owed=after(k-1);continue;}               // yours: takes its turn
+    if(st==='saved'||(st==='auto'&&held(d))){mark(d,k);k++;cnt[wk]++;owed=after(k-1);continue;}               // yours, or open in the planner: takes its turn
     if(st==='gone')continue;                                // you removed it: stepped round
     if(i===0&&st==='auto'&&!o.today&&DB.settings.routineAutoAt===todayISO){if(rtKinds()[d]==='extra')xUsed[wk]=1;else{if(IX&&IX[d]==null)mark(d,k);k++;cnt[wk]++;owed=after(k-1);}continue;}   // this morning's session, once written today, stays as written
     if(flex&&owed>0){owed--;if(st==='auto')rtDrop(d);rtKinds()[d]='rest';continue;}   // a rest day in your order

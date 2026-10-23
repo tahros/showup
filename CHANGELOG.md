@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.402 (2026-10-23) — The planner no longer freezes on "changed while you were editing"
+
+- **Leaving the conflict is always allowed.** When Save met a newer saved plan, the "changed while you were editing" card stayed over every page — tapping Dates, Edit or back changed the tab but not the screen, so the planner looked frozen. Going anywhere (a step tab, back, reopening the planner) now steps out of the question; your draft is untouched and the next Save asks again (js/planner-flow.js `pfNavigate`, `pfBack`, `pwOpen`).
+- **A day open in the planner is not rewritten under you.** With the planner open, the routine kept refreshing its own days — including the one being edited — so Save reported a change you never made. While the planner holds a date, the routine leaves it alone and gives it its turn (js/today.js `rtSyncWeek`).
+- Tests: tools/check-plan-conflict-nav.cjs (new, Chromium; fails on v4.6.401).
+
 ## v4.6.401 (2026-10-23) — Muscle this week: your own mark, a clearer pick
 
 - **The mark is yours to move.** Under the bars: "[10] sets per muscle per week" — tap the number for 6–20 (`DB.settings.mwMark`, synced). Every bar's mark moves with it, and the words sit centred under the mark's own line. Beneath: "A research-backed starting point for muscle growth" (or "10 is the research-backed starting point…" once moved) and a small **Why 10?** link to the IUSCA position stand (Schoenfeld et al., 2021). No full stops on the notes.

@@ -27,7 +27,7 @@ function pfLeave(to){
  j.prefOrigin=null;j.lastScreen=null;j.history=[];s.step='edit';s.candidate=null;pwPersist();lift.plan=null;view=destination;render({soft:true});
 }
 function pfBack(){
- const s=pw(),j=pfState();pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;
+ const s=pw(),j=pfState();s.conflict=null;pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;
  let previous;
  while(j.history?.length){
   const candidate=j.history.pop();
@@ -256,7 +256,11 @@ function pfAnchor(){const j=pfState();if(!pfMatch()){j.furthest=2;j.saved=[];}j.
    card per day and a day was 127px of nothing; the maker chose a strip of day
    chips above the routine instead, so 'days' lands on the first day's routine.
    pfDaysHTML stays for the saved review; nothing routes to it as a page. */
-function pfNavigate(page){const s=pw(),j=pfState();if(page==='days'){page=s.dates.length?'edit':'dates';if(!s.dates.includes(s.active))s.active=pfDates()[0]||null;}if(['days','edit','done'].includes(page)&&!pfMatch())page='dates';j.page=page;s.step='edit';s.datesOpen=false;s.error='';j.clear=false;j.emptyConfirm=false;j.group=null;pwPersist();pwRender();window.scrollTo(0,0);}
+/* v4.6.402: LEAVING THE CONFLICT IS ALWAYS ALLOWED. A save that met a newer plan put up "changed
+   while you were editing" and kept it over every page: tapping Dates, Edit or back changed the tab
+   and left the same card on screen, so the planner looked frozen. Going anywhere now steps out of
+   the question; your draft is untouched, and the next Save asks again. */
+function pfNavigate(page){const s=pw(),j=pfState();s.conflict=null;if(page==='days'){page=s.dates.length?'edit':'dates';if(!s.dates.includes(s.active))s.active=pfDates()[0]||null;}if(['days','edit','done'].includes(page)&&!pfMatch())page='dates';j.page=page;s.step='edit';s.datesOpen=false;s.error='';j.clear=false;j.emptyConfirm=false;j.group=null;pwPersist();pwRender();window.scrollTo(0,0);}
 function pfStepbar(){const j=pfState(),current={prefs:0,dates:1,days:2,edit:2,done:3}[j.page]??2;return `<div role="navigation" class="pf-steps" aria-label="Planning steps">${['Preferences','Dates','Edit','Done'].map((label,i)=>{/* v4.6.215: with no date selected there is nothing to edit or to be done with, so those steps are off */
  const some=pw().dates.length>0,allowed=(i===2&&pfSavedSelection())||(i<=j.furthest&&(i<2||(some&&pfMatch())));return pwButton('pf-stage',`<b>${i}</b><span>${label}</span>`,`${i===current?'pf-current':''} ${i<current?'pf-passed':''}`,`data-stage="${i}" ${allowed?'':'disabled'} ${i===current?'aria-current="step"':''}`);}).join('')}</div>`;}
 function pfPrefHTML(){const j=pfState(),p=(j.prefs&&j.prefs.avoidAdd&&j.prefs.trainDays&&j.prefs.rotation&&j.prefs.parts)?j.prefs:(j.prefs=pfStagePrefs());
@@ -1135,7 +1139,7 @@ pwRender=function(){return pfOn()?pfRender():pfLegacy.render();};
 function pfPickTrainDays(){const s=pw(),P=pfPrefs(),t=P.trainDays,n=Array.isArray(t)&&!t.length?(+P.frequency||0):0;if((!t||!t.length)&&!n||!s.active)return;const out=[],d0=new Date(s.active+'T12:00');
  for(let k=0;k<7;k++){const d=new Date(d0);d.setDate(d0.getDate()+k);const iso=d.toLocaleDateString('en-CA');if(n?out.length<n:t.includes(d.getDay()))if(!pfSkipDay(iso))out.push(iso);}   /* v4.6.378: no weekdays set: the next free days, as many as your days a week */
  if(!out.length)return;s.dates=out;s.active=out[0];s.month=out[0].slice(0,7)+'-01';out.forEach(x=>pwDay(x));}
-pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();delete s.rotStart;delete s.startPick;/* v4.6.354: a fresh visit starts from Next up again */j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else{const had=s.dates.some(x=>x>=todayISO);pwFreshenDates();if(!had)pfPickTrainDays();}/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
+pwOpen=function(d,step){if(!pfOn())return pfLegacy.open(d,step);const s=pw(),j=pfState();s.conflict=null;delete s.rotStart;delete s.startPick;/* v4.6.354: a fresh visit starts from Next up again */j.history=[];j.lastScreen=null;j.returnView=view==='sync'?'sync':'today';if(s.busy){pwRequest++;lift.writeAbort?.abort();s.busy=false;}if(d){s.dates=[d];s.active=d;s.month=d.slice(0,7)+'-01';pwDay(d);}else{const had=s.dates.some(x=>x>=todayISO);pwFreshenDates();if(!had)pfPickTrainDays();}/* v4.6.61: same rule as the legacy open, from the same helper */j.page=step==='dates'?'dates':d&&pwSaved(d)?'edit':d?'dates':j.page;j.prefOrigin=null;if(d&&pwSaved(d))pfAnchor();lift.plan='workspace';view='today';s.step='edit';pwPersist();render({soft:true});};
 pwApply=function(add=false){if(!pfOn())return pfLegacy.apply(add);const c=pw().candidate;if(!c)return;const generated=c.type==='generate',adjust=c.type==='adjust';if(c.type==='paste'&&c.index===undefined&&pfState().pasteAll){const one=Object.values(c.days)[0];c.days=Object.fromEntries(pfDates().map(d=>[d,pwCopy(one)]));}pfLegacy.apply(add);for(const d of Object.keys(c.days)){pwDay(d).target=null;}pfAnchor();pfMotion={kind:'arrive'};pfNavigate(generated?'days':'edit');};
 pwPayload=function(dates,action){const p=pfLegacy.payload(dates,action);if(!pfOn())return p;const prefs=pfPrefs();p.workspace.preferences=prefs;
  /* v4.6.183: the day's focus muscles and its set target go to the writer as
