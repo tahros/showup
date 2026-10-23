@@ -54,82 +54,27 @@ const seedN = (n) => run("(function(){" +
   "SEED=deriveAll(); return SEED.totals.sessions;" +
   "})()");
 
-// ---- rule: high-water floor \u2014 no retroactive fireworks ----------------------
+// ---- v4.6.394: no milestone card on Today --------------------------------------
+// "DAY 500 · Half the mountain" sat on top of Today, and an import crossed five rungs at once.
+// The card is gone: crossing a rung live, crossing several at once, the thousand, an import
+// or a restore -- Today shows none of them. The ladder, the lines and the share card stay
+// (the day's close and History still use them).
 seedN(97);
-run(`view='today'; render();`);
-ok("first run initialises the floor to the current total \u2014 nothing fires",
-   run(`DB.settings.msFloor`) === 97 && run(`msPending()`) === 0 &&
-   !/msmoment/.test(run(`$('#view').innerHTML`)));
-
-// ---- v4.6.284: the early rungs (under 100) show no Today card; they are acknowledged quietly --
-run(`(function(){ const keep=DB.settings.msFloor; DB.settings.msFloor=15; DB.settings.msAck=15; const n=msLiveTotal(); view='today'; render();
-  window.__early={html:$('#view').innerHTML,ack:DB.settings.msAck}; DB.settings.msFloor=keep; DB.settings.msAck=keep; render(); })()`);
-ok("an early rung (crossed 20, 30, 50 here) shows no DAY card", !/msmoment/.test(run(`window.__early.html`)));
-ok("...and is acknowledged, so it does not come back", run(`window.__early.ack`) >= 50 && run(`window.__early.ack`) < 100, run(`window.__early.ack`));
-
-// ---- crossing live fires \u2014 once, largest only -------------------------------
-run(`(function(){ // log 3 more days by past-edit + today \u2014 crosses 100
-  const t=new Date(todayISO+'T00:00');
+run(`(function(){ const t=new Date(todayISO+'T00:00');
   for(const off of [100,101]){ const d=new Date(t); d.setDate(d.getDate()-off);
     DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Back',ex:'Row',w:40,reps:[10]}],upd:1}; }
   day(todayISO).w.push({part:'Chest',ex:'Chest Press',w:40,reps:[10],at:Date.now()});
   SEED=deriveAll(); view='today'; render(); })()`);
-ok("crossing 100 live shows the moment", /msmoment/.test(run(`$('#view').innerHTML`)) &&
-   /data-ms="100"/.test(run(`$('#view').innerHTML`)));
-ok("...regular tier at 100", /msmoment regular/.test(run(`$('#view').innerHTML`)));
-ok("...the number counts up FROM the previous rung", /data-from="50"/.test(run(`$('#view').innerHTML`)));
-ok("...and the dry line is present", /A hundred days of showing up\./.test(run(`$('#view').innerHTML`)));
-
-// the moment must not block or alter Lift
-run(`view='lift'; lift={part:null,ex:null,weight:0}; render();`);
-ok("Lift renders with no moment in it \u2014 the gym is for the gym",
-   !/msmoment/.test(run(`$('#view').innerHTML`)));
-run(`view='today'; render();`);
-
-// ---- dismissal: one tap, permanent, synced ---------------------------------
-run(`$('#view').querySelector('#msDismiss').click();`);
-ok("dismiss acknowledges the rung", run(`DB.settings.msAck`) === 100);
-ok("...and the moment is gone", !/msmoment/.test(run(`$('#view').innerHTML`)));
-run(`render();`);
-ok("...permanently \u2014 re-render does not resurrect it", !/msmoment/.test(run(`$('#view').innerHTML`)));
-
-// ---- several rungs at once: ONE moment, the largest --------------------------
-// (first draft seeded 106 days — crossing 200 but never reaching 300, so the
-// assertion failed against its own fixture, not the app. 210 days crosses both.)
-run(`(function(){ const t=new Date(todayISO+'T00:00');
-  for(let off=200; off<410; off++){ const d=new Date(t); d.setDate(d.getDate()-off);
-    DB.days[d.toLocaleDateString('en-CA')]={w:[{part:'Legs',ex:'Squat',w:60,reps:[10]}],upd:1}; }
-  SEED=deriveAll(); view='today'; render(); })()`);
-ok("bulk past-edits crossing 200 AND 300 produce ONE moment for 300",
-   /data-ms="300"/.test(run(`$('#view').innerHTML`)) &&
-   !/data-ms="200"/.test(run(`$('#view').innerHTML`)));
-run(`$('#view').querySelector('#msDismiss').click();`);
-
-// ---- the thousand tier -------------------------------------------------------
+ok("crossing 100 live shows no card on Today", !/msmoment/.test(run(`$('#view').innerHTML`)));
 run(`(function(){ const t=new Date(todayISO+'T00:00');
   let need=1000-msLiveTotal();
-  for(let off=400; need>0; off++){ const d=new Date(t); d.setDate(d.getDate()-off);
+  for(let off=200; need>0; off++){ const d=new Date(t); d.setDate(d.getDate()-off);
     const iso=d.toLocaleDateString('en-CA');
-    if(!DB.days[iso]){ DB.days[iso]={w:[{part:'Back',ex:'Row',w:40,reps:[10]}],upd:1}; need--; }
+    if(!DB.days[iso]){ DB.days[iso]={w:[{part:'Back',ex:'Row',w:40,reps:[10],imp:'imp-x'}],upd:1}; need--; }
   }
   SEED=deriveAll(); view='today'; render(); })()`);
-ok("day 1000 wears the thousand tier", /msmoment thousand/.test(run(`$('#view').innerHTML`)) &&
-   /data-ms="1000"/.test(run(`$('#view').innerHTML`)));
-ok("...with the record cascading in (msgrid cells)",
-   run(`document.querySelectorAll('.msmoment .msgrid i').length`) > 12);
-ok("...and its own line", /The long game, kept\./.test(run(`$('#view').innerHTML`)));
-ok("the share card draws at 1080", run(`(function(){const c=drawMilestone(1000); return c.width===1080&&c.height===1080;})()`));
-run(`$('#view').querySelector('#msDismiss').click();`);
-
-// ---- restore/import is honoured, never celebrated ---------------------------
-run(`(function(){ // simulate Restore's adoption of a foreign 500-day archive
-  const doc={days:{},settings:{unit:'kg'}};
-  const t=new Date(todayISO+'T00:00');
-  for(let i=1;i<=500;i++){ const d=new Date(t); d.setDate(d.getDate()-i);
-    doc.days[d.toLocaleDateString('en-CA')]={w:[{part:'Chest',ex:'Chest Press',w:40,reps:[10]}],upd:Date.now()}; }
-  DB=doc; SEED=deriveAll(); view='today'; render(); })()`);
-ok("a restored 500-day archive fires NOTHING (floor re-initialises to its total)",
-   !/msmoment/.test(run(`$('#view').innerHTML`)) && run(`DB.settings.msFloor`) === 500);
+ok("...nor an import that carries the record past 200, 300, 500 and 1000", !/msmoment/.test(run(`$('#view').innerHTML`)));
+ok("the share card still draws at 1080", run(`(function(){const c=drawMilestone(1000); return c.width===1080&&c.height===1080;})()`));
 
 // ---- the History line: derived, retroactive, factual ------------------------
 run(`view='history'; render();`);

@@ -361,7 +361,9 @@ function plOutcomeMark(ex,a,last,target,outcome){
   return `<button type="button" class="sc-outcome-mark" data-sc-feedback="${hesc(message)}" aria-label="${hesc(outcome.label)}. Show set comparison">${icon('check',12)}</button>`;
 }
 const plWarmMark=t=>plWarm(t)?'<span class="sc-warm-mark" aria-label="Planned warm-up">W</span>':'';
-function plSessionGroups(rows){
+/* v4.6.394: reps with no load and no bodyweight: last time shows a dash (no weight on record), a plan says by feel */
+const plNoLoad=(s,ex)=>!!s&&!s.bw&&!s.su&&!(+s.w>0)&&!(ex&&typeof isBody==='function'&&isBody(ex));
+function plSessionGroups(rows,ex){
   /* v4.6.381: A SET WITH NOTHING BESIDE IT DOES NOT SPLIT A RUN. Sets 3-5 at 175
      with a planned 175, then a sixth set last time that today's plan does not
      have, read as two rows ("3-5" and "6") although last time was one run at one
@@ -370,7 +372,13 @@ function plSessionGroups(rows){
      Only at the END of a column: once a column runs out inside a group it stays
      out, so no column ever has a hole in the middle of its reps. A real change of
      weight, unit, warm-up or bodyweight still starts a new row. */
-  const shape=s=>s?JSON.stringify([s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||'']):null,groups=[];
+  /* v4.6.394: SETS WITH NO WEIGHT GROUP BY THEIR REPS. With no load to share, twelve
+     sets by feel all looked alike and merged into one "1–12" line. Without a weight
+     the reps are what tells sets apart, so a feel or no-weight set (not bodyweight)
+     groups with the next only when the reps match too: 10 10 10 10 8 8 8 8 8 8 8 8
+     reads 1–4 x 10, then the 8s. */
+  const feel=s=>s.nw||plNoLoad(s,ex);
+  const shape=s=>s?JSON.stringify(feel(s)?['feel',s.r??s.reps,s.qualifier||'']:[s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||'']):null,groups=[];
   for(const row of rows){
     const cols=[shape(row.last),shape(row.target)],solo=row.last||row.target?null:JSON.stringify(row.actual.map(shape)),prev=groups.at(-1);
     const fits=!!prev&&prev.unlinked===!!row.unlinked&&(solo!==null
@@ -380,8 +388,15 @@ function plSessionGroups(rows){
     if(fits){prev.rows.push(row);cols.forEach((c,i)=>{if(c===null&&prev.seen[i])prev.out[i]=true;});}
     else groups.push({rows:[row],cols,seen:cols.map(Boolean),out:[false,false],solo,unlinked:!!row.unlinked});
   }
-  return groups;
+  /* v4.6.394: A LONG RUN BY FEEL SPLITS INTO EVEN ROWS. Eight 8s by feel read 5–8,
+     9–12, not 5–12: a row by feel holds at most four sets, and rows come out even --
+     six is 3 + 3, never 4 + 2. Runs at a weight keep one row (the fold caps them). */
+  return groups.flatMap(g=>{const n=g.rows.length,max=PL_ROW_FEEL;if(n<=max||!String(g.cols.find(Boolean)||'').startsWith('["feel"'))return [g];
+    const k=Math.ceil(n/max),base=Math.floor(n/k),extra=n%k,out=[];let at=0;
+    for(let i=0;i<k;i++){const m=base+(i<extra?1:0);out.push({...g,rows:g.rows.slice(at,at+m)});at+=m;}
+    return out;});
 }
+const PL_ROW_FEEL=4;
 function plTapAttrs(s){
   return `data-sc-load="${s.w}" data-sc-reps="${s.r??s.reps}"`;
 }
@@ -392,7 +407,8 @@ function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
     const runs=[];
     for(const set of sets){const key=JSON.stringify([set.w,set.su||'',!!set.bw,!!set.nw,!!set.est]);const prev=runs.at(-1);if(prev?.key===key)prev.sets.push(set);else runs.push({key,sets:[set]});}
     if(runs.length>1)return runs.map(run=>cell(run.sets,kind,'',run.sets.includes(latest)?feedback:'')).join('');
-    const s=sets[0],load=s.nw?FEEL_WORD:s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
+    // v4.6.394: a past set with reps and no weight says so, not "0"
+    const s=sets[0],load=s.nw?FEEL_WORD:s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):plNoLoad(s,ex)&&kind!=='sc-now'?(kind==='sc-history'?'—':FEEL_WORD):wLabel(ex,s.w);
     return `<div class="sc-value sc-group-value ${kind}"><button type="button" class="sc-load-weight" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps"><span class="sc-weight">${loadHTML((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span></button><span class="sc-reps-wrap"><span class="sc-reps">${sets.map(s=>`<button type="button" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps" class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</button>`).join('')}</span>${feedback}</span></div>`;
   };
   return groups.map(({rows})=>{
@@ -473,7 +489,7 @@ function plSessionHTML(ex,last,today){
   const text=(s,target=false)=>target?plTargetText(s):wLabel(ex,s.w)+' × '+setNum(s.r,s.su);
   const value=(s,kind,attrs='')=>{
     attrs=attrs.replace(/data-sc-load="[^"]*"|data-link-slot="[^"]*"|disabled/g,'')+' '+plTapAttrs(s);
-    const r=s.r??s.reps,load=s.nw?FEEL_WORD:s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
+    const r=s.r??s.reps,load=s.nw?FEEL_WORD:s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):plNoLoad(s,ex)&&kind!=='sc-now'?(kind==='sc-history'?'—':FEEL_WORD):wLabel(ex,s.w);
     return `<button type="button" class="sc-value ${kind}" ${attrs}><span class="sc-weight">${loadHTML((s.est?'≈':'')+load)}</span><span class="sc-times">×</span><span class="sc-rep${isHold(s.su)?' hold':''}">${hesc(String(setNum(r,s.su)))}</span></button>`;
   };
   const body=rows.map(row=>{
@@ -501,7 +517,7 @@ function plSessionHTML(ex,last,today){
      action belongs and the only path to doneAll again. */
   const editing=!!lift.editToday&&!!actual.length;
   const editingPlan=!editing&&!!lift.editPlan&&hasPlan;
-  const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
+  const done=targets.filter(t=>plActual(todayISO,t.id).length).length,groups=plSessionGroups(rows,ex),canCompact=rows.length>4&&groups.length<rows.length,compact=canCompact&&lift.scDetails!==ex;
   return `<section class="lastcard sc-session plan-link${compact?' sc-compact':''}${compact&&groups.length>6?' sc-dense':''}" aria-label="Your sets comparison"><div class="sc-head"><strong>Your sets</strong><span>${actual.length} set${actual.length===1?'':'s'} logged</span></div><div class="sc-toolbar"><span>${U()} · ${isHold(unitOf(ex))?'seconds':'reps'}</span><div class="sc-tools">${hasPlan?`<button type="button" class="${editingPlan?'sc-on':''}" data-sc-edit-plan="${displayPlan.date}" aria-pressed="${editingPlan}">${icon(editingPlan?'check':'edit',ICON_SZ.sm)} ${editingPlan?'Done':'Edit Plan'}</button>`:''}${today.length?`<button type="button" class="sessedit${editing?' sc-on':''}" id="sessEdit" aria-pressed="${editing}">${icon(editing?'check':'edit',ICON_SZ.sm)} ${editing?'Done':'Edit Logged'}</button>`:''}${canCompact?`<button type="button" data-sc-details aria-expanded="${!compact}">${icon(compact?'expand':'collapse',ICON_SZ.sm)} ${compact?'Expand':'Collapse'}</button>`:''}</div></div>
     ${changed&&!preview&&!editingPlan?'<p class="pl-context">Plan edited since you started. These targets stay with this workout. <button type="button" class="linkbtn pl-adopt" data-pl-adopt>Use the edited plan</button></p>':''}
     ${editingPlan?`<p class="pl-context">Tap a value to change today&rsquo;s plan.</p><table class="sc-table sc-editing sc-editing-plan"><thead><tr><th scope="col">Set</th><th scope="col">Plan<small>${hesc(wd(displayPlan.date))}</small></th><th scope="col"><span class="pw-sr-only">Edit</span></th></tr></thead><tbody>${plPlanEditBody(ex,targets)}</tbody></table>

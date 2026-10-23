@@ -1,5 +1,15 @@
 # ShowUppp — changelog
 
+## v4.6.394 (2026-10-23) — Tips take turns; sets by feel group by reps
+
+- **No milestone card on Today.** The "DAY 500 · Half the mountain" card is gone, for live crossings and imports alike; the share card still draws.
+- **The 20 free days count only days logged in ShowUppp** (`trialDays()` in js/membership.js). Imported days no longer use up the trial; a date with any set logged here counts.
+- **Every tip is one short sentence**, at 13px (was 14), with nothing under it.
+- **Tips take turns.** A tip that was on screen starts a rest: the next waits 4 minutes and a different screen. The next step of something you just did (tap an exercise → Swipe for reps; Add set → Finish; pick days → Plan) follows at once, but not after Got it. The Stats and Settings tab tips show at most one a day.
+- **No weight on record plans by feel**, not "0 kg" (`pwLastLine`).
+- **Your sets:** sets with no weight group by their reps, and a long run by feel splits into even rows of four or fewer (10 10 10 10 8 8 8 8 8 8 8 8 → 1–4, 5–8, 9–12, not one "1–12"). Last shows "—" where no weight was recorded. Bodyweight, holds and runs at a weight group as before.
+- Tests: test-trial-count.js (new), test-milestone.js, test-set-rows.js; tools/check-tip-pacing.cjs (new, Chromium).
+
 ## v4.6.393 (2026-10-23) — A living city, a clear first step
 
 - First signup screen: approved pixel gyms in Tokyo, Los Angeles and Seoul above an opaque cream panel with the existing Apple, Google and on-device entry choices. The centered logo combines one animated 3D Pip with the original vector wordmark; copy remains "Life happens. You show up."
