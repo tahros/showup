@@ -32,7 +32,7 @@ def smooth_path(c,scale):
     d+='C'+' '.join(f(v) for v in (c1[0],c1[1],c2[0],c2[1],p2[0],p2[1]))
   return d+'Z'
 
-def trace(mask,min_frac=0.12,min_px=6,eps=0.42,blur=0.8,soft=None,cut=None):
+def trace(mask,min_frac=0.12,min_px=6,eps=0.42,blur=0.8,soft=None,cut=None,piece=0.18):
   """a binary mask at artwork scale -> smooth path; parts smaller than min_frac of the largest
   part (or min_px pixels) are specks of a neighbour's edge and are dropped. `soft` (0..1, the
   artwork's own anti-aliased coverage) shapes the edge where the mask meets the outline, so the
@@ -58,8 +58,11 @@ def trace(mask,min_frac=0.12,min_px=6,eps=0.42,blur=0.8,soft=None,cut=None):
   bw=(up>0.5).astype(np.uint8)
   cs,_=cv2.findContours(bw,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
   out=[]
+  # after the lines are cut, a muscle can fall into pieces; a piece far smaller than its biggest
+  # is a strip of the drawing between lines (serratus beside the chest), not the muscle
+  amax=max([cv2.contourArea(c) for c in cs] or [0])
   for c in cs:
-    if cv2.contourArea(c)<(S*S*min_px): continue
+    if cv2.contourArea(c)<max(S*S*min_px,piece*amax): continue
     c=cv2.approxPolyDP(c,S*eps,True)
     out.append(smooth_path(c,S))
   ys=np.where(keep)[0]
