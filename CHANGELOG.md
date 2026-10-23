@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.398 (2026-10-23) — Denser living city lighting
+
+- Expands each city's animated light detail count fivefold, from 3,057 to 15,285 across twelve cities. Retains existing masks and maps additional illuminated pixels on more facades, distant windows and architectural light strips. Counts describe individual light details, including sections of connected light strips, rather than whole buildings or windows. No duplicate pixels are added to the existing masks.
+- Preserves independent 3×–12× rhythms, mostly 5×–10×. Compactly packed mask atlases keep the larger map lightweight. Signup layout, Pip, city transitions, pause behavior and all existing account actions are unchanged.
+- No new native dependencies. Regression, per-city density and overlap, motion, transition, onboarding, offline and distribution checks cover the release.
+
 ## v4.6.397 (2026-10-23) — Independent city lights
 
 - Ships the approved living-lights-v5 signup design: 3,057 light elements across all twelve cities use independent 3×–12× rhythms, mostly 5×–10×, with varied phases and brightness. Lights follow painted facade pixels instead of arbitrary sparkles. Sydney's Opera House is correctly behind the window frame.
