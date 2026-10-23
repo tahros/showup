@@ -372,12 +372,13 @@ function plSessionGroups(rows,ex){
      Only at the END of a column: once a column runs out inside a group it stays
      out, so no column ever has a hole in the middle of its reps. A real change of
      weight, unit, warm-up or bodyweight still starts a new row. */
-  /* v4.6.392: A SET WITH NO WEIGHT IS ITS OWN ROW. Grouping says "these sets were one
-     run at one load"; a set by feel has no load to share, so twelve of them merged
-     into a single "1–12" line although each will be lifted at a weight chosen on the
-     day. A feel or no-weight set (not bodyweight) never joins a group. */
-  let feelN=0;const feel=s=>s.nw||plNoLoad(s,ex);
-  const shape=s=>s?(feel(s)?'feel'+(++feelN):JSON.stringify([s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||''])):null,groups=[];
+  /* v4.6.392: SETS WITH NO WEIGHT GROUP BY THEIR REPS. With no load to share, twelve
+     sets by feel all looked alike and merged into one "1–12" line. Without a weight
+     the reps are what tells sets apart, so a feel or no-weight set (not bodyweight)
+     groups with the next only when the reps match too: 10 10 10 10 8 8 8 8 8 8 8 8
+     reads 1–4 x 10, then the 8s. */
+  const feel=s=>s.nw||plNoLoad(s,ex);
+  const shape=s=>s?JSON.stringify(feel(s)?['feel',s.r??s.reps,s.qualifier||'']:[s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||'']):null,groups=[];
   for(const row of rows){
     const cols=[shape(row.last),shape(row.target)],solo=row.last||row.target?null:JSON.stringify(row.actual.map(shape)),prev=groups.at(-1);
     const fits=!!prev&&prev.unlinked===!!row.unlinked&&(solo!==null
@@ -387,8 +388,15 @@ function plSessionGroups(rows,ex){
     if(fits){prev.rows.push(row);cols.forEach((c,i)=>{if(c===null&&prev.seen[i])prev.out[i]=true;});}
     else groups.push({rows:[row],cols,seen:cols.map(Boolean),out:[false,false],solo,unlinked:!!row.unlinked});
   }
-  return groups;
+  /* v4.6.392: A LONG RUN SPLITS INTO EVEN ROWS. Eight 8s by feel read 5–8, 9–12, not
+     5–12: a row by feel holds at most four sets, a row at one weight five (so 5 x 5
+     stays one line). Rows come out even -- six is 3 + 3, never 4 + 2. */
+  return groups.flatMap(g=>{const n=g.rows.length,max=String(g.cols.find(Boolean)||'').startsWith('["feel"')?PL_ROW_FEEL:PL_ROW_MAX;if(n<=max)return [g];
+    const k=Math.ceil(n/max),base=Math.floor(n/k),extra=n%k,out=[];let at=0;
+    for(let i=0;i<k;i++){const m=base+(i<extra?1:0);out.push({...g,rows:g.rows.slice(at,at+m)});at+=m;}
+    return out;});
 }
+const PL_ROW_FEEL=4,PL_ROW_MAX=5;
 function plTapAttrs(s){
   return `data-sc-load="${s.w}" data-sc-reps="${s.r??s.reps}"`;
 }
