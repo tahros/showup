@@ -89,7 +89,7 @@ function mwFig(key,vals,label){
   const paths=Object.entries(F.r).map(([r,d])=>{
     const bars=MW_REGION[r];if(!bars)return `<path class="mw-mu" d="${d}"/>`;
     const v=Math.max(...bars.map(b=>vals[b]||0)),t=MW_TONE[mwBand(v)],on=!_mwSel||bars.includes(_mwSel);
-    return `<path class="mw-mu" d="${d}"/>${t?`<path class="mw-tint${on?'':' off'}" d="${d}" style="fill-opacity:${t}"/>`:''}<path class="mw-hit${_mwSel&&on?' sel':''}" d="${d}" data-mw-bar="${bars[0]}"/>`;
+    return `<path class="mw-mu" d="${d}"/>${t||(_mwSel&&on)?`<path class="mw-tint${on?(_mwSel?(t?' pick':' pick zero'):''):' off'}" d="${d}" style="fill-opacity:${t}"/>`:''}<path class="mw-hit${_mwSel&&on?' sel':''}" d="${d}" data-mw-bar="${bars[0]}"/>`;
   }).join('');
   return `<figure class="mw-view"><svg viewBox="0 0 ${F.w} ${F.h}" role="img" aria-label="${label}"><path class="mw-sil" d="${F.sil}"/>${paths}</svg><figcaption>${label}</figcaption></figure>`;
 }
