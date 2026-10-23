@@ -37,6 +37,8 @@ const zeroLast=run(`(()=>{const Z=r=>({w:0,r,su:''});const rows=[1,2,3].map(i=>(
 ok('last time with reps and no weight does not merge either',zeroLast===3,zeroLast);
 const bw=run(`(()=>{const B=()=>({w:0,r:12,su:'',bw:true});const rows=[1,2,3].map(i=>({label:String(i),last:B(),target:B(),actual:[]}));return plSessionGroups(rows).length;})()`);
 ok('bodyweight sets still group (BW is a load)',bw===1,bw);
+const pull=run(`(()=>{const Z=()=>({w:0,r:8,su:''});const rows=[1,2,3].map(i=>({label:String(i),last:Z(),target:Z(),actual:[]}));return plSessionGroups(rows,'Pull Up').length;})()`);
+ok('a bodyweight exercise at no added weight still groups',pull===1,pull);
 const hold=run(`(()=>{const H=()=>({w:0,r:60,su:'s'});const rows=[1,2,3].map(i=>({label:String(i),last:H(),target:H(),actual:[]}));return plSessionGroups(rows).length;})()`);
 ok('timed holds at no weight still group',hold===1,hold);
 const line=run(`(()=>{SEED.lastSess=SEED.lastSess||{};SEED.lastSess['Leg Press']={d:'2026-10-01',rows:[[0,[10,10]],[0,[8,8]]]};SEED.lastSess['Bench Press']={d:'2026-10-01',rows:[[60,[8,8,8]]]};return [pwLastLine('Leg Press'),pwLastLine('Bench Press')];})()`);
