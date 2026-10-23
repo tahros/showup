@@ -23,8 +23,8 @@
 #onb .ww-lights{z-index:2;image-rendering:pixelated}#onb .ww-transition{z-index:1}
 #onb .ww-motion{position:absolute;top:max(24px,env(safe-area-inset-top));right:6%;border:1px solid #ffffff42;background:#0c102b80;color:#fff;border-radius:50%;width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center;backdrop-filter:blur(8px)}
 #onb .ww-motion svg{width:20px;height:20px;fill:currentColor}
-#onb .ww-heading{position:absolute;left:6%;right:6%;top:calc(100% - var(--sheet) + 24px);text-align:center}
-#onb .ww-heading h1{font-size:29px;font-weight:700;line-height:1.12;letter-spacing:-.035em;margin:0;color:#171923;font-family:inherit}
+#onb .ww-heading{position:absolute;left:6%;right:6%;top:calc(100% - var(--sheet) + 24px);text-align:center;height:64.96px;display:flex;align-items:center;justify-content:center}
+#onb .ww-heading h1{font-size:24.65px;font-weight:700;line-height:1.12;letter-spacing:-.035em;margin:0;color:#171923;font-family:inherit}
 #onb .ww-heading h1 span{display:block;white-space:nowrap}
 #onb .ww-city{position:absolute;right:6%;bottom:calc(var(--sheet) + 18px);max-width:42%;text-align:right;text-shadow:0 2px 12px #000d}
 #onb .ww-city strong{font-weight:450;font-size:11px;letter-spacing:.025em;color:#fff}
@@ -53,5 +53,5 @@
 #onb .ww-actions p{color:#686c78}
 @media(hover:hover){#onb .ww-actions .ww-local:hover{background:#00000008;border-color:#777d8b}}
 #onb.ob-still .ww-actions button{animation:none}
-@media(max-height:650px){#onb .ww-root{--sheet:310px}#onb .ww-brand{width:196px}#onb .ww-motion{top:max(16px,env(safe-area-inset-top))}#onb .ww-heading{top:calc(100% - var(--sheet) + 21px)}#onb .ww-heading h1{font-size:25px}#onb .ww-city{bottom:calc(var(--sheet) + 10px)}#onb .ww-actions{gap:8px;bottom:max(18px,env(safe-area-inset-bottom))}#onb .ww-actions button{min-height:46px}}
+@media(max-height:650px){#onb .ww-root{--sheet:310px}#onb .ww-brand{width:196px}#onb .ww-motion{top:max(16px,env(safe-area-inset-top))}#onb .ww-heading{top:calc(100% - var(--sheet) + 21px);height:56px}#onb .ww-heading h1{font-size:21.25px}#onb .ww-city{bottom:calc(var(--sheet) + 10px)}#onb .ww-actions{gap:8px;bottom:max(18px,env(safe-area-inset-bottom))}#onb .ww-actions button{min-height:46px}}
 @media(prefers-reduced-motion:reduce){#onb .ww-wordmark,#onb .ww-actions button{animation:none;transition:none}#onb .ww-actions button:hover,#onb .ww-actions button:active{transform:none}}

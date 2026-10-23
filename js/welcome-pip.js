@@ -292,7 +292,8 @@ export function createMascot(stage, options={}) {
   function resize(){
     if(disposed||lost)return;
     const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight||w*440/720);
-    renderer.setSize(4096,2560,false);
+    const target=Math.max(512,Math.min(1536,Math.ceil(w*Math.min(devicePixelRatio||1,3)*2/64)*64));
+    renderer.setSize(target,Math.round(target*2560/4096),false);
     camera.left=-5.1;camera.right=5.1;camera.top=5.1*2560/4096;camera.bottom=-camera.top;
     camera.updateProjectionMatrix();paint();
   }

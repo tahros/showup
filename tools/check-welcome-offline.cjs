@@ -23,6 +23,8 @@ const base=`http://127.0.0.1:${process.env.PW_PORT||8784}/`;
    const r=await fetch('assets/welcome/pixel-'+key+'.webp');return r.ok&&(await r.arrayBuffer()).byteLength>0;
   })));
   assert(cities.length===12&&cities.every(Boolean),'all twelve cities load offline');
+  const sprites=await page.evaluate(async()=>Promise.all(['tokyo-train','shanghai-boat','sydney-ferry'].map(async name=>{const img=new Image();img.src='assets/welcome/'+name+'.webp';await img.decode();return img.naturalWidth>1000;})));
+  assert(sprites.every(Boolean),'all three refined vehicle sprites decode offline');
   await page.waitForFunction(()=>document.querySelector('.ww-city strong').textContent==='Shanghai',{},{timeout:16000});
   console.log('PASS installed welcome, all twelve scenes, typography and animation work offline');
   await page.click('[data-onbact="local"]');

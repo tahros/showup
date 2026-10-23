@@ -30,7 +30,7 @@ function onbWorldMount(host){
  still.addEventListener('error',fallback);
  function load(i){if(requests.has(i))return requests.get(i);const promise=new Promise((resolve,reject)=>{
   const img=new Image();let timeout;const cancel=()=>{clearTimeout(timeout);img.onload=img.onerror=null;pending.delete(cancel);reject(new Error('City image unavailable'));};pending.add(cancel);timeout=setTimeout(cancel,15000);
-  img.onload=()=>{clearTimeout(timeout);img.onload=img.onerror=null;pending.delete(cancel);resolve(img);};img.onerror=cancel;img.src='assets/welcome/pixel-'+WORLD_GYMS[i][0]+'.webp';
+  img.decoding="async";img.onload=async()=>{try{await img.decode();if(disposed)return cancel();clearTimeout(timeout);img.onload=img.onerror=null;pending.delete(cancel);resolve(img);}catch{cancel();}};img.onerror=cancel;img.src='assets/welcome/pixel-'+WORLD_GYMS[i][0]+'.webp';
  });requests.set(i,promise);promise.catch(()=>requests.delete(i));return promise;}
  function schedule(){clearTimeout(timer);if(running()&&!busy)timer=setTimeout(advance,8500);}
  async function advance(){if(!running()||busy)return;busy=true;let cleanup;const next=(index+1)%WORLD_GYMS.length;

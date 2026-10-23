@@ -25,7 +25,8 @@ for(const [width,height] of [[320,568],[390,844],[430,932]])for(const colorSchem
 {
  const {c,p}=await open();await p.waitForSelector('.ww-ready canvas');
  const sample=()=>p.evaluate(()=>({pip:document.querySelector('.ww-stage canvas').dataset.frame,lights:document.querySelector('.ww-lights').dataset.frame,word:getComputedStyle(document.querySelector('.ww-wordmark')).transform,city:document.querySelector('.ww-city strong').textContent,step:document.querySelector('.ww-transition')?.dataset.step}));
- const size=await p.locator('.ww-stage canvas').evaluate(e=>[e.width,e.height]);ok('clean 3D Pip renders on its 4096px canvas',size[0]===4096&&size[1]===2560);
+ const size=await p.locator('.ww-stage canvas').evaluate(e=>[e.width,e.height]);ok('clean 3D Pip uses a supersampled display-sized canvas with the original aspect ratio',size[0]>=512&&size[0]<=1536&&Math.abs(size[1]/size[0]-2560/4096)<.002);
+ const type=await p.locator('.ww-heading').evaluate(e=>{const h=e.querySelector('h1'),a=e.getBoundingClientRect(),b=h.getBoundingClientRect();return {size:parseFloat(getComputedStyle(h).fontSize),adjust:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tsa'))||0,dx:(a.left+a.right-b.left-b.right)/2,dy:(a.top+a.bottom-b.top-b.bottom)/2};});ok('selected A is 15% smaller, respects the app text-size preference and stays centered',Math.abs(type.size-type.adjust-24.65)<.01&&Math.abs(type.dx)<1&&Math.abs(type.dy)<1);
  await p.click('.ww-motion');const held=await sample();await p.waitForTimeout(700);const moving=await sample();
  ok('city pause keeps Pip, wordmark and lights moving',held.city===moving.city&&held.pip!==moving.pip&&held.lights!==moving.lights&&held.word!==moving.word&&await p.locator('.ww-motion svg path').count()===1);
  await p.click('.ww-motion');await p.waitForSelector('.ww-transition',{timeout:13000});await p.click('.ww-motion');const partial=await sample();await p.waitForTimeout(500);const partial2=await sample();

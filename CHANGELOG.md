@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.397 (2026-10-23) — Independent city lights
+
+- Ships the approved living-lights-v5 signup design: 3,057 light elements across all twelve cities use independent 3×–12× rhythms, mostly 5×–10×, with varied phases and brightness. Lights follow painted facade pixels instead of arbitrary sparkles. Sydney's Opera House is correctly behind the window frame.
+- Selected A headline is 15% smaller, centered within its existing space. Painted three-car Tokyo train and Shanghai/Sydney ferry sprites replace the blocky vehicles. Paris and Rome retain architectural lighting without the central sparkle effects.
+- City transitions reuse a cached tile mask and small compositing buffers; 3D Pip renders to a display-sized supersampled canvas with the existing high-resolution still fallback. Pip, lights and weather keep moving when city rotation is paused. Reduced motion, hidden-screen suspension, disposal and existing signup handlers are preserved.
+- All new sprites and backgrounds are included offline and in OTA. No native plugin changes. Retains v4.6.396 support/privacy updates. Full regression, onboarding, transition, twelve-city motion, offline and distribution checks cover this release.
+
 ## v4.6.396 (2026-10-23) — Who makes ShowUppp, and where to write
 
 - **Support and Privacy Policy name the maker correctly.** Both pages now say "ShowUppp is made by Sungjee Yoo" (the App Store developer account is an individual one), not YOOOOOOOOO LLC.
