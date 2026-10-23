@@ -39,6 +39,13 @@ ok('the loose sets are named in the footnote',/2 sets with no muscle set/.test(r
 run(`(function(){DB.days[todayISO]={w:Array.from({length:30},(_,k)=>({part:'Legs',ex:'Leg Press',w:100,reps:[10],at:900+k})),upd:1};SEED=deriveAll();render();})()`);
 {const q=J(`(()=>{const n=[...document.querySelectorAll('.mw-name')].find(n=>n.textContent==='Quads');return {w:n.nextElementSibling.querySelector('i').style.width,v:n.nextElementSibling.nextElementSibling.textContent,m:muscleWeek().m.quads};})()`);
  ok('past 20 the bar stays full, the number keeps counting',parseFloat(q.w)===100&&q.v==='30',q);}
+ok('the body sits above the bars, front and back',run(`document.querySelectorAll('.mwcard .mw-view svg').length`)===2&&run(`!!document.querySelector('.mwcard .mw-figs + .mw-key + .mw-rows')`));
+ok('a muscle\'s shade on the body is its bar\'s band (chest 7 = mid)',J(`MW_TONE[mwBand(7)]`)===.6&&run(`document.querySelector('.mwcard .mw-tint[d]')!==null`));
+run(`document.querySelector('.mwcard .mw-row[data-mw-bar="Chest"]').click();`);
+ok('tapping a bar picks it: the other bars dim and the body shows that muscle alone',run(`document.querySelector('.mw-row[data-mw-bar="Chest"]').getAttribute('aria-pressed')`)==='true'&&run(`document.querySelectorAll('.mw-row.dim').length`)===13&&run(`document.querySelectorAll('.mw-tint.off').length`)>0&&run(`[...document.querySelectorAll('.mw-hit.sel')].every(p=>p.dataset.mwBar==='Chest')`));
+run(`document.querySelector('.mwcard .mw-hit[data-mw-bar="Chest"]').dispatchEvent(new MouseEvent('click',{bubbles:true}));`);
+ok('tapping it again on the body clears it',run(`document.querySelectorAll('.mw-row.dim').length`)===0);
+run(`DB.settings.sex='f';render();`);ok('the F setting draws the female figure',run(`document.querySelector('.mwcard .mw-view svg').getAttribute('viewBox')`)===`0 0 ${J('MW_FIGS["f-front"].w')} ${J('MW_FIGS["f-front"].h')}`);
 const copy=(run(`document.querySelector('.mwcard').textContent`)+run(`[...document.querySelectorAll('#view .ibtn.tipi')].map(b=>b.outerHTML).join(' ')`)).toLowerCase();
 ok('no instructions and no claims on the card',!/\bshould\b|\btarget\b|\bgoal\b|behind|ideal|recover|ready/.test(copy));
 console.log(fails?`\n${fails} FAILED`:'\nALL PASS');process.exit(fails?1:0);
