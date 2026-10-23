@@ -316,6 +316,7 @@ const SHELL = [
   './js/planner.js?v=4.6.396',
   './js/planner-flow.js?v=4.6.396',
   './css/planner-flow.css?v=4.6.396',
+  './js/muscleweek.js?v=4.6.396',
   './js/stats.js?v=4.6.396',
   './js/history.js?v=4.6.396',
   './js/settings.js?v=4.6.396',

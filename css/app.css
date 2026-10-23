@@ -5342,3 +5342,16 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 
 /* v4.6.394: a tip is one sentence -- it takes the room it has and breaks evenly */
 .tipn .tipt{flex:1;min-width:0;text-wrap:balance}
+/* v4.6.397: Muscle this week (js/muscleweek.js) -- one bar per muscle, 0 to 20 working sets,
+   a hairline mark at 10. Ink and accent only. */
+.mw-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 6px}
+.mw-head strong{font:600 15px/1.2 var(--body);color:var(--chalk)}
+.mw-head span{font:400 13px/1.2 var(--mono);color:var(--muted)}
+.mw-rows{display:grid;grid-template-columns:max-content 1fr 4.2ch;column-gap:12px;row-gap:11px;align-items:center}
+.mw-grp{grid-column:1/-1;margin-top:8px;font:500 11px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}
+.mw-name{font:500 14px/1.1 var(--body);color:var(--chalk)}
+.mw-bar{position:relative;height:8px;border-radius:999px;background:color-mix(in srgb,var(--line) 55%,transparent)}
+.mw-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent)}
+.mw-bar u{position:absolute;left:50%;top:-4px;bottom:-4px;width:1.5px;margin-left:-.75px;background:var(--chalk);opacity:.35}
+.mw-n{font:500 13px/1 var(--mono);color:var(--muted);text-align:right}
+.mw-foot{margin:14px 0 0;text-align:center;font:400 12px/1.35 var(--body);color:var(--faint)}

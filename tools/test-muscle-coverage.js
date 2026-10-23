@@ -24,6 +24,11 @@ for (const s of order) vm.runInContext(fs.readFileSync(path.join(dir, s), "utf8"
 vm.runInContext(`todayISO='2026-09-12';checkDate=()=>false;`,ctx);
 w.document.dispatchEvent(new w.Event("DOMContentLoaded", { bubbles: true }));
 const run = c => vm.runInContext(c, ctx);
+/* v4.6.397: Stats now shows working sets per muscle in this slot; the seven-day grid (muscleCard) is kept and
+   still tested here, mounted where the page used to put it. */
+const mountGrid=()=>vm.runInContext(`(function(){if(view!=='stats')return;let c=document.querySelector('.mccard');
+  if(!c){c=document.createElement('div');c.className='card mccard';document.getElementById('view').append(c);}
+  c.innerHTML=muscleCard();})()`,ctx);
 
 let fail = 0;
 const check = (name, expr, want) => {
@@ -71,7 +76,7 @@ run(`(function(){
   DB.days[D(3)]={w:[{part:'Legs',ex:'Hip Thrust',w:80,reps:[10,10],at:4}],upd:1};   /* glutes → visible Legs */
   DB.days[D(5)]={w:[{part:'Chest',ex:'Barbell Bench Press',w:60,reps:[8,8,8],at:5}],upd:1};
   DB.days[D(9)]={w:[{part:'Biceps',ex:'Barbell Curl',w:30,reps:[10],at:6}],upd:1};  /* outside window */
-  migrateCanon(); SEED=deriveAll(); view='stats'; render();})()`);
+  migrateCanon(); SEED=deriveAll(); view='stats'; render();})()`);mountGrid();
 
 // ---- 1. Deadlift day: primary only, exactly once
 check("Deadlift and Hip Thrust both roll into visible Legs",
@@ -94,7 +99,7 @@ check("a set outside the 7-day window is not counted",
 run(`(function(){
   const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};   /* v4.5.24: the fixture counts back from todayISO, not from the wall clock -- the app's coverage window is measured from todayISO, so a fixture on a different clock puts its days outside the window and the counts collapse */
   DB.days[D(2)]={w:[{part:'Back',ex:'Seated Cable Row',w:40,reps:[12],at:7}],upd:1};
-  SEED=deriveAll(); render();})()`);
+  SEED=deriveAll(); render();})()`);mountGrid();
 check("lats and upper-back roll up into one visible Back",
       `(function(){const c=muscleCoverage();const b=c.groups['Back'];
         return b.days.size===2 && !!b.mus['lats'] && !!b.mus['upper-back'];})()`, true);
@@ -249,7 +254,7 @@ run(`(function(){
   const D=n=>{const d=new Date(todayISO+'T00:00');d.setDate(d.getDate()-n);return d.toLocaleDateString('en-CA');};   /* v4.5.24: the fixture counts back from todayISO, not from the wall clock -- the app's coverage window is measured from todayISO, so a fixture on a different clock puts its days outside the window and the counts collapse */
   DB.days[D(2)].w.push({part:'Chest',ex:'My Weird Press',w:20,reps:[10],at:8});
   DB.days[D(2)].w.push({part:'Legs',ex:'Sled Push',w:60,reps:[5],at:9});
-  SEED=deriveAll(); render();})()`);
+  SEED=deriveAll(); render();})()`);mountGrid();
 check("an unknown Chest exercise credits Chest",
       `(function(){const c=muscleCoverage();return !!c.groups['Chest'].mus['chest'];})()`, true);
 check("an unknown Legs exercise lands visible-Legs, internal 'unassigned'",

@@ -12,11 +12,10 @@ const run=c=>vm.runInContext(c,ctx);let fail=0;
 function ok(name,value){console.log(value?'PASS':'FAIL',name);if(!value)fail++;}
 run(`DB.days[todayISO]={w:[{part:'Back',ex:'Row',w:40,reps:[8],at:1}],upd:1};SEED=deriveAll();view='stats';render();`);
 ok('Every week is absent',run(`![...document.querySelectorAll('#view h2')].some(h=>h.textContent.includes('Every week'))`));
-ok('This week is present',run(`[...document.querySelectorAll('#view h2')].some(h=>h.textContent.includes('This week'))`));
+ok('Muscle this week is present (v4.6.397: working sets per muscle took the week grid\'s place)',run(`[...document.querySelectorAll('#view h2')].some(h=>h.textContent.includes('Muscle this week'))`));
 for(const start of ['sunday','monday']){
   run(`DB.settings.weekStart='${start}';renderStats();`);
   ok(`${start} setting owns the first day`,run(`new Date(weekDays()[0]+'T00:00').getDay()===weekStartDow()`));
   ok(`${start} setting owns all seven dates`,run(`weekDays().length===7&&(new Date(weekDays()[6]+'T00:00')-new Date(weekDays()[0]+'T00:00'))/864e5===6`));
-  ok(`${start} period is printed`,run(`!!document.querySelector('.mccard .v4-note')&&document.querySelector('.mccard .v4-note').textContent.length>8`));
 }
 process.exit(fail?1:0);

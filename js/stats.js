@@ -1556,8 +1556,10 @@ function renderStats(){
      first proposal and is WRONG -- this is a rolling seven days ending today,
      not a calendar week, and a name that misstates its own window is worse
      than a clinical one. */
-  h+=`<h2>The last 7 days${hActs('mc','Days each group trained in the last 7, by each set\u2019s primary muscle. Tap a group for detail. Runs excluded.','About the last 7 days')}</h2>
-      <div class="card mccard">${muscleCard()}</div>`;
+  /* v4.6.397: the seven-day grid became working sets per muscle (js/muscleweek.js); muscleCard
+     stays for the tests that drive it until it is retired. */
+  h+=`<h2>Muscle this week${hActs('mc','Working sets for each muscle this week. Warm-ups and burnouts are left out. A set counts fully for the exercise\u2019s main muscle and half for the muscles that help. The mark is 10 sets, the 2026 ACSM guide for muscle growth; each bar runs to 20.','About muscle this week')}</h2>
+      <div class="card mwcard">${muscleWeekCard()}</div>`;
   cut('mc');
   h+=partShelfSection();   /* v4.6.318 */
   cut('ps');
