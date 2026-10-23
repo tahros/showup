@@ -1,5 +1,11 @@
 # ShowUppp — changelog
 
+## v4.6.400 (2026-10-23) — Keep city lighting inside real lights
+
+- Fixes the rectangular dark patches reported in New York, Shanghai and Manila. The denser v4.6.398 map had accepted connected sunset-sky pixels and broad glass surfaces inside skyline selection rectangles. Those non-light pixels were incorrectly animated as lighting masks.
+- Rebuilds all twelve city maps from compact, contrasting light shapes within reviewed facade interiors. Rejects oversized connected regions and broad blue-glass cladding; keeps the independent 3×–12× timing. The prior 15,285 detail count included false positives and is superseded by this corrected coverage.
+- Adds browser regression checks for the reported sky gaps, transparent pixels outside each mask, duplicate coverage and maximum light shape bounds. Keeps signup, city transitions, Pip and the v4.6.399 Muscle this week changes intact. No native dependency changes.
+
 ## v4.6.399 (2026-10-23) — Muscle this week
 
 - **Progress: "The last 7 days" grid becomes "Muscle this week"** (js/muscleweek.js). One bar per muscle (14, grouped Upper / Core & legs), each running 0–20 working sets with a hairline mark at 10 — the 2026 ACSM figure for muscle growth. No advice on the card; the mark is a reference.
