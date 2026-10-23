@@ -50,6 +50,12 @@ const mbSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
 function paywallPreview(){ return (typeof SANDBOX!=='undefined'&&SANDBOX)||mbGet('showup:paywall-preview')==='1'; }  /* v4.6.283: test mode is a new user after launch */
 function paywallLive(){ return paywallOn()||paywallPreview(); }
 /* v4.6.287: sample data is not a record -- it counts toward neither the free days nor founding */
+/* v4.6.392: THE FREE DAYS ARE DAYS LOGGED HERE. An import (every set it brings carries imp) made a
+   hundred past days use up the twenty free ones before a single set was logged in ShowUppp. A day
+   counts when at least one of its sets was logged in the app. The free days are counted by
+   trialDays(); loggedDays() still counts every day you trained, for medals and the club card. */
+function trialDays(){ if(DB?.settings?.demo) return 0; return Object.values(DB.days||{}).filter(d=>d&&(d.w||[]).some(s=>!s.imp)).length; }
+/* every day with training, imported or not (medals, the club card, the first-run tips) */
 function loggedDays(){ if(DB?.settings?.demo) return 0; return Object.values(DB.days||{}).filter(d=>d&&(d.w||[]).length).length; }
 function memberEntitled(now=Date.now()){
   try{
@@ -58,7 +64,7 @@ function memberEntitled(now=Date.now()){
   }catch(e){ return false; }
 }
 function memberFounding(){ return !!DB.settings?.founding&&!paywallPreview(); }
-function trialOver(){ return paywallLive()&&!memberEntitled()&&!memberFounding()&&loggedDays()>=TRIAL_DAYS; }
+function trialOver(){ return paywallLive()&&!memberEntitled()&&!memberFounding()&&trialDays()>=TRIAL_DAYS; }
 /* before any set lands on a date: true to go ahead, false when the paywall took over */
 function dayGate(iso){
   if((DB.days?.[iso]?.w||[]).length) return true;          // a day already started is always yours to finish
@@ -396,7 +402,7 @@ async function memberWelcome({wall,rect,angle,key}){
    brings -- opens the Subscribe screen at any point, not only at day 21. */
 function trialCardHTML(){
   if(!paywallLive()||isMember()||DB.settings.demo) return '';
-  const n=Math.min(loggedDays(),TRIAL_DAYS),sq=Array.from({length:TRIAL_DAYS},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
+  const n=Math.min(trialDays(),TRIAL_DAYS),sq=Array.from({length:TRIAL_DAYS},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
   const sub=n<TRIAL_DAYS?'Every day you log counts.':'Your record stays yours.';
   /* the coin as a picture, not its own button: no flip handler, nothing nested in the Join button */
   const coin=typeof clubCoinHTML==='function'?`<span class="club-brand mb-join-coin" aria-hidden="true">${clubCoinHTML('').replace(/^<button[^>]*>/,'<span class="club-coin-button">').replace(/<\/button>$/,'</span>')}</span>`:'';
@@ -408,7 +414,7 @@ function membershipRowHTML(){
   let body;
   if(memberFounding()) body='Founding member · free for good';
   else if(memberEntitled()) body='Member · <button type="button" class="linkbtn" data-mbm-open>Membership</button>';
-  else if(loggedDays()<TRIAL_DAYS) body=`Free logged days: ${loggedDays()} of ${TRIAL_DAYS}`;
+  else if(trialDays()<TRIAL_DAYS) body=`Free logged days: ${trialDays()} of ${TRIAL_DAYS}`;
   else body='Free logged days: 20 of 20 · <button type="button" class="linkbtn" data-mb-open>Membership options</button>';
   return `<div class="mb-row mono" id="mbRow">${body}</div>`;
 }
@@ -434,7 +440,7 @@ function membershipSettingsHTML(){
   const s=mbSub();
   const line=s.kind==='founding'?['Founding member','Free for good']
     :s.kind==='member'?[`${s.plan.label} · ${s.plan.price} ${s.plan.per}`,s.renews?`Renews ${mbDate(s.until)}`:`Ends ${mbDate(s.until)}`]
-    :[`Free logged days: ${Math.min(loggedDays(),TRIAL_DAYS)} of ${TRIAL_DAYS}`,'Not a member'];
+    :[`Free logged days: ${Math.min(trialDays(),TRIAL_DAYS)} of ${TRIAL_DAYS}`,'Not a member'];
   return `<h2>Membership</h2><div class="card"><button type="button" class="mbm-entry" data-mbm-open><span><b>${line[0]}</b><small class="${s.kind==='member'&&!s.renews?'mbm-ends':''}">${line[1]}</small></span><span class="mbm-chev" aria-hidden="true">›</span></button></div>`;
 }
 let _mbmPick=null,_mbmConfirm=false;
@@ -456,7 +462,7 @@ function mbManagePaint(){
     body=`<div class="mbm-hero">${coin}<div><span class="mbm-pill">Founding member</span><p class="mbm-lead">You were here before the club opened. Membership is yours, free for good.</p></div></div>
     <div class="mbm-card">${row('Plan','Founding')}${num?row('Member No',num):''}${s.since?row('Member since',mbDate(s.since+'T12:00')):''}${row('Price','Free, for good')}${row('Renewal','None needed')}</div>`;
   }else if(s.kind==='none'){
-    body=`<p class="mbm-lead">You’re not a member yet. ${Math.min(loggedDays(),TRIAL_DAYS)} of ${TRIAL_DAYS} free logged days used.</p>
+    body=`<p class="mbm-lead">You’re not a member yet. ${Math.min(trialDays(),TRIAL_DAYS)} of ${TRIAL_DAYS} free logged days used.</p>
     <button type="button" class="btn mb-buy" data-mbm-join><span>Join the club</span></button>`;
   }else{
     const other=MB_PRICES.find(p=>p.plan!==s.plan.plan),pick=_mbmPick&&_mbmPick!==s.plan.plan?other:null;

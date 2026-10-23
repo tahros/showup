@@ -5339,3 +5339,6 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 #onb .ob-read-scene .ob-read-comp{width:112px;height:112px;animation:obRead 2.8s ease-in-out infinite}
 @keyframes obRead{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-3px) rotate(-2deg)}65%{transform:translateY(-2px) rotate(2deg)}}
 @media(prefers-reduced-motion:reduce){#onb .ob-read-scene .ob-read-comp{animation:none}#onb .ob-wall-row i{transition:none}}
+
+/* v4.6.392: a tip is one sentence -- it takes the room it has and breaks evenly */
+.tipn .tipt{flex:1;min-width:0;text-wrap:balance}
