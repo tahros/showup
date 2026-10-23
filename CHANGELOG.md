@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.401 (2026-10-23) — Muscle this week: your own mark, a clearer pick
+
+- **The mark is yours to move.** Under the bars: "[10] sets per muscle per week" — tap the number for 6–20 (`DB.settings.mwMark`, synced). Every bar's mark moves with it, and the words sit centred under the mark's own line. Beneath: "A research-backed starting point for muscle growth" (or "10 is the research-backed starting point…" once moved) and a small **Why 10?** link to the IUSCA position stand (Schoenfeld et al., 2021). No full stops on the notes.
+- **A picked muscle is obvious.** Tap a bar or a muscle: its row gets a soft accent wash, its name in accent ink and its bar at full strength while the rest step back; on the body it shows at full strength (only a faint tint if it has no sets).
+- **The pinned figures sit right under the header on the phone** — the pin offset counted the safe area twice, leaving a gap the rows showed through.
+- Tests: test-muscle-week.js covers the mark, its copy and link, and the pick.
+
 ## v4.6.400 (2026-10-23) — Keep city lighting inside real lights
 
 - Fixes the rectangular dark patches reported in New York, Shanghai and Manila. The denser v4.6.398 map had accepted connected sunset-sky pixels and broad glass surfaces inside skyline selection rectangles. Those non-light pixels were incorrectly animated as lighting masks.

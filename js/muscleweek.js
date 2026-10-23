@@ -46,7 +46,12 @@ const MW_HELP_ID=Object.fromEntries(Object.entries(MW_HELP).map(([n,m])=>[exSlug
 const MW_ROWS=[['Upper',[['Chest',['upper-chest','chest','lower-chest']],['Front delts',['front-delts']],['Side delts',['side-delts']],['Rear delts',['rear-delts']],
     ['Lats',['lats']],['Upper back',['upper-back']],['Biceps',['biceps']],['Triceps',['triceps']]]],
   ['Core & legs',[['Abs',['abs']],['Obliques',['obliques']],['Quads',['quads']],['Hamstrings',['hamstrings']],['Glutes',['glutes']],['Calves',['calves']]]]];
-const MW_MARK=10,MW_SCALE=20;
+/* v4.6.401: THE MARK IS YOURS TO MOVE. It starts at 10 -- the studies' figure, and the card says
+   so -- and a tap on the number picks another (DB.settings.mwMark, synced like any setting). */
+const MW_MARK=10,MW_SCALE=20,MW_MARKS=[6,8,10,12,14,16,18,20];
+/* "Why 10?": the IUSCA position stand on resistance training for hypertrophy (Schoenfeld et al., 2021) */
+const MW_WHY='https://journal.iusca.org/index.php/Journal/article/view/81';
+const mwMark=()=>{const v=+DB.settings?.mwMark;return MW_MARKS.includes(v)?v:MW_MARK;};
 function mwRows(iso){
   if(iso===todayISO)return ((DB.days[iso]||{}).w||[]).map(s=>({part:s.part,ex:s.ex,w:s.w,reps:s.reps||[]}));
   return (SEED.sessions?.[iso]||[]).map(r=>({part:r[0],ex:r[1],w:r[2],reps:r[3]||[]}));
@@ -86,7 +91,7 @@ function mwFig(key,vals,label){
   const paths=Object.entries(F.r).map(([r,d])=>{
     const bars=MW_REGION[r];if(!bars)return `<path class="mw-mu" d="${d}"/>`;
     const v=Math.max(...bars.map(b=>vals[b]||0)),t=MW_TONE[mwBand(v)],on=!_mwSel||bars.includes(_mwSel);
-    return `<path class="mw-mu" d="${d}"/>${t?`<path class="mw-tint${on?'':' off'}" d="${d}" style="fill-opacity:${t}"/>`:''}<path class="mw-hit${_mwSel&&on?' sel':''}" d="${d}" data-mw-bar="${bars[0]}"/>`;
+    return `<path class="mw-mu" d="${d}"/>${t||(_mwSel&&on)?`<path class="mw-tint${on?(_mwSel?(t?' pick':' pick zero'):''):' off'}" d="${d}" style="fill-opacity:${t}"/>`:''}<path class="mw-hit${_mwSel&&on?' sel':''}" d="${d}" data-mw-bar="${bars[0]}"/>`;
   }).join('');
   return `<figure class="mw-view"><svg viewBox="0 0 ${F.w} ${F.h}" role="img" aria-label="${label}"><path class="mw-sil" d="${F.sil}"/>${paths}</svg><figcaption>${label}</figcaption></figure>`;
 }
@@ -96,16 +101,25 @@ function muscleWeekCard(){
   const range=d0.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+(d0.getMonth()===d6.getMonth()?d6.getDate():d6.toLocaleDateString('en-US',{month:'short',day:'numeric'}));
   const vals={};for(const [,list] of MW_ROWS)for(const [name,keys] of list)vals[name]=keys.reduce((a,k)=>a+(m[k]||0),0);
   const fig=DB.settings?.sex==='f'?'f':'m';
+  const mark=mwMark(),mk=(mark/MW_SCALE*100).toFixed(1);
   const rows=MW_ROWS.map(([g,list])=>`<div class="mw-grp">${g}</div>`+list.map(([name])=>{
     const v=vals[name],w=Math.min(100,v/MW_SCALE*100),t=MW_TONE[mwBand(v)];
-    return `<button type="button" class="mw-row${_mwSel===name?' sel':''}${_mwSel&&_mwSel!==name?' dim':''}" data-mw-bar="${name}" aria-pressed="${_mwSel===name}"><span class="mw-name">${name}</span><span class="mw-bar" role="img" aria-label="${name}: ${mwNum(v)} working sets"><i style="width:${w.toFixed(1)}%;opacity:${t||0}"></i><u></u></span><span class="mw-n">${mwNum(v)}</span></button>`;
+    return `<button type="button" class="mw-row${_mwSel===name?' sel':''}${_mwSel&&_mwSel!==name?' dim':''}" data-mw-bar="${name}" aria-pressed="${_mwSel===name}"><span class="mw-name">${name}</span><span class="mw-bar" role="img" aria-label="${name}: ${mwNum(v)} working sets"><i style="width:${w.toFixed(1)}%;opacity:${t||0}"></i><u style="left:${mk}%"></u></span><span class="mw-n">${mwNum(v)}</span></button>`;
   }).join('')).join('');
   return `<div class="mw-head"><strong>${range}</strong><span>${total} working set${total===1?'':'s'}</span></div>
     <div class="mw-stick"><div class="mw-figs">${mwFig(fig+'-front',vals,'Front')}${mwFig(fig+'-back',vals,'Back')}</div>
     <div class="mw-key" aria-hidden="true"><span><b style="opacity:.3"></b>1–4</span><span><b style="opacity:.6"></b>5–9</span><span><b></b>10+ sets</span></div></div>
-    <div class="mw-rows">${rows}</div>
-    <p class="mw-foot">Mark at 10 sets.${loose?` ${loose} set${loose===1?'':'s'} with no muscle set aren’t in a bar.`:''}</p>`;
+    <div class="mw-rows">${rows}<span></span><span class="mw-marktrack"><span class="mw-mark" style="left:clamp(68px,${mk}%,calc(100% - 68px))">
+      <label><select class="mw-pick" aria-label="Where the mark sits, in sets per muscle per week">${MW_MARKS.map(v=>`<option value="${v}"${v===mark?' selected':''}>${v}</option>`).join('')}</select> sets per muscle per week</label>
+      <small>${mark===MW_MARK?'A research-backed starting point for muscle growth':'10 is the research-backed starting point for muscle growth'}</small>
+      <a class="mw-why" href="${MW_WHY}" target="_blank" rel="noopener">Why 10?</a></span></span><span></span></div>
+    ${loose?`<p class="mw-foot">${loose} set${loose===1?'':'s'} with no muscle set aren’t in a bar</p>`:''}`;
 }
+document.addEventListener('change',e=>{
+  const t=e.target.closest&&e.target.closest('.mwcard .mw-pick');if(!t)return;
+  DB.settings.mwMark=+t.value;if(typeof save==='function')save(true);
+  const c=document.querySelector('.mwcard');if(c)c.innerHTML=muscleWeekCard();
+});
 document.addEventListener('click',e=>{
   const t=e.target.closest&&e.target.closest('.mwcard [data-mw-bar]');if(!t)return;
   _mwSel=_mwSel===t.dataset.mwBar?null:t.dataset.mwBar;

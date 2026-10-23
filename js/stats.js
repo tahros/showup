@@ -1558,7 +1558,7 @@ function renderStats(){
      than a clinical one. */
   /* v4.6.399: the seven-day grid became working sets per muscle (js/muscleweek.js); muscleCard
      stays for the tests that drive it until it is retired. */
-  h+=`<h2>Muscle this week${hActs('mc','Working sets for each muscle this week. Warm-ups and burnouts are left out. A set counts fully for the exercise\u2019s main muscle and half for the muscles that help. The mark is 10 sets, the 2026 ACSM guide for muscle growth; each bar runs to 20.','About muscle this week')}</h2>
+  h+=`<h2>Muscle this week${hActs('mc','Working sets for each muscle this week. Warm-ups and burnouts are left out. A set counts fully for the exercise\u2019s main muscle and half for the muscles that help. The mark starts at 10 sets, the research-backed starting point for muscle growth (2026 ACSM guide; Why 10? links the study); tap the number to move it. Each bar runs to 20.','About muscle this week')}</h2>
       <div class="card mwcard">${muscleWeekCard()}</div>`;
   cut('mc');
   h+=partShelfSection();   /* v4.6.318 */
