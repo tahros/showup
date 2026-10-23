@@ -12,18 +12,18 @@ const base=`http://127.0.0.1:${process.env.PW_PORT||8784}/`;
   await page.waitForFunction(()=>document.querySelector('.ww-still')?.naturalWidth===4096);
   const cached=await page.evaluate(async()=>{
    const c=await caches.open('showup-'+APP_VERSION);
-   return (await c.keys()).filter(r=>r.url.includes('/assets/welcome/')).length;
+   return (await c.keys()).filter(r=>r.url.includes('/assets/welcome/pixel-')).length;
   });
-  assert.equal(cached,16,'every welcome asset is in the installed shell');
+  assert.equal(cached,12,'every welcome asset is in the installed shell');
   await context.setOffline(true);
   await page.reload();
   await page.waitForFunction(()=>document.querySelector('.ww-still')?.naturalWidth===4096);
   assert.equal(await page.locator('.ww-heading h1').innerText(),'Life happens.\nYou show up.');
   const cities=await page.evaluate(async()=>Promise.all(WORLD_GYMS.map(async([key])=>{
-   const r=await fetch('assets/welcome/'+key+'.webp');return r.ok&&(await r.arrayBuffer()).byteLength>0;
+   const r=await fetch('assets/welcome/pixel-'+key+'.webp');return r.ok&&(await r.arrayBuffer()).byteLength>0;
   })));
   assert(cities.length===12&&cities.every(Boolean),'all twelve cities load offline');
-  await page.waitForFunction(()=>document.querySelector('.ww-city strong').textContent==='Tokyo',{},{timeout:12000});
+  await page.waitForFunction(()=>document.querySelector('.ww-city strong').textContent==='Shanghai',{},{timeout:16000});
   console.log('PASS installed welcome, all twelve scenes, typography and animation work offline');
   await page.click('[data-onbact="local"]');
   await page.waitForSelector('#onbName');

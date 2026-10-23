@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.395 (2026-10-23) — Twelve living cities
+
+- The first signup screen now rotates through twelve matching pixel-art gyms. Seoul has a distinct warm dawn view; Tokyo retains its nighttime railway. The approved logo, Pip animation, cream signup panel and existing entry actions stay in place.
+- Animated window lights and glow across all twelve cities. New York uses a background without airborne snow plus falling flakes; São Paulo has moving two-way traffic. Shorter Tokyo train, Shanghai and Sydney boats, LA surf, exterior rain in Bangkok and London, Paris birds and sunlight, and restrained sky movement complete the scenes.
+- City pause holds only transitions. Hidden screens, dialogs and reduced-motion preferences stop ambient effects; setup cleanup disposes the render loops and observers. All city backgrounds are cached offline and included in the OTA update, with no new native plugin requirement.
+- Browser checks cover all twelve shipped effects, pause isolation, reduced motion, disposal, signup and offline entry. Changes from v4.6.394 are retained.
+
 ## v4.6.394 (2026-10-23) — Tips take turns; sets by feel group by reps
 
 - **No milestone card on Today.** The "DAY 500 · Half the mountain" card is gone, for live crossings and imports alike; the share card still draws.

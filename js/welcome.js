@@ -1,5 +1,5 @@
 /* First-run presentation only; existing delegated authentication and setup remain intact. */
-const WORLD_GYMS=[['seoul','Seoul'],['tokyo','Tokyo'],['la','Los Angeles']];
+const WORLD_GYMS=[["seoul","Seoul"],["tokyo","Tokyo"],["shanghai","Shanghai"],["bangkok","Bangkok"],["manila","Manila"],["la","Los Angeles"],["nyc","New York"],["saopaulo","São Paulo"],["london","London"],["paris","Paris"],["rome","Rome"],["sydney","Sydney"]];
 let onbWorldStop=null;
 function onbWorldHTML(){
   return `<section class="ww-root" aria-label="Welcome to ShowUppp">
