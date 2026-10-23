@@ -46,6 +46,12 @@ ok('tapping a bar picks it: the other bars dim and the body shows that muscle al
 run(`document.querySelector('.mwcard .mw-hit[data-mw-bar="Chest"]').dispatchEvent(new MouseEvent('click',{bubbles:true}));`);
 ok('tapping it again on the body clears it',run(`document.querySelectorAll('.mw-row.dim').length`)===0);
 run(`DB.settings.sex='f';render();`);ok('the F setting draws the female figure',run(`document.querySelector('.mwcard .mw-view svg').getAttribute('viewBox')`)===`0 0 ${J('MW_FIGS["f-front"].w')} ${J('MW_FIGS["f-front"].h')}`);
+ok('the mark starts at 10, halfway along the bar, and its words say where 10 comes from',run(`document.querySelector('.mw-bar u').style.left`)==='50%'&&run(`document.querySelector('.mw-pick').value`)==='10'&&/^Mark at[\s\S]*sets$/.test(run(`document.querySelector('.mw-mark label').textContent.trim()`))&&/10 is the figure from studies/.test(run(`document.querySelector('.mw-mark').textContent`)));
+ok('no full stops on the card\'s notes',!/\.\s*$/.test(run(`[...document.querySelectorAll('.mw-mark label,.mw-mark small,.mw-foot')].map(e=>e.textContent.trim()).join('|')`)));
+run(`(function(){const s=document.querySelector('.mw-pick');s.value='12';s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+ok('picking 12 moves every mark to 60% and is kept as a setting',J(`DB.settings.mwMark`)===12&&run(`[...document.querySelectorAll('.mw-bar u')].every(u=>u.style.left==='60%')`)&&run(`document.querySelector('.mw-pick').value`)==='12');
+ok('...and the note still says the studies\' figure is 10',/10 is the figure from studies/.test(run(`document.querySelector('.mw-mark').textContent`)));
+run(`DB.settings.mwMark=10;`);
 const copy=(run(`document.querySelector('.mwcard').textContent`)+run(`[...document.querySelectorAll('#view .ibtn.tipi')].map(b=>b.outerHTML).join(' ')`)).toLowerCase();
 ok('no instructions and no claims on the card',!/\bshould\b|\btarget\b|\bgoal\b|behind|ideal|recover|ready/.test(copy));
 console.log(fails?`\n${fails} FAILED`:'\nALL PASS');process.exit(fails?1:0);
