@@ -1556,8 +1556,10 @@ function renderStats(){
      first proposal and is WRONG -- this is a rolling seven days ending today,
      not a calendar week, and a name that misstates its own window is worse
      than a clinical one. */
-  h+=`<h2>The last 7 days${hActs('mc','Days each group trained in the last 7, by each set\u2019s primary muscle. Tap a group for detail. Runs excluded.','About the last 7 days')}</h2>
-      <div class="card mccard">${muscleCard()}</div>`;
+  /* v4.6.395: the seven-day grid became a body map (js/bodymap.js); muscleCard stays for the
+     tests that drive it until it is retired. */
+  h+=`<h2>Your body, lately${hActs('mc','Days since each muscle last had work, from the sets you logged: brightest today, a step fainter each day, gone after six. A set counts for its main muscle, and more lightly for the muscles that help. Tap a body part to see what its exercises lean on. An estimate from your log, not a measurement.','About your body, lately')}</h2>
+      <div class="card bmcard">${bodyMapCard()}</div>`;
   cut('mc');
   h+=partShelfSection();   /* v4.6.318 */
   cut('ps');

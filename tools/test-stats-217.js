@@ -10,7 +10,7 @@ w.document.dispatchEvent(new w.Event('DOMContentLoaded',{bubbles:true}));const r
 function ok(name,value,detail=''){console.log(value?'PASS':'FAIL',name,detail);if(!value)fail++;}
 run(`(function(){DB.days={};const md=todayISO.slice(5);for(const y of [2024,2025,2026]){const d=y+'-'+md;DB.days[d]={w:[{part:'Legs',ex:'Squat',w:80,reps:[8,8],at:1},{part:'Run',ex:'Run',w:3,mins:27,secs:0,at:2}],upd:1,doneAll:y===2026};}SEED=deriveAll();view='stats';render();})()`);
 const titles=run(`[...document.querySelectorAll('#view h2')].map(h=>h.firstChild.textContent.trim())`);
-const ordered=['Workout complete','This week','Your strength progress','You keep showing up','Year over year','Your running story','Run by run','Distance over time'];
+const ordered=['Workout complete','Your body, lately','Your strength progress','You keep showing up','Year over year','Your running story','Run by run','Distance over time'];
 ok('Stats tells the approved story in order',ordered.every((t,i)=>titles.indexOf(t)>(i?titles.indexOf(ordered[i-1]):-1)),titles.join(' / '));
 ok('retired summaries stay absent',!titles.some(t=>/Woven|growing|Monthly pace|Every week|^Weight$/i.test(t)));
 ok('Workout complete retains Share',run(`!!document.querySelector('.plate-card .stats-share')`));

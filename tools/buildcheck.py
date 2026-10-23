@@ -42,7 +42,8 @@ shell_count = len(re.findall(r"'\./[^']+\?v=", sw))
 # v4.6.118: 33 — js/reminders.js.
 # v4.6.128: 34 — js/heat-replay.js.
 # v4.6.132: 35 — js/health.js.
-if shell_count != 40: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 40")   # +day-review.js: offline daily comparison
+# v4.6.395: 41 — js/bodymap.js (Your body, lately).
+if shell_count != 41: fail.append(f"sw SHELL has {shell_count} stamped assets, expected 41")   # +day-review.js: offline daily comparison
 for a in re.findall(r"'\./([^']+)'", sw):
     if not (d/a.split('?')[0]).exists(): fail.append(f"offline SHELL asset missing: {a}")
 

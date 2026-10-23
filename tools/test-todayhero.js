@@ -171,12 +171,12 @@ check("the session card carries NO i dot any more",
 /* v4.6.164: the Settings weight section is gone; the tip mechanics move to
    Progress's "The last 7 days" tip, the same trigger and float. */
 run(`view='stats'; render();`);
-const TIP=`[...document.querySelectorAll('#view .ibtn.tipi')].find(b=>b.getAttribute('aria-label')==='About the last 7 days')`;
+const TIP=`[...document.querySelectorAll('#view .ibtn.tipi')].find(b=>b.getAttribute('aria-label')==='About your body, lately')`;
 check("a retained tip trigger renders (Progress · The last 7 days)",
       `!!${TIP}`, true);
 check("its aria label is specific, not 'Info'",
       `${TIP}.getAttribute('aria-label')`,
-      "About the last 7 days");
+      "About your body, lately");
 check("tip opens, and the trigger reports expanded",
       `(()=>{const b=${TIP};
              b.click(); const tf=document.getElementById('tipFloat');
