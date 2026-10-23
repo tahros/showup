@@ -370,7 +370,12 @@ function plSessionGroups(rows){
      Only at the END of a column: once a column runs out inside a group it stays
      out, so no column ever has a hole in the middle of its reps. A real change of
      weight, unit, warm-up or bodyweight still starts a new row. */
-  const shape=s=>s?JSON.stringify([s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||'']):null,groups=[];
+  /* v4.6.392: A SET WITH NO WEIGHT IS ITS OWN ROW. Grouping says "these sets were one
+     run at one load"; a set by feel has no load to share, so twelve of them merged
+     into a single "1–12" line although each will be lifted at a weight chosen on the
+     day. A feel or no-weight set (not bodyweight) never joins a group. */
+  let feelN=0;const feel=s=>s.nw||(!s.bw&&!s.su&&!(+s.w>0));
+  const shape=s=>s?(feel(s)?'feel'+(++feelN):JSON.stringify([s.w,s.su||'',!!s.bw,!!s.nw,!!s.est,s.qualifier||''])):null,groups=[];
   for(const row of rows){
     const cols=[shape(row.last),shape(row.target)],solo=row.last||row.target?null:JSON.stringify(row.actual.map(shape)),prev=groups.at(-1);
     const fits=!!prev&&prev.unlinked===!!row.unlinked&&(solo!==null
@@ -392,7 +397,8 @@ function plCompactBody(ex,groups,hasLast,hasPlan,choice,latest,fresh){
     const runs=[];
     for(const set of sets){const key=JSON.stringify([set.w,set.su||'',!!set.bw,!!set.nw,!!set.est]);const prev=runs.at(-1);if(prev?.key===key)prev.sets.push(set);else runs.push({key,sets:[set]});}
     if(runs.length>1)return runs.map(run=>cell(run.sets,kind,'',run.sets.includes(latest)?feedback:'')).join('');
-    const s=sets[0],load=s.nw?FEEL_WORD:s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):wLabel(ex,s.w);
+    // v4.6.392: a past set with reps and no weight says so, not "0"
+    const s=sets[0],load=s.nw?FEEL_WORD:s.bw?(s.w?'BW + '+wDisp(s.w):'BW'):!(+s.w>0)&&!s.su?(kind==='sc-history'?'No weight':FEEL_WORD):wLabel(ex,s.w);
     return `<div class="sc-value sc-group-value ${kind}"><button type="button" class="sc-load-weight" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps"><span class="sc-weight">${loadHTML((s.est?'≈':'')+load)}<span class="sc-times"> ×</span></span></button><span class="sc-reps-wrap"><span class="sc-reps">${sets.map(s=>`<button type="button" ${plTapAttrs(s)} aria-label="Load ${hesc(load)} and ${s.r??s.reps} reps" class="sc-rep${isHold(s.su)?' hold':''}${fresh&&s===latest?' sc-chip-fresh':''}">${hesc(String(setNum(s.r??s.reps,s.su)))}</button>`).join('')}</span>${feedback}</span></div>`;
   };
   return groups.map(({rows})=>{

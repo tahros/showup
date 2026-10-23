@@ -418,7 +418,10 @@ function pwLastLine(ex,n){
   const sets=ls.rows.filter(r=>(r[1]||[]).length);if(!sets.length)return null;
   const top=Math.max(0,...sets.map(r=>r[0]||0)),work=sets.filter(r=>(r[0]||0)>=top*0.8),reps=work.flatMap(r=>r[1]);
   const w=Math.max(0,...work.map(r=>r[0]||0)),body=typeof isBody==='function'&&isBody(ex);
-  const load=body?(w>0?`BW +${trainListWeight(w)} ${U()}`:'BW'):`${trainListWeight(w)} ${U()}`;
+  /* v4.6.392: NO WEIGHT ON RECORD IS BY FEEL, NOT ZERO. An import that carried reps
+     and no load (a machine logged without its pin, a Hevy row left blank) planned
+     "0 kg", a weight nobody lifts; the plan now says what it knows: the reps, by feel. */
+  const load=body?(w>0?`BW +${trainListWeight(w)} ${U()}`:'BW'):w>0?`${trainListWeight(w)} ${U()}`:'by feel';
   const count=n||reps.length;
   return {load,reps:Array.from({length:count},(_,i)=>reps[Math.min(i,reps.length-1)])};
 }

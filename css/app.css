@@ -4746,7 +4746,7 @@ body:has(#imp) #toast.on{transform:translateX(-50%)}
 
 /* v4.6.277: first-run tips (js/today.js). Ink pill: black on light, white on dark. */
 .tipn{--tip-ax:40px;position:fixed;z-index:180;display:flex;gap:6px;align-items:center;max-width:min(330px,calc(100vw - 28px));padding:8px 16px 8px 6px;border-radius:18px;
-  background:var(--chalk);color:var(--ground);font:600 14px/1.222 var(--body,system-ui);box-shadow:0 12px 28px rgba(0,0,0,.28);
+  background:var(--chalk);color:var(--ground);font:600 13px/1.25 var(--body,system-ui);box-shadow:0 12px 28px rgba(0,0,0,.28);
   animation:tipIn .52s cubic-bezier(.3,1.6,.5,1) both}
 .tipn.out{animation:tipOut .26s ease-in both}
 .tipn:after{content:'';position:absolute;left:var(--tip-ax,40px);width:14px;height:14px;background:var(--chalk);border-radius:2px;transform:rotate(45deg)}

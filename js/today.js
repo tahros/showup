@@ -1640,19 +1640,19 @@ function msMoment(hit){
      Look    l1  Choose exercise         l2   the Stats tab        l3   the Settings tab
    State: DB.settings.tips = {on:1, <key>:1 …}; `on` drops when every key is done. */
 const TIPS=[
-  {k:'set',sel:'#addrep',t:'Swipe for reps, then tap Add set',dir:'up',ax:.5,r:18,done:'#addrep',also:['ex']},
-  {k:'ex',sel:'#view [data-ex]',when:()=>view==='lift'&&!document.getElementById('addrep'),t:'Tap an exercise to log it',dir:'down',ax:.14,r:20,done:'#view [data-ex]'},
-  {k:'fin',sel:'#liveWorkoutFinish',when:t=>t.set||(t.ex&&!document.getElementById('addrep')),t:'Tap Finish when you’re done',dir:'up',ax:.5,r:999,done:'#liveWorkoutFinish'},
+  {k:'set',sel:'#addrep',t:'Swipe for reps, then tap Add set',dir:'up',ax:.5,r:18,done:'#addrep',also:['ex'],after:['ex','pt','l1']},
+  {k:'ex',sel:'#view [data-ex]',when:()=>view==='lift'&&!document.getElementById('addrep'),t:'Tap an exercise to log it',dir:'down',ax:.14,r:20,done:'#view [data-ex]',after:['l1']},
+  {k:'fin',sel:'#liveWorkoutFinish',when:t=>t.set||(t.ex&&!document.getElementById('addrep')),t:'Tap Finish when you’re done',dir:'up',ax:.5,r:999,done:'#liveWorkoutFinish',after:['set','ex']},
   {k:'pd',sel:()=>`.pf-dates-page [data-pw="date"][data-date="${todayISO}"]`,t:'Tap the days you’ll train',dir:'down',ax:.5,r:12,done:'.pf-dates-page [data-pw="date"]'},
-  {k:'pp',sel:'.pf-dates-page [data-pw="pf-generate"]',when:t=>t.pd,t:'Tap Plan to write your workouts',dir:'down',ax:.5,r:16,done:'[data-pw="pf-generate"],[data-pw="paste"],[data-pw="paste-open"]'},
-  {k:'pe',sel:'.pf-routine-page [data-pw="pf-row-toggle"]',t:'Tap ✎ to change weights or reps',dir:'down',ax:.5,r:12,done:'[data-pw="pf-row-toggle"],[data-pw="pf-save"]'},
+  {k:'pp',sel:'.pf-dates-page [data-pw="pf-generate"]',when:t=>t.pd,t:'Tap Plan to write your workouts',dir:'down',ax:.5,r:16,after:['pd'],done:'[data-pw="pf-generate"],[data-pw="paste"],[data-pw="paste-open"]'},
+  {k:'pe',sel:'.pf-routine-page [data-pw="pf-row-toggle"]',t:'Tap ✎ to change weights or reps',dir:'down',ax:.5,r:12,after:['pp'],done:'[data-pw="pf-row-toggle"],[data-pw="pf-save"]'},
   {k:'pt',sel:'#view .today-focus-card .btn[data-ex]',when:()=>view==='today',t:'Tap Start when you’re at the gym',dir:'up',ax:.5,r:14,done:'#view .today-focus-card .btn[data-ex]'},
   {k:'i1',sel:'#imp [data-imp="file"]',when:()=>!document.querySelector('#imp .im-item'),t:'Upload your Strong or Hevy export here',dir:'up',ax:.5,r:20,done:'#imp [data-imp="file"]'},
-  {k:'i2',sel:'#imp .im-item:not(.im-ok):not(.im-ready)',t:'Check the items marked for you',dir:'up',ax:.5,r:18,done:'#imp [data-imp="confirm"],#imp [data-imp="part"],#imp [data-imp="keep"],#imp [data-imp="toconfirm"]'},
-  {k:'i3',sel:'#imp [data-imp="progress"]',t:'Your past days are in Progress',dir:'down',ax:.5,r:16,done:'#imp [data-imp="progress"],#imp [data-imp="log"],#imp [data-imp="undo"]'},
+  {k:'i2',sel:'#imp .im-item:not(.im-ok):not(.im-ready)',t:'Check the items marked for you',dir:'up',ax:.5,r:18,after:['i1'],done:'#imp [data-imp="confirm"],#imp [data-imp="part"],#imp [data-imp="keep"],#imp [data-imp="toconfirm"]'},
+  {k:'i3',sel:'#imp [data-imp="progress"]',t:'Your past days are in Progress',dir:'down',ax:.5,r:16,after:['i2'],done:'#imp [data-imp="progress"],#imp [data-imp="log"],#imp [data-imp="undo"]'},
   {k:'l1',sel:'#goLift',when:()=>view==='today'&&tipLogged()===0,t:'Choose an exercise to start',dir:'up',ax:.5,r:12,done:'#goLift'},
-  {k:'l2',sel:'#nav [data-v="stats"]',when:t=>view==='today'&&(t.l1||t.pt||tipLogged()>0),t:'Your progress lives in Stats',dir:'down',ax:.5,r:20,done:'#nav [data-v="stats"]'},
-  {k:'l3',sel:'#nav [data-v="sync"]',when:t=>view==='today'&&t.l2,t:'Units and tips live in Settings',dir:'down',ax:.5,r:20,done:'#nav [data-v="sync"]'}
+  {k:'l2',sel:'#nav [data-v="stats"]',when:t=>view==='today'&&(t.l1||t.pt||tipLogged()>0),t:'Your progress lives in Stats',dir:'down',ax:.5,r:20,daily:1,done:'#nav [data-v="stats"]'},
+  {k:'l3',sel:'#nav [data-v="sync"]',when:t=>view==='today'&&t.l2,t:'Units and tips live in Settings',dir:'down',ax:.5,r:20,daily:1,done:'#nav [data-v="sync"]'}
 ];
 const TIP_BY=Object.fromEntries(TIPS.map(x=>[x.k,x]));
 let tipCur=null,tipQ=0;
@@ -1660,7 +1660,25 @@ function tipLogged(){return typeof loggedDays==='function'?loggedDays():Object.v
 function tipSel(c){return typeof c.sel==='function'?c.sel():c.sel;}
 function tipsState(){const t=DB.settings.tips;return t&&typeof t==='object'?t:null;}
 function tipsStart(){DB.settings.tips={on:1};DB.settingsAt=Date.now();}
-function tipDone(k){const t=tipsState();if(!t||t[k])return;t[k]=1;(TIP_BY[k]?.also||[]).forEach(x=>t[x]=1);if(TIPS.every(x=>t[x.k]))t.on=0;DB.settingsAt=Date.now();save(true);if(tipCur?.k===k)tipHide();tipQueue();}
+/* v4.6.392: TIPS TAKE TURNS. Closing one used to show the next at once (Today's three ran
+   l1, l2, l3 back to back), so a new user spent the first minute tapping Got it. Now a tip
+   that was on screen starts a rest: the next waits TIP_GAP and a different screen. The one
+   exception is the next step of what you just DID (Add set, then Finish; pick days, then
+   Plan): that tip is the answer to "what now", so it follows at once -- but not after Got it,
+   which means "not now". The tab-bar tips (daily) show at most one a day. */
+const TIP_GAP=4*60e3;let tipRestView=null,tipMoved=true,tipRestT=0;
+function tipViewKey(){return [typeof view!=='undefined'?view:'',document.querySelector('.pf-dates-page')?'d':'',document.querySelector('.pf-routine-page')?'r':'',(()=>{const i=document.getElementById('imp');return i&&!i.hidden?'i':'';})()].join('|');}
+function tipRested(c,t){
+  if(tipCur?.k===c.k)return true;
+  if(c.daily&&t.day===todayISO)return false;
+  if(!t.at)return true;
+  if(t.by==='do'&&(c.after||[]).includes(t.lk))return true;
+  if(!tipMoved&&tipViewKey()!==tipRestView)tipMoved=true;   // you have been somewhere else since
+  return Date.now()-t.at>=TIP_GAP&&tipMoved;
+}
+function tipDone(k,how){const t=tipsState();if(!t||t[k])return;t[k]=1;(TIP_BY[k]?.also||[]).forEach(x=>t[x]=1);if(TIPS.every(x=>t[x.k]))t.on=0;
+  if(tipCur?.k===k){t.at=Date.now();t.by=how||'do';t.lk=k;t.day=todayISO;tipRestView=tipViewKey();tipMoved=false;clearTimeout(tipRestT);tipRestT=setTimeout(tipQueue,TIP_GAP+60);}
+  DB.settingsAt=Date.now();save(true);if(tipCur?.k===k)tipHide();tipQueue();}
 function tipVisible(el){if(!el)return false;const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&getComputedStyle(el).visibility!=='hidden';}
 function tipBlocked(el){
   if(document.querySelector('#onb:not([hidden])'))return true;
@@ -1670,7 +1688,7 @@ function tipBlocked(el){
 function tipWhich(){
   const t=tipsState();if(!t||!t.on)return null;
   for(const c of TIPS){
-    if(t[c.k]||(c.when&&!c.when(t)))continue;
+    if(t[c.k]||(c.when&&!c.when(t))||!tipRested(c,t))continue;
     const el=document.querySelector(tipSel(c));
     if(tipVisible(el)&&!tipBlocked(el))return c.k;
   }
@@ -1742,7 +1760,7 @@ function tipCheck(){
 function tipQueue(){if(tipQ||(!tipCur&&!tipsState()?.on))return;tipQ=setTimeout(tipCheck,350);}
 document.addEventListener('click',e=>{
   const t=tipsState();if(!t||!t.on)return;
-  if(e.target.closest('[data-tip-ok]')){tipDone(e.target.closest('.tipn')?.dataset.tip);return;}
+  if(e.target.closest('[data-tip-ok]')){tipDone(e.target.closest('.tipn')?.dataset.tip,'ok');return;}
   const hit=TIPS.find(c=>!t[c.k]&&e.target.closest(c.done));
   if(hit)tipDone(hit.k);else tipQueue();
 },true);

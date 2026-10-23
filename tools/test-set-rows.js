@@ -30,4 +30,16 @@ g=labels([['1',null,175],['2',175,175]]);
 ok('a column cannot start partway into a row either',g==='1 2',g);
 const solo=run(`(()=>{const A=w=>({w,r:8,su:''});const rows=[{label:'1',last:{w:100,r:8,su:''},target:null,actual:[]},{label:'+',last:null,target:null,actual:[A(100)]},{label:'+',last:null,target:null,actual:[A(100)]}];return plSessionGroups(rows).map(g=>g.rows.length).join();})()`);
 ok('sets logged with nothing to compare still group only with each other',solo==='1,2',solo);
+/* v4.6.392: a set with no weight is its own row */
+const feelRows=run(`(()=>{const F=r=>({w:0,r,su:'',nw:true});const rows=[10,10,10,10,8,8,8,8,8,8,8,8].map((r,i)=>({label:String(i+1),last:null,target:F(r),actual:[]}));return plSessionGroups(rows).length;})()`);
+ok('twelve sets by feel are twelve rows, not one "1–12"',feelRows===12,feelRows);
+const zeroLast=run(`(()=>{const Z=r=>({w:0,r,su:''});const rows=[1,2,3].map(i=>({label:String(i),last:Z(10),target:{w:0,r:10,su:'',nw:true},actual:[]}));return plSessionGroups(rows).length;})()`);
+ok('last time with reps and no weight does not merge either',zeroLast===3,zeroLast);
+const bw=run(`(()=>{const B=()=>({w:0,r:12,su:'',bw:true});const rows=[1,2,3].map(i=>({label:String(i),last:B(),target:B(),actual:[]}));return plSessionGroups(rows).length;})()`);
+ok('bodyweight sets still group (BW is a load)',bw===1,bw);
+const hold=run(`(()=>{const H=()=>({w:0,r:60,su:'s'});const rows=[1,2,3].map(i=>({label:String(i),last:H(),target:H(),actual:[]}));return plSessionGroups(rows).length;})()`);
+ok('timed holds at no weight still group',hold===1,hold);
+const line=run(`(()=>{SEED.lastSess=SEED.lastSess||{};SEED.lastSess['Leg Press']={d:'2026-10-01',rows:[[0,[10,10]],[0,[8,8]]]};SEED.lastSess['Bench Press']={d:'2026-10-01',rows:[[60,[8,8,8]]]};return [pwLastLine('Leg Press'),pwLastLine('Bench Press')];})()`);
+ok('history with reps and no weight plans by feel, not "0 kg"',line[0]&&line[0].load==='by feel'&&line[0].reps.join(' ')==='10 10 8 8',line[0]);
+ok('history with a weight still plans that weight',line[1]&&/^60 /.test(line[1].load),line[1]);
 console.log(fails?`\n${fails} FAILED`:'\nALL PASS');process.exit(fails?1:0);
