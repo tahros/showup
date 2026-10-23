@@ -37,7 +37,7 @@ const PAYWALL_IOS=true;
 /* v4.6.385: FOUNDING CLOSES. The web keeps no paywall, so without a date anyone could
    log a day on the web, earn "founding" and carry it into the iOS app through sync.
    Records marked before this date stay founding for good (D7); none are marked after. */
-const FOUNDING_UNTIL='2026-11-15';
+const FOUNDING_UNTIL='2026-11-01';
 const paywallOn=()=>PAYWALL_ON||(PAYWALL_IOS&&typeof NATIVE_SHELL!=='undefined'&&NATIVE_SHELL&&!(typeof SANDBOX!=='undefined'&&SANDBOX));
 const TRIAL_DAYS=20, GRACE_MS=7*864e5;
 const MB_PRICES=[{plan:'yearly',label:'Yearly',price:'$29.99',per:'a year',note:'$2.50 a month, billed yearly',badge:'Save 50%'},

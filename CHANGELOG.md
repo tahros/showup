@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.392 (2026-10-22) — Founding membership closes on November 1
+
+- **Founding closes on 2026-11-01** (was 2026-11-15; `FOUNDING_UNTIL` in js/membership.js). Records with a logged day are marked founding members until the end of October 31; from November 1 nobody new is marked. Anyone already marked stays free for good.
+- test-membership-store.js follows the new date.
+
 ## v4.6.391 (2026-10-22) — The streak wall shows
 
 - Fix: an edit in v4.6.390 left a reduced-motion block open in css/app.css, so every rule after it applied only with Reduce Motion on. On a normal phone the reading screen showed no streak wall and no crew, and the import's answer-all card, the day ×, its confirm row, the one-line "We found your routine." and Edit lost their styles. The block is closed.

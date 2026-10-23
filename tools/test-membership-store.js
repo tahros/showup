@@ -72,10 +72,10 @@ async function boot({ios=false,sandbox=false,days={},settings={},store={},today=
    ok('web: Continue says the App Store version', await b.run(`memberBuy('yearly')`)==='unavailable');
    ok('web: a record is still marked founding before FOUNDING_UNTIL', b.run('foundingMark()')===true);
  }
- { const b=await boot({days:record(5),today:'2026-11-15'});
+ { const b=await boot({days:record(5),today:'2026-11-01'});
    ok('web: founding closes on FOUNDING_UNTIL (nobody new is marked)', b.run('foundingMark()')===false && !b.run('DB.settings.founding'));
  }
- { const b=await boot({days:record(5),today:'2026-11-15',settings:{founding:'2026-10-01'}});
+ { const b=await boot({days:record(5),today:'2026-11-01',settings:{founding:'2026-10-01'}});
    ok('founding marked before the date stays founding for good', b.run('memberFounding()')===true);
  }
  /* the iOS app */
