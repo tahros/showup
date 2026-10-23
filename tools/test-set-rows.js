@@ -38,7 +38,7 @@ const mixed=run(`(()=>{const F=r=>({w:0,r,su:'',nw:true});const rows=[12,10,10,8
 ok('by feel, a change of reps starts a new row',lab(mixed)==='1 2–3 4',lab(mixed));
 const at=n=>run(`(()=>{const S=()=>({w:100,r:5,su:''});return plSessionGroups(Array.from({length:${n}},(_,i)=>({label:String(i+1),last:S(),target:S(),actual:[]})));})()`);
 ok('5 x 5 at one weight stays one row',lab(at(5))==='1–5',lab(at(5)));
-ok('eight at one weight split evenly, 4 + 4',lab(at(8))==='1–4 5–8',lab(at(8)));
+ok('a long run at one weight is untouched (one row, as before)',lab(at(8))==='1–8',lab(at(8)));
 const six=run(`(()=>{const F=()=>({w:0,r:10,su:'',nw:true});return plSessionGroups([1,2,3,4,5,6].map(i=>({label:String(i),last:null,target:F(),actual:[]})));})()`);
 ok('six by feel at one rep count: 3 + 3, never 4 + 2',lab(six)==='1–3 4–6',lab(six));
 const bw=run(`(()=>{const B=()=>({w:0,r:12,su:'',bw:true});const rows=[1,2,3].map(i=>({label:String(i),last:B(),target:B(),actual:[]}));return plSessionGroups(rows).length;})()`);

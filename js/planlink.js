@@ -388,15 +388,15 @@ function plSessionGroups(rows,ex){
     if(fits){prev.rows.push(row);cols.forEach((c,i)=>{if(c===null&&prev.seen[i])prev.out[i]=true;});}
     else groups.push({rows:[row],cols,seen:cols.map(Boolean),out:[false,false],solo,unlinked:!!row.unlinked});
   }
-  /* v4.6.392: A LONG RUN SPLITS INTO EVEN ROWS. Eight 8s by feel read 5–8, 9–12, not
-     5–12: a row by feel holds at most four sets, a row at one weight five (so 5 x 5
-     stays one line). Rows come out even -- six is 3 + 3, never 4 + 2. */
-  return groups.flatMap(g=>{const n=g.rows.length,max=String(g.cols.find(Boolean)||'').startsWith('["feel"')?PL_ROW_FEEL:PL_ROW_MAX;if(n<=max)return [g];
+  /* v4.6.392: A LONG RUN BY FEEL SPLITS INTO EVEN ROWS. Eight 8s by feel read 5–8,
+     9–12, not 5–12: a row by feel holds at most four sets, and rows come out even --
+     six is 3 + 3, never 4 + 2. Runs at a weight keep one row (the fold caps them). */
+  return groups.flatMap(g=>{const n=g.rows.length,max=PL_ROW_FEEL;if(n<=max||!String(g.cols.find(Boolean)||'').startsWith('["feel"'))return [g];
     const k=Math.ceil(n/max),base=Math.floor(n/k),extra=n%k,out=[];let at=0;
     for(let i=0;i<k;i++){const m=base+(i<extra?1:0);out.push({...g,rows:g.rows.slice(at,at+m)});at+=m;}
     return out;});
 }
-const PL_ROW_FEEL=4,PL_ROW_MAX=5;
+const PL_ROW_FEEL=4;
 function plTapAttrs(s){
   return `data-sc-load="${s.w}" data-sc-reps="${s.r??s.reps}"`;
 }
