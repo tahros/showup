@@ -28,8 +28,8 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg
    await p.evaluate(theme=>{DB.settings.theme=theme;DB.settings.mascotMotion='still';applyTheme();onbStep=1;onbRender();},theme);
    // The first-run door carries the official mascot + Lifted p trio lockup.
    await p.locator('.ww-brand').waitFor();
-   assert.equal(await p.locator('.ww-brand[alt="ShowUppp"]').count(),1);
-   assert.equal(await p.locator('.ww-brand').getAttribute('src'),'assets/welcome/logo.png');
+   assert.equal(await p.locator('.ww-brand[aria-label="ShowUppp"]').count(),1);
+   assert.equal(await p.locator('.ww-wordmark').getAttribute('src'),'assets/welcome/wordmark-white.svg');
    assert.equal(await p.locator('[data-onbact]').count(),3,'onboarding choices unchanged');
    assert(await p.locator('[data-onbact="local"]').isVisible());
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');

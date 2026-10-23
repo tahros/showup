@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.393 (2026-10-23) — A living city, a clear first step
+
+- First signup screen: approved pixel gyms in Tokyo, Los Angeles and Seoul above an opaque cream panel with the existing Apple, Google and on-device entry choices. The centered logo combines one animated 3D Pip with the original vector wordmark; copy remains "Life happens. You show up."
+- Fine 6.5px tiles reveal each city from bottom-right toward top-left without a white dissolve. Pause holds city changes, including a transition in progress, while Pip, the wordmark and pixel lights continue.
+- Pip uses the approved 4096px renderer with blinking, glances and rocking, and retains a local still fallback. Reduced motion stops ambient animation. Closing setup disposes frames, observers and WebGL resources. Existing account handlers, saved records, routine setup and native plugin requirements are unchanged.
+- Updated onboarding and brand browser coverage; added canvas corner, pause, resize and disposal checks. Shipped assets are available offline and included in the OTA manifest.
+
 ## v4.6.392 (2026-10-22) — Founding membership closes on November 1
 
 - **Founding closes on 2026-11-01** (was 2026-11-15; `FOUNDING_UNTIL` in js/membership.js). Records with a logged day are marked founding members until the end of October 31; from November 1 nobody new is marked. Anyone already marked stays free for good.
