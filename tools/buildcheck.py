@@ -1243,6 +1243,28 @@ if not _re.search(r"\.heatgrid\{[^}]*row-gap:\d+px", _heat_flat):
     fail.append("show up: the day gap belongs on the grid track (v3.3.314)")
 # v3.3.356: same -- the heatmap's blocklist guard retires with the tab swipe.
 
+# -- v4.6.403: STATS TYPE ROLES (DESIGN.md "Stats type roles"). The cards named here set every
+#    font from the role table and nothing else -- Muscle this week shipped rows at 14/500 beside
+#    Best lifts' 13/600 and read as a different app. Add a card's class prefix here when it joins.
+_ROLES={("600","13","body"),("600","13","mono"),("400","13","mono"),("700","13","mono"),
+        ("400","10","mono"),("600","11","body"),("400","11","body"),("500","11","body"),("600","11","mono"),
+        ("400","10","body"),("500","10","body"),
+        ("400","11","mono"),   # heading aside: the small mono words beside an h2 ("last 12 months")
+        ("500","9","mono")}    # tag: a pill inside a row title (Best lifts' "Big 3")
+_STATS_TYPE=r"\.(?:mw|bl)-"   # Muscle this week, Best lifts
+for _m in _re.finditer(r"([^{}]+)\{([^{}]*)\}",css):
+    _sel,_body=_m.group(1).strip(),_m.group(2)
+    if not _re.search(_STATS_TYPE,_sel): continue
+    for _f in _re.finditer(r"(?<![-\w])font:\s*(\d{3})\s+([\d.]+)px[^;]*?var\(--(body|mono)\)",_body):
+        if (_f.group(1),_f.group(2),_f.group(3)) not in _ROLES:
+            fail.append(f"stats type roles: {_sel[-60:]} sets {_f.group(1)} {_f.group(2)}px {_f.group(3)} -- not a role in DESIGN.md (v4.6.403)")
+    _sz=[_f.group(1) for _f in _re.finditer(r"(?<![-\w])font:\s*\d{3}\s+([\d.]+)px",_body)]
+    for _w in _re.finditer(r"(?<![-\w])font-(weight|size):\s*([^;]+)",_body):
+        # a font-size that repeats the shorthand's own size is the text-size system's requirement
+        # (test-text-size: a var() shorthand followed by font-* states its size), not a patch
+        if _w.group(1)=="size" and _w.group(2).strip()==(_sz[0]+"px" if _sz else None): continue
+        fail.append(f"stats type roles: {_sel[-60:]} sets font-{_w.group(1)} {_w.group(2).strip()} -- use a role's whole font (v4.6.403)")
+
 # -- shell size
 n = len(idx.encode())
 if n >= 8192: fail.append(f"index.html shell is {n} bytes (limit 8192)")

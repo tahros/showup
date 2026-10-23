@@ -167,3 +167,23 @@ wasn't decoration standing in for taste. The cards carried grouping the
 mono type couldn't hold alone, and the accent bars anchored the tracked
 uppercase labels. A critique of generic AI design was correct in general
 and wrong for this app. T4 dropped. Doctrine unchanged: judged by use.
+
+### Stats type roles (2026-10-23, v4.6.403) — enforced
+Sungjee's call: Muscle this week's rows read bigger than Best lifts', and Best lifts is right.
+Every Stats card sets its text in these roles and nothing else. buildcheck reads the
+declarations of the cards listed in its STATS_TYPE guard and fails on any other size, weight
+or family (sizes are the base; Settings' text size adds to all of them alike).
+
+| role        | font                         | for                                             |
+|-------------|------------------------------|-------------------------------------------------|
+| row title   | 600 13px/19px sans           | the thing a row is about (a lift, a muscle)     |
+| row value   | 600 13px/19px mono, tabular  | its number (weight, sets); unit/× in 400 13 mono; a total in 700 |
+| meta        | 400 10px/14px mono           | dates, counts under a row; uppercase = a kicker |
+| card head   | 600 11px sans (+400 11 sans) | the line that names the card's period            |
+| label       | 500 11px sans / 400 11 sans  | captions, legends, segment controls              |
+| note        | 400 10px/14px sans           | sentences at the foot; links 500 10 sans         |
+| aside       | 400 11px mono                | the small words beside a card's h2              |
+| tag         | 500 9px mono                 | a pill inside a row title                        |
+
+Large numerals that ARE the card (a streak count, a year total) are the one exception, and stay
+as their cards set them.

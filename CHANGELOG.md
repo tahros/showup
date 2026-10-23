@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.403 (2026-10-23) — One type scale for Stats cards
+
+- **Muscle this week reads like Best lifts.** Its rows were 14/500 and its numbers 13/500 muted beside Best lifts' 13/600 — a different app on the same page. Now: muscle names in the row-title role (600 13 sans), set counts in the row-value role (600 13 mono, tabular), the card's dates as a card head (600 11), legend and captions as labels (11), the mark's sentence and Why 10? as notes (10).
+- **The roles are written down and enforced.** DESIGN.md "Stats type roles" is the table (row title, row value, meta, card head, label, note, aside, tag); buildcheck fails any Muscle this week or Best lifts declaration that sets another size, weight or family, or patches a font with font-size / font-weight. Best lifts' two such patches (the total's weight) is now a whole font; a font-size that repeats the shorthand (the text-size system needs it before font-variant) is allowed — no visual change.
+
 ## v4.6.402 (2026-10-23) — The planner no longer freezes on "changed while you were editing"
 
 - **Leaving the conflict is always allowed.** When Save met a newer saved plan, the "changed while you were editing" card stayed over every page — tapping Dates, Edit or back changed the tab but not the screen, so the planner looked frozen. Going anywhere (a step tab, back, reopening the planner) now steps out of the question; your draft is untouched and the next Save asks again (js/planner-flow.js `pfNavigate`, `pfBack`, `pwOpen`).

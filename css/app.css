@@ -4381,7 +4381,7 @@ html body #nav #gearBtn:not(.on){background:transparent;box-shadow:none}
 .bl-row svg{width:8px;height:14px;margin-top:2px;fill:none;stroke:var(--muted);stroke-width:2}
 .bl-none b{color:var(--muted)}
 .bl-total{margin:0 -18px;width:calc(100% + 36px);padding:14px 18px 16px;cursor:default;background:color-mix(in srgb,var(--chalk) 3%,transparent)}
-.bl-total b{font-weight:700}
+.bl-total b{font:700 13px/19px var(--mono)}
 .bl-total i{color:var(--muted)}
 
 /* v4.6.174 — Include / Avoid. One glyph (.xp-ic), one quiet treatment: an
@@ -5345,14 +5345,14 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 /* v4.6.399: Muscle this week (js/muscleweek.js) -- the body above, one bar per muscle below (0 to
    20 working sets, a hairline mark at 10). The body's shade and the bar's are the same scale. */
 .mw-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 4px}
-.mw-head strong{font:600 15px/1.2 var(--body);color:var(--chalk)}
-.mw-head span{font:400 13px/1.2 var(--mono);color:var(--muted)}
+.mw-head strong{font:600 11px/1.3 var(--body);color:var(--chalk)}   /* card head (Every part: "Days trained") */
+.mw-head span{font:400 11px/1.3 var(--body);color:var(--muted)}
 .mw-stick{position:sticky;top:calc(var(--hdr-h,76px) - 12px);z-index:2;margin:0 -18px;padding:14px 18px 6px;border-radius:0 0 4px 4px;background:var(--surface);
   box-shadow:0 10px 12px -12px color-mix(in srgb,var(--chalk) 22%,transparent)}
 .mw-figs{display:flex;justify-content:center;gap:clamp(18px,8vw,40px);margin:0}
 .mw-view{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
 .mw-view svg{display:block;height:150px;width:auto;overflow:visible}
-.mw-view figcaption{font:500 11px/1 var(--body);color:var(--faint)}
+.mw-view figcaption{font:500 11px/1.2 var(--body);color:var(--muted)}   /* label */
 .mw-sil{fill:color-mix(in srgb,var(--line) 50%,var(--surface))}
 .mw-mu{fill:color-mix(in srgb,var(--line) 80%,var(--surface))}
 :root[data-theme="dark"] .mw-sil{fill:color-mix(in srgb,var(--line) 78%,var(--surface))}
@@ -5362,33 +5362,33 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .mw-tint.pick{fill-opacity:1!important}
 .mw-tint.pick.zero{fill-opacity:.16!important}   /* picked but no sets: shown where it is, not as trained */
 .mw-hit{fill:transparent;cursor:pointer}
-.mw-key{display:flex;justify-content:center;gap:16px;margin:12px 0 4px;font:400 12px/1 var(--body);color:var(--muted)}
+.mw-key{display:flex;justify-content:center;gap:16px;margin:12px 0 4px;font:400 11px/1.2 var(--body);color:var(--muted)}   /* legend */
 .mw-key b{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px;background:var(--accent)}
 .mw-rows{display:grid;grid-template-columns:max-content 1fr 4.2ch;column-gap:12px;row-gap:3px;align-items:center}
 .mw-row{all:unset;box-sizing:border-box;grid-column:1/-1;display:grid;grid-template-columns:subgrid;align-items:center;margin:0 -10px;padding:0 10px;border-radius:12px;cursor:pointer;
   transition:background-color var(--dur-quick,.15s) ease}
-.mw-row>span{padding:5px 0;transition:opacity var(--dur-quick,.15s) ease}
+.mw-row>span{padding:3px 0;transition:opacity var(--dur-quick,.15s) ease}
 /* v4.6.401: the picked row is lifted, not just bolded: a soft wash of the accent behind it, its
    name in accent ink, its bar at full strength -- and every other row steps back */
 .mw-row.dim>span{opacity:.35}
 .mw-row.sel{background:color-mix(in srgb,var(--accent) 10%,transparent)}
-.mw-row.sel .mw-name{font-weight:600;color:var(--accent-ink,var(--accent))}
-.mw-row.sel .mw-n{font-weight:600;color:var(--chalk)}
+.mw-row.sel .mw-name{color:var(--accent-ink,var(--accent))}
+.mw-row.sel .mw-n{color:var(--chalk)}
 .mw-row.sel .mw-bar i{opacity:1!important}
 .mw-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.mw-grp{grid-column:1/-1;margin-top:10px;font:500 11px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}
-.mw-name{font:500 14px/1.1 var(--body);color:var(--chalk)}
+.mw-grp{grid-column:1/-1;margin-top:10px;font:400 10px/14px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}   /* meta, as a kicker */
+.mw-name{font:600 13px/19px var(--body);color:var(--chalk)}   /* row title (Best lifts: the lift) */
 .mw-bar{position:relative;height:8px;border-radius:999px;background:color-mix(in srgb,var(--line) 55%,transparent)}
 .mw-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent)}
 .mw-bar u{position:absolute;top:-4px;bottom:-4px;width:1.5px;margin-left:-.75px;background:var(--chalk);opacity:.35}
-.mw-n{font:500 13px/1 var(--mono);color:var(--muted);text-align:right}
-.mw-foot{margin:12px 0 0;text-align:center;font:400 12px/1.35 var(--body);color:var(--faint)}
+.mw-n{font:600 13px/19px var(--mono);font-size:13px;color:var(--chalk);text-align:right;font-variant-numeric:tabular-nums}   /* row value (Best lifts: the weight) */
+.mw-foot{margin:12px 0 0;text-align:center;font:400 10px/14px var(--body);color:var(--faint)}   /* note */
 /* v4.6.401: the mark's words sit under the mark itself, centred on its line, and move with it */
 .mw-marktrack{position:relative;height:62px;margin-top:6px}
 .mw-mark{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;white-space:nowrap}
-.mw-mark label{font:400 12px/1.2 var(--body);color:var(--muted)}
-.mw-mark small{font:400 11px/1.2 var(--body);color:var(--faint)}
-.mw-why{font:500 11px/1.2 var(--body);color:var(--accent-ink,var(--accent));text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;padding:2px 4px;margin:-2px -4px}
-.mw-pick{-webkit-appearance:none;appearance:none;margin:0 1px;padding:1px 6px;border:0;border-radius:6px;font:600 12px/1.2 var(--mono);color:var(--chalk);
+.mw-mark label{font:400 11px/1.3 var(--body);color:var(--muted)}   /* legend */
+.mw-mark small{font:400 10px/14px var(--body);color:var(--faint)}   /* note */
+.mw-why{font:500 10px/14px var(--body);color:var(--accent-ink,var(--accent));text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;padding:2px 4px;margin:-2px -4px}
+.mw-pick{-webkit-appearance:none;appearance:none;margin:0 1px;padding:1px 6px;border:0;border-radius:6px;font:600 11px/1.3 var(--mono);color:var(--chalk);
   background:color-mix(in srgb,var(--line) 55%,transparent);cursor:pointer;text-align:center}
 .mw-pick:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
