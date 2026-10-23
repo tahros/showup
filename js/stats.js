@@ -1675,10 +1675,21 @@ function psData(per){
       if(r[1]==='Run'||r[0]==='Run'){g.Run.days.add(iso);g.Run.km+=+r[2]||0;g.Run.sets++;continue;}
       if(!(r[3]||[]).length)continue;
       const m=typeof exMuscle==='function'?exMuscle(r[1],r[0]):null,vis=(m&&MUSCLE_PART[m])||r[0],gg=g[vis];if(!gg)continue;
-      gg.days.add(iso);gg.sets+=r[3].length;gg.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);}
+      gg.days.add(iso);gg.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);}
+    /* v4.6.404: SETS ARE WORKING SETS. Counting every set put warm-ups and burnouts in, so this card
+       and Muscle this week said two different numbers for the same chest in the same week. Sets now
+       count the way Muscle this week counts them (realSets, per exercise per day); days and weight
+       moved are unchanged. */
+    for(const [vis,n] of Object.entries(psWorking(rows)))if(g[vis])g[vis].sets+=n;
   }
   return {from,parts:PS_PARTS.map(p=>({p,days:g[p].days.size,kg:g[p].kg,km:g[p].km,sets:g[p].sets}))};
 }
+/* working sets per body part (by each set's main muscle) in one day's rows */
+function psWorking(rows){const by={},out={};
+  for(const r of rows){if(r[1]==='Run'||r[0]==='Run'||!(r[3]||[]).length)continue;(by[r[1]]=by[r[1]]||[]).push(r);}
+  for(const [ex,rs] of Object.entries(by)){const m=typeof exMuscle==='function'?exMuscle(ex,rs[0][0]):null,vis=(m&&MUSCLE_PART[m])||rs[0][0];
+    const n=typeof realSets==='function'?realSets(rs.map(r=>({ex,w:r[2],reps:r[3]}))).length:rs.reduce((a,r)=>a+r[3].length,0);out[vis]=(out[vis]||0)+n;}
+  return out;}
 /* the figure's drawing; part=null draws it all quiet */
 function psDraw(part,col){
   const L=col||(part&&PART_COLORS[part])||'var(--muted)',C=k=>part&&part===k?L:'var(--ps-off)',N='var(--ps-off)';
@@ -1702,8 +1713,19 @@ const PS_ABS='M41.6 59.2Q50 61.2 58.4 59.2L57.3 77Q50 80.6 42.7 77Z';
 function psDelts(){let d='';for(const s of [-1,1])d+=`M${50+s*18.1} 41.5C${50+s*16.2} 38.4 ${50+s*11.2} 37.6 ${50+s*9.8} 38.7L${50+s*11} 48C${50+s*13.5} 50.6 ${50+s*17.4} 50.4 ${50+s*19} 47.4C${50+s*19.6} 45.5 ${50+s*19.2} 43.2 ${50+s*18.1} 41.5Z`;return d;}
 /* a tile: the quiet figure, and over it the lit one behind a clip that the entrance raises from the floor */
 let psUid=0;
+/* v4.6.404: the tiles draw the figure Muscle this week draws (mwBodySVG), each lighting only its part in
+   the part's colour, on the side the part sits: the back for Back and Triceps, the front for the rest.
+   Cardio lights the heart. The old mannequin (psDraw) stays only as the fallback if the figure is missing. */
+const PS_REG={Chest:['chest'],Back:['traps','lats'],Shoulder:['delt','rdelt'],Legs:['quads','calves','hams','glutes'],Biceps:['biceps'],Triceps:['triceps'],Sixpack:['abs','obliques']};
+const psView=part=>part==='Back'||part==='Triceps'?'back':'front';
+function psHeart(key,col){const F=MW_FIGS[key],c=F&&F.r.chest?mwBox(F.r.chest):null;if(!c)return '';const cx=(c.x0+c.x1)/2,cy=(c.y0+c.y1)/2,k=(c.x1-c.x0)/30;
+  return `<path transform="translate(${cx} ${cy+1}) scale(${k.toFixed(3)}) translate(-8.4 -6.6)" d="M8.4 2.2C5.8-1.4 0-.2 0 4.4 0 8.8 5.2 12 8.4 14.8 11.6 12 16.8 8.8 16.8 4.4 16.8-.2 11-1.4 8.4 2.2Z" style="fill:${col}"/>`;}
 function psFigure(part,col){const id='psc'+(psUid++);
-  return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="160"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part,col)}</g></svg>`;}
+  if(typeof mwBodySVG!=='function'||typeof MW_FIGS==='undefined')return `<svg class="ps-fig" viewBox="0 0 100 160" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-10" y="0" width="120" height="160"/></clipPath></defs><g>${psDraw(null)}</g><g class="ps-lit" clip-path="url(#${id})">${psDraw(part,col)}</g></svg>`;
+  const key=mwSex()+'-'+psView(part),F=MW_FIGS[key],L=col||PART_COLORS[part]||'var(--muted)',regs=PS_REG[part]||[];
+  const quiet=mwBodySVG(key,()=>null),lit=mwBodySVG(key,r=>regs.includes(r)?L:null,{lit:true,extra:part==='Run'?psHeart(key,L):''});
+  const inner=s=>s.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
+  return `<svg class="ps-fig" viewBox="0 0 ${F.w} ${F.h}" aria-hidden="true"><defs><clipPath id="${id}"><rect class="ps-clip" x="-20" y="0" width="${F.w+40}" height="${F.h}"/></clipPath></defs><g>${inner(quiet)}</g><g class="ps-lit" clip-path="url(#${id})">${inner(lit)}</g></svg>`;}
 function psBody(){
   const st=psState(),{parts,from}=psData(st.p),w=st.m==='w',ss=st.m==='s';
   const val=x=>w?(x.p==='Run'?toD(x.km):x.p==='Sixpack'&&!x.kg?null:toU(x.kg)):ss?x.sets:x.days;
@@ -1728,7 +1750,7 @@ function psBody(){
 }
 function partShelfSection(){
   setTimeout(psArm,0);
-  return `<h2>Every part, showing up${typeof hActs==='function'?hActs('ps','Days, sets or weight moved for each body part, by each set’s primary muscle. Tap a part for its muscles, as shares. Cardio counts run days, runs and distance.','About every part'):''}</h2><div class="card ps-card" id="psCard">${psBody()}</div>`;
+  return `<h2>Every part, showing up${typeof hActs==='function'?hActs('ps','Days, working sets or weight moved for each body part, by each set’s primary muscle. Sets count working sets only, as in Muscle this week: warm-ups and burnouts are left out. Tap a part for its muscles, as shares. Cardio counts run days, runs and distance.','About every part'):''}</h2><div class="card ps-card" id="psCard">${psBody()}</div>`;
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest?.('[data-ps]');if(!b)return;const card=b.closest('.ps-card');if(!card)return;
@@ -1757,7 +1779,7 @@ function psPlay(card){
   if(card.classList.contains('ps-played'))return;card.classList.add('ps-played');
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   card.querySelectorAll('.ps-t').forEach((t,i)=>{
-    t.querySelector('.ps-clip')?.animate?.([{transform:"translateY(160px)"},{transform:"translateY(0)"}],{duration:760,delay:120+i*90,easing:'cubic-bezier(.3,.7,.2,1)',fill:'backwards'});
+    t.querySelector('.ps-clip')?.animate?.([{transform:"translateY(100%)"},{transform:"translateY(0)"}],{duration:760,delay:120+i*90,easing:'cubic-bezier(.3,.7,.2,1)',fill:'backwards'});
     if(t.classList.contains('ps-today'))t.querySelector('.ps-lit')?.animate?.([{filter:'none'},{filter:'drop-shadow(0 0 6px var(--ps-glow))'},{filter:'none'}],{duration:1100,delay:120+i*90+700,easing:'ease-in-out'});});
   psCount(card);}
 function psArm(){
@@ -1766,7 +1788,14 @@ function psArm(){
   const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();psPlay(card);}},{threshold:.35});io.observe(card);}
 /* THE SHEET. Tap a part: the body front and back, each muscle in that part lit by how often it was
    trained, then one row per muscle -- days, when last, and the exercises that got it there. */
+/* v4.6.404: the sheet draws the same figure; each region takes its muscle's shade (the chest grades
+   upper, mid and lower top to bottom, as it always has) */
+const PS_MREG={delt:['front-delts','side-delts'],rdelt:['rear-delts','side-delts'],traps:['upper-back'],lats:['lats'],biceps:['biceps'],triceps:['triceps'],
+  abs:['abs'],obliques:['obliques'],quads:['quads'],hams:['hamstrings'],glutes:['glutes'],calves:['calves']};
 function psMuscleSVG(view,fill){
+  if(typeof mwBodySVG==='function'&&typeof MW_FIGS!=='undefined'){
+    const key=mwSex()+'-'+(view==='b'?'back':'front');
+    return mwBodySVG(key,r=>r==='chest'?(['upper-chest','chest','lower-chest'].some(m=>fill(m))?[fill('upper-chest')||fill('chest'),fill('chest')||fill('upper-chest')||fill('lower-chest'),fill('lower-chest')||fill('chest')]:null):(PS_MREG[r]||[]).map(m=>fill(m)).find(Boolean)||null,{cls:'ps-big'});}
   const N='var(--ps-off)',F=m=>fill(m)||N,u='psm'+(psUid++),back=view==='b';
   const seg=(x1,y1,x2,y2,w,c)=>`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
   const clip=(id,rects)=>`<clipPath id="${u}${id}">${rects.map(r=>`<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}"/>`).join('')}</clipPath>`;
@@ -1793,14 +1822,18 @@ function psMuscles(part,per){
     for(const r of rows){if(r[1]==='Run'||!(r[3]||[]).length)continue;
       const m=typeof exMuscle==='function'?exMuscle(r[1],r[0]):null,vis=(m&&MUSCLE_PART[m])||r[0];if(vis!==part)continue;
       const k=m&&MUSCLE_PART[m]?m:'unassigned',x=mus[k]=mus[k]||{days:new Set(),sets:0,kg:0,last:'',ex:{}};x.last=iso;
-      if(iso>=from){pdays.add(iso);x.days.add(iso);x.sets+=r[3].length;x.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);x.ex[r[1]]=(x.ex[r[1]]||0)+r[3].length;}}}
+      if(iso>=from){pdays.add(iso);x.days.add(iso);x.kg+=(+r[2]||0)*r[3].reduce((a,b)=>a+(+b||0),0);x.ex[r[1]]=(x.ex[r[1]]||0)+r[3].length;}}
+    /* v4.6.404: the sheet's sets are working sets too, per muscle */
+    if(iso>=from){const by={};for(const r of rows){if(r[1]==='Run'||!(r[3]||[]).length)continue;(by[r[1]]=by[r[1]]||[]).push(r);}
+      for(const [ex,rs] of Object.entries(by)){const m=typeof exMuscle==='function'?exMuscle(ex,rs[0][0]):null,vis=(m&&MUSCLE_PART[m])||rs[0][0];if(vis!==part)continue;
+        const k=m&&MUSCLE_PART[m]?m:'unassigned';if(!mus[k])continue;mus[k].sets+=typeof realSets==='function'?realSets(rs.map(r=>({ex,w:r[2],reps:r[3]}))).length:rs.reduce((a,r)=>a+r[3].length,0);}}}
   Object.defineProperty(mus,'_days',{value:pdays.size});return mus;}
 function psAgo(iso){if(!iso)return '';const n=Math.round((new Date(todayISO+'T00:00')-new Date(iso+'T00:00'))/864e5);return n===0?'today':n===1?'yesterday':n+' days ago';}
 function psSheet(part){
   const st=psState(),per=psPer(st.p),nm=part==='Shoulder'?'Shoulders':(typeof partLabel==='function'?partLabel(part):part);
   const col=PART_COLORS[part]||'var(--muted)';let body='';
   if(part==='Run'){const {parts}=psData(st.p),r=parts.find(x=>x.p==='Run');let last='';for(const iso of Object.keys(DB.days||{}))if(iso<=todayISO&&(DB.days[iso].w||[]).some(s=>s.ex==='Run'||s.part==='Run')&&iso>last)last=iso;
-    body=`<div class="ps-figs"><svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${psDraw('Run')}</svg></div>
+    body=`<div class="ps-figs">${typeof mwBodySVG==='function'&&typeof MW_FIGS!=='undefined'?mwBodySVG(mwSex()+'-front',()=>null,{cls:'ps-big',extra:psHeart(mwSex()+'-front',col)}):`<svg class="ps-big" viewBox="0 0 100 160" aria-hidden="true">${psDraw('Run')}</svg>`}</div>
       <div class="ps-mrow"><i style="background:${col}"></i><span><b>Run days</b><small>${last?'Last run '+psAgo(last):'No runs yet'}</small></span><em>${r.days}<small> ${r.days===1?'day':'days'}</small></em></div>
       <div class="ps-mrow"><i style="background:${col}"></i><span><b>Distance</b><small>${per}</small></span><em>${fmt(Math.round(toD(r.km)*10)/10)}<small> ${DU()}</small></em></div>`;}
   else{const mus=psMuscles(part,st.p),keys=Object.keys(mus);

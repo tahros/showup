@@ -125,3 +125,24 @@ document.addEventListener('click',e=>{
   _mwSel=_mwSel===t.dataset.mwBar?null:t.dataset.mwBar;
   const c=document.querySelector('.mwcard');if(c)c.innerHTML=muscleWeekCard();
 });
+/* v4.6.404: ONE BODY FOR THE WHOLE PAGE. Every part, showing up drew its own mannequin -- a second,
+   blockier body a card below this one. It now draws this figure too. mwBodySVG draws one view;
+   color(region) gives a fill, an array of three (top, middle, bottom) for a graded chest, or null.
+   lit draws only the coloured regions, for a layer over a quiet copy. */
+function mwBox(d){let y0=1e9,y1=-1e9,x0=1e9,x1=-1e9;const n=d.match(/-?[\d.]+/g)||[];for(let i=0;i+1<n.length;i+=2){const x=+n[i],y=+n[i+1];if(y<y0)y0=y;if(y>y1)y1=y;if(x<x0)x0=x;if(x>x1)x1=x;}return {x0,x1,y0,y1};}
+let mwUid=0;
+function mwBodySVG(key,color,o={}){
+  const F=MW_FIGS[key];if(!F)return '';
+  let defs='',g=o.lit?'':`<path class="mw-sil" d="${F.sil}"/>`;
+  for(const [r,d] of Object.entries(F.r)){
+    const c=color(r);
+    if(!o.lit)g+=`<path class="mw-mu" d="${d}"/>`;
+    if(Array.isArray(c)){if(!c.some(Boolean))continue;const b=mwBox(d),id='mwg'+(++mwUid);
+      defs+=`<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${b.y0}" x2="0" y2="${b.y1}">${c.map((x,i)=>`<stop offset="${i/2}" style="stop-color:${x||'transparent'}"/>`).join('')}</linearGradient>`;
+      g+=`<path d="${d}" fill="url(#${id})"/>`;}
+    else if(c)g+=`<path d="${d}" style="fill:${c}"/>`;
+  }
+  return `<svg class="${o.cls||''}" viewBox="0 0 ${F.w} ${F.h}" aria-hidden="true">${defs?`<defs>${defs}</defs>`:''}${g}${o.extra||''}</svg>`;
+}
+const mwSex=()=>DB.settings?.sex==='f'?'f':'m';
+

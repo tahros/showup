@@ -4787,7 +4787,7 @@ body:has(#imp) #toast.on{transform:translateX(-50%)}
 .ps-pill button[aria-pressed="true"]{background:var(--chalk);color:var(--surface)}
 .ps-shelf{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 4px;margin-top:10px}
 .ps-t{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
-.ps-fig{width:66px;height:106px}
+.ps-fig{width:66px;height:112px}
 .ps-t b{font-size:20px;font-weight:600;line-height:1;margin-top:3px;font-variant-numeric:tabular-nums;color:var(--chalk)}
 .ps-t small{font:500 9px var(--mono,'IBM Plex Mono',monospace);color:var(--faint);margin-top:2px}
 .ps-t span{font-size:11px;color:var(--muted);margin-top:3px}
@@ -4796,7 +4796,7 @@ body:has(#imp) #toast.on{transform:translateX(-50%)}
 .ps-foot span:last-child{text-align:right}
 .ps-foot i{font-style:normal;color:var(--chalk);font-weight:500}
 .ps-card{--ps-glow:color-mix(in srgb,var(--chalk) 35%,transparent)}
-.ps-card:not(.ps-played) .ps-clip{transform:translateY(160px)}
+.ps-card:not(.ps-played) .ps-clip{transform:translateY(100%)}   /* v4.6.404: the figure's own height, whichever figure */
 @media (prefers-reduced-motion:reduce){.ps-card .ps-clip{transform:none!important}}
 .ps-shelf .ps-t{padding:4px 0 6px;border-radius:16px;font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;transition:transform .15s,background-color .15s}
 .ps-shelf .ps-t:active{transform:scale(.96);background:var(--surface2)}
@@ -4812,7 +4812,7 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .ps-figs{display:flex;justify-content:center;gap:28px;margin:8px 0 6px}
 .ps-figs figure{margin:0;text-align:center}
 .ps-figs figcaption{font:500 9px var(--mono,'IBM Plex Mono',monospace);letter-spacing:2px;text-transform:uppercase;color:var(--faint);margin-top:3px}
-.ps-big{width:118px;height:189px}
+.ps-big{width:118px;height:200px}
 .ps-mrow{display:grid;grid-template-columns:12px 1fr auto;gap:10px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 .ps-mrow i{width:12px;height:12px;border-radius:4px}
 .ps-mrow b{display:block;font-size:13px;font-weight:500}
