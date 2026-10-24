@@ -1,5 +1,12 @@
 # ShowUppp — changelog
 
+## v4.6.404 (2026-10-23) — One body on Progress; later plans in Today's own rows
+
+- **Every part, showing up draws the same body as Muscle this week.** Its tiles had their own mannequin — a second drawing style on one page. Each tile now draws the flat figure (`mwBodySVG`), lighting only its part in the part's colour (back view for Back and Triceps); the Run sheet and each part's sheet draw it too, the chest grading by its upper, mid and lower sets.
+- **Its sets are working sets.** Every part counted every set while Muscle this week counted working sets, so the two cards disagreed. Both now use `realSets()` — warm-ups and burnouts out — per part and per muscle.
+- **"N more plans" on Today looks like the rest of Today.** The live day listed later plans in the planner's raw fold (bare triangles, sets pushed right). Now each day is the finished day's row: a grey line with Tomorrow, the date and its sets, the parts in bold, a chevron; open it for Edit, Paste, Copy and the plan (js/today.js `ltLaterHTML`, shared by both views).
+- **Chevrons say open or shut.** Every fold on Today points right when shut and turns down when open — today's plan, the next plan, "N more plans" and each day inside.
+
 ## v4.6.403 (2026-10-23) — One type scale for Stats cards
 
 - **Muscle this week reads like Best lifts.** Its rows were 14/500 and its numbers 13/500 muted beside Best lifts' 13/600 — a different app on the same page. Now: muscle names in the row-title role (600 13 sans), set counts in the row-value role (600 13 mono, tabular), the card's dates as a card head (600 11), legend and captions as labels (11), the mark's sentence and Why 10? as notes (10).

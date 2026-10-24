@@ -4787,7 +4787,7 @@ body:has(#imp) #toast.on{transform:translateX(-50%)}
 .ps-pill button[aria-pressed="true"]{background:var(--chalk);color:var(--surface)}
 .ps-shelf{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 4px;margin-top:10px}
 .ps-t{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
-.ps-fig{width:66px;height:106px}
+.ps-fig{width:66px;height:112px}
 .ps-t b{font-size:20px;font-weight:600;line-height:1;margin-top:3px;font-variant-numeric:tabular-nums;color:var(--chalk)}
 .ps-t small{font:500 9px var(--mono,'IBM Plex Mono',monospace);color:var(--faint);margin-top:2px}
 .ps-t span{font-size:11px;color:var(--muted);margin-top:3px}
@@ -4796,7 +4796,7 @@ body:has(#imp) #toast.on{transform:translateX(-50%)}
 .ps-foot span:last-child{text-align:right}
 .ps-foot i{font-style:normal;color:var(--chalk);font-weight:500}
 .ps-card{--ps-glow:color-mix(in srgb,var(--chalk) 35%,transparent)}
-.ps-card:not(.ps-played) .ps-clip{transform:translateY(160px)}
+.ps-card:not(.ps-played) .ps-clip{transform:translateY(100%)}   /* v4.6.404: the figure's own height, whichever figure */
 @media (prefers-reduced-motion:reduce){.ps-card .ps-clip{transform:none!important}}
 .ps-shelf .ps-t{padding:4px 0 6px;border-radius:16px;font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;transition:transform .15s,background-color .15s}
 .ps-shelf .ps-t:active{transform:scale(.96);background:var(--surface2)}
@@ -4812,7 +4812,7 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .ps-figs{display:flex;justify-content:center;gap:28px;margin:8px 0 6px}
 .ps-figs figure{margin:0;text-align:center}
 .ps-figs figcaption{font:500 9px var(--mono,'IBM Plex Mono',monospace);letter-spacing:2px;text-transform:uppercase;color:var(--faint);margin-top:3px}
-.ps-big{width:118px;height:189px}
+.ps-big{width:118px;height:200px}
 .ps-mrow{display:grid;grid-template-columns:12px 1fr auto;gap:10px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 .ps-mrow i{width:12px;height:12px;border-radius:4px}
 .ps-mrow b{display:block;font-size:13px;font-weight:500}
@@ -4906,16 +4906,16 @@ dialog.ps-sheet::backdrop{background:rgba(0,0,0,.36)}
 .pw-home.ld .lt-h{margin:18px 4px 8px}
 .pw-home.ld .ld-next{padding:18px 18px 0;gap:0}
 .pw-home.ld .ld-next>.lt-fold{padding-bottom:16px}
-.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary{margin:0 -18px;padding:8px 18px;border-top:1px solid var(--line)}
+.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary,.pw-home.lt .lt-fold-body>.pw-later>summary.pw-fold-summary{margin:0 -18px;padding:8px 18px;border-top:1px solid var(--line)}   /* v4.6.404: and the live day's */
 /* v4.6.365: the days after tomorrow -- the Tomorrow row's shape, a step smaller, hairlines between */
-.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary{align-items:center}
-.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary>small{margin-left:auto}
-.pw-home.ld .ld-later-list{margin:0 -18px;padding:0 18px}
-.pw-home.ld .ld-later-day{border-top:1px solid var(--line)}
-.pw-home.ld .ld-later-day>summary.pw-fold-summary{padding:14px 0;gap:12px;list-style:none}
-.pw-home.ld .ld-later-day>summary::-webkit-details-marker{display:none}
-.pw-home.ld .ld-later-day .lt-head b{font-size:15px}
-.pw-home.ld .ld-later-day .lt-fold-body{padding:0 0 16px}
+.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary,.pw-home.lt .lt-fold-body>.pw-later>summary.pw-fold-summary{align-items:center}
+.pw-home.ld .ld-next>.pw-later>summary.pw-fold-summary>small,.pw-home.lt .lt-fold-body>.pw-later>summary.pw-fold-summary>small{margin-left:auto}
+.pw-home.lt .ld-later-list{margin:0 -18px;padding:0 18px}
+.pw-home.lt .ld-later-day{border-top:1px solid var(--line)}
+.pw-home.lt .ld-later-day>summary.pw-fold-summary{padding:14px 0;gap:12px;list-style:none}
+.pw-home.lt .ld-later-day>summary::-webkit-details-marker{display:none}
+.pw-home.lt .ld-later-day .lt-head b{font-size:15px}
+.pw-home.lt .ld-later-day .lt-fold-body{padding:0 0 16px}
 .pw-home.ld .ld-log{padding:4px 0 8px}
 .ld .ld-part{display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;min-height:40px;padding:12px 20px 0;margin:0}
 .ld .ld-part+.lt-row{border-top:0}
@@ -5392,3 +5392,10 @@ html.ob-dragging,html.ob-dragging *{user-select:none!important;-webkit-user-sele
 .mw-pick{-webkit-appearance:none;appearance:none;margin:0 1px;padding:1px 6px;border:0;border-radius:6px;font:600 11px/1.3 var(--mono);color:var(--chalk);
   background:color-mix(in srgb,var(--line) 55%,transparent);cursor:pointer;text-align:center}
 .mw-pick:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* v4.6.404: a fold on Today says what it is doing -- the chevron points right while
+   the fold is shut and turns down once it is open (Sungjee 2026-10-23: "> means
+   it's hidden"). Every fold on the plan home: today's plan, the next plan, "N more
+   plans" and each day inside it. */
+.pw-home details>summary.pw-fold-summary>.ic-chevron{transition:transform .2s ease}
+.pw-home details[open]>summary.pw-fold-summary>.ic-chevron{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){.pw-home details>summary.pw-fold-summary>.ic-chevron{transition:none}}
