@@ -616,7 +616,7 @@ header.planmode .hback::after{content:'';position:absolute;inset:-3px -6px}
 :root .pf-workspace .pf-pal-chip.pf-lift{opacity:.35;border-style:dashed}
 :root .pf-workspace .pf-rots{border-top:0}
 :root .pf-workspace .pf-ses{display:grid;grid-template-columns:24px 1fr 30px;align-items:start;gap:8px 10px;margin-top:6px;padding:10px 6px 10px 10px;border-radius:16px;border:1.5px solid color-mix(in srgb,var(--chalk) 9%,transparent);background:var(--surface);transition:border-color var(--dur-quick,.16s) ease,background-color var(--dur-quick,.16s) ease,box-shadow var(--dur-quick,.16s) ease}
-:root .pf-workspace .pf-ses>.pf-rot-n{margin-top:2px}
+:root .pf-workspace .pf-ses>.pf-ses-side>.pf-rot-n{margin-top:2px}
 
 :root .pf-workspace .pf-ses.can{cursor:pointer;border-style:dashed;border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 :root .pf-workspace .pf-ses.pf-drop{border-style:solid;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent)}
@@ -651,11 +651,11 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 
 /* v4.6.209: select sessions by their number; blue means selected and nothing else. Next up is a label. */
 :root .pf-workspace .pf-rot.next .pf-rot-n{background:color-mix(in srgb,var(--chalk) 7%,transparent);color:var(--muted)}
-:root .pf-workspace .pf-ses>.pf-rot-n{width:28px;min-width:0;height:28px;min-height:0;margin:1px 0 0 -2px;padding:0;border:0;cursor:pointer;box-shadow:0 0 0 1.5px color-mix(in srgb,var(--chalk) 16%,transparent);-webkit-tap-highlight-color:transparent;transition:background-color var(--dur-move,.26s) ease,color var(--dur-move,.26s) ease,box-shadow var(--dur-move,.26s) ease}
-:root .pf-workspace .pf-ses>.pf-rot-n::after{content:"";position:absolute;inset:-9px}
-:root .pf-workspace .pf-ses>.pf-rot-n{position:relative}
+:root .pf-workspace .pf-ses>.pf-ses-side>.pf-rot-n{width:28px;min-width:0;height:28px;min-height:0;margin:1px 0 0 -2px;padding:0;border:0;cursor:pointer;box-shadow:0 0 0 1.5px color-mix(in srgb,var(--chalk) 16%,transparent);-webkit-tap-highlight-color:transparent;transition:background-color var(--dur-move,.26s) ease,color var(--dur-move,.26s) ease,box-shadow var(--dur-move,.26s) ease}
+:root .pf-workspace .pf-ses>.pf-ses-side>.pf-rot-n::after{content:"";position:absolute;inset:-9px -9px -1px}   /* v4.6.407: not over the grip under it */
+:root .pf-workspace .pf-ses>.pf-ses-side>.pf-rot-n{position:relative}
 :root .pf-workspace .pf-ses.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
-:root .pf-workspace .pf-ses.sel>.pf-rot-n{background:var(--accent);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+:root .pf-workspace .pf-ses.sel>.pf-ses-side>.pf-rot-n{background:var(--accent);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
 :root .pf-workspace .pf-ses .pf-rot-next{padding:4px 7px;border-radius:7px;background:color-mix(in srgb,var(--accent) 14%,transparent)}
 :root .pf-workspace .pf-selbar{display:flex;align-items:center;gap:8px}
 :root .pf-workspace .pf-selbar b{font:600 11px/1 var(--body);letter-spacing:0;text-transform:none;color:var(--chalk);white-space:nowrap}
@@ -670,7 +670,7 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 :root .pf-workspace .pf-did{display:flex;gap:8px;align-items:flex-start;margin:2px 0 10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 10%,transparent);font:400 11px/1.363 var(--body);color:var(--chalk);animation:pf-pref-reveal var(--dur-move,.26s) var(--settle)}
 :root .pf-workspace .pf-did svg{flex:none;width:14px;height:14px;margin-top:2px;color:var(--accent-ink,var(--accent))}
 @media(max-width:360px){:root .pf-workspace .pf-pal-h{flex-wrap:wrap}}
-@media(prefers-reduced-motion:reduce){:root .pf-workspace .pf-ses>.pf-rot-n{transition:none}:root .pf-workspace .pf-did{animation:none}}
+@media(prefers-reduced-motion:reduce){:root .pf-workspace .pf-ses>.pf-ses-side>.pf-rot-n{transition:none}:root .pf-workspace .pf-did{animation:none}}
 
 /* v4.6.210: the two answers to a newer plan stand apart, sharing the row */
 :root .pf-workspace .pf-conflict-actions{display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:13px}
@@ -806,16 +806,21 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 .pw-cf-line em{font:400 13px/1.4 var(--mono);font-size:13px;font-style:normal;color:var(--muted)}
 .pw-cf-line.mine span,.pw-cf-line.mine em{color:var(--chalk)}
 .pw-cf-same,.pw-cf-none{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line);font:400 12px/1.4 var(--body);font-size:12px;color:var(--muted)}
-/* v4.6.407: YOUR ORDER CAN LOSE A SESSION AND GAIN AN EXTRA DAY, as the routine screen in setup can.
-   Each session ends with its x and its grip; a session with parts asks first, in the row (Cancel / Remove,
-   the setup screen's words and red). The Extra day sits under the numbered sessions with its own tag. */
-:root .pf-workspace .pf-ses{grid-template-columns:24px 1fr auto}
-:root .pf-workspace .pf-ses-acts{display:flex;align-items:center;gap:0;margin:-7px -2px -7px 0}
-:root .pf-workspace .pf-ses-acts .pf-rot-grip{width:30px}
-:root .pf-workspace .pf-ses-del{display:grid;place-items:center;width:32px;min-width:0;height:44px;min-height:0;margin:0;padding:0;border:0;border-radius:50%;box-shadow:none;background:none;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
-:root .pf-workspace .pf-ses-del svg{width:12px;height:12px;opacity:.7}
+/* v4.6.407: YOUR ORDER CAN LOSE A SESSION AND GAIN AN EXTRA DAY, as the routine screen in setup can --
+   and it is held the same way (Sungjee 2026-10-24): the left column is the handle, the session's number
+   with the grip under it (the whole column below the number grabs); the x sits on the right, where the
+   grip was. A session with parts asks first, in the row (Cancel / Remove, setup's words and red).
+   The Extra day sits under the numbered sessions with its own tag. */
+:root .pf-workspace .pf-ses{grid-template-columns:34px 1fr auto;align-items:stretch;padding-left:6px}
+:root .pf-workspace .pf-ses-side{display:flex;flex-direction:column;align-items:center;gap:2px;margin:-2px 0}
+:root .pf-workspace .pf-ses-side .pf-rot-grip{flex:1;width:34px;height:auto;min-height:30px;display:flex;align-items:flex-start;justify-content:center;padding:4px 0 0}
+:root .pf-workspace .pf-ses-side .pf-rot-grip svg{width:18px;height:18px;opacity:.6}
+:root .pf-workspace .pf-ses-acts{display:flex;align-items:flex-start;margin:-6px -2px -6px 0}
+:root .pf-workspace .pf-ses-del{display:grid;place-items:center;width:40px;min-width:0;height:42px;min-height:0;margin:0;padding:0;border:0;border-radius:50%;box-shadow:none;background:none;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
+:root .pf-workspace .pf-ses-del svg{width:12px;height:12px;opacity:.75}
 :root .pf-workspace .pf-ses-del:active{background:color-mix(in srgb,var(--chalk) 8%,transparent)}
 :root .pf-workspace .pf-ses-ask{align-items:center;background:color-mix(in srgb,var(--chalk) 4%,var(--surface))}
+:root .pf-workspace .pf-ses-ask .pf-ses-side{justify-content:center}
 :root .pf-workspace .pf-ask-q{font:500 13px/18px var(--body);color:var(--chalk)}
 :root .pf-workspace .pf-ask-acts{display:flex;gap:6px}
 :root .pf-workspace .pf-ask-acts button{width:auto;min-width:0;min-height:0;height:32px;margin:0;padding:0 12px;border:0;border-radius:16px;box-shadow:none;font:600 13px var(--body);color:var(--chalk);background:color-mix(in srgb,var(--chalk) 8%,transparent);cursor:pointer}
@@ -825,3 +830,6 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 :root .pf-workspace .pf-xtag{display:flex;align-items:center;height:24px;margin-top:5px;padding:0 9px;border-radius:12px;background:color-mix(in srgb,var(--chalk) 7%,transparent);font:600 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 :root .pf-workspace .pf-xnote{grid-column:2/-1;margin:-2px 0 0;font:400 11px/16px var(--body);color:var(--muted)}
 :root .pf-workspace .pf-rot-adds{display:flex;flex-wrap:wrap;gap:0 22px}
+:root .pf-workspace .pf-ses>.pf-ses-in,:root .pf-workspace .pf-ses>.pf-ses-acts{align-self:start}
+:root .pf-workspace .pf-ses-side .pf-rot-grip{min-height:26px;padding-top:3px}
+:root .pf-workspace .pf-ses-ask>.pf-ses-in,:root .pf-workspace .pf-ses-ask>.pf-ask-acts{align-self:center}
