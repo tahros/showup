@@ -806,3 +806,22 @@ html.pf-chip-drag,html.pf-chip-drag body{user-select:none;-webkit-user-select:no
 .pw-cf-line em{font:400 13px/1.4 var(--mono);font-size:13px;font-style:normal;color:var(--muted)}
 .pw-cf-line.mine span,.pw-cf-line.mine em{color:var(--chalk)}
 .pw-cf-same,.pw-cf-none{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line);font:400 12px/1.4 var(--body);font-size:12px;color:var(--muted)}
+/* v4.6.407: YOUR ORDER CAN LOSE A SESSION AND GAIN AN EXTRA DAY, as the routine screen in setup can.
+   Each session ends with its x and its grip; a session with parts asks first, in the row (Cancel / Remove,
+   the setup screen's words and red). The Extra day sits under the numbered sessions with its own tag. */
+:root .pf-workspace .pf-ses{grid-template-columns:24px 1fr auto}
+:root .pf-workspace .pf-ses-acts{display:flex;align-items:center;gap:0;margin:-7px -2px -7px 0}
+:root .pf-workspace .pf-ses-acts .pf-rot-grip{width:30px}
+:root .pf-workspace .pf-ses-del{display:grid;place-items:center;width:32px;min-width:0;height:44px;min-height:0;margin:0;padding:0;border:0;border-radius:50%;box-shadow:none;background:none;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
+:root .pf-workspace .pf-ses-del svg{width:12px;height:12px;opacity:.7}
+:root .pf-workspace .pf-ses-del:active{background:color-mix(in srgb,var(--chalk) 8%,transparent)}
+:root .pf-workspace .pf-ses-ask{align-items:center;background:color-mix(in srgb,var(--chalk) 4%,var(--surface))}
+:root .pf-workspace .pf-ask-q{font:500 13px/18px var(--body);color:var(--chalk)}
+:root .pf-workspace .pf-ask-acts{display:flex;gap:6px}
+:root .pf-workspace .pf-ask-acts button{width:auto;min-width:0;min-height:0;height:32px;margin:0;padding:0 12px;border:0;border-radius:16px;box-shadow:none;font:600 13px var(--body);color:var(--chalk);background:color-mix(in srgb,var(--chalk) 8%,transparent);cursor:pointer}
+:root .pf-workspace .pf-ask-acts .pf-ask-go{background:#D64545;color:#fff}
+:root .pf-workspace .pf-xses{grid-template-columns:auto 1fr auto;margin-top:14px;border-style:dashed}
+:root .pf-workspace .pf-xses.pf-drop{border-style:solid}
+:root .pf-workspace .pf-xtag{display:flex;align-items:center;height:24px;margin-top:5px;padding:0 9px;border-radius:12px;background:color-mix(in srgb,var(--chalk) 7%,transparent);font:600 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+:root .pf-workspace .pf-xnote{grid-column:2/-1;margin:-2px 0 0;font:400 11px/16px var(--body);color:var(--muted)}
+:root .pf-workspace .pf-rot-adds{display:flex;flex-wrap:wrap;gap:0 22px}

@@ -319,19 +319,29 @@ function pfPrefPatch(){
    Cardio first means cardio before lifting. */
 function pfSplitCardHTML(p,j){const r=p.rotation,ses=r.sessions,GR=''+icon('grip',ICON_SZ.sm)+'',X=''+icon('close',ICON_SZ.sm)+'';
  const sel=(j.rotSel||[]).filter(i=>i>=0&&i<ses.length),pal=['Run',...p.parts],held=!sel.length&&pal.includes(j.rotHeld)?j.rotHeld:null,next=ses.some(x=>x.parts.length)?pfRotNext(ses):-1;
+ const ask=j.rotAsk,canDel=ses.length>1;
  const rows=ses.map((x,i)=>{const has=held&&x.parts.includes(held);
-  return `<div class="pf-ses${i===next&&ses.length>1?' next':''}${sel.includes(i)?' sel':''}${held&&!has?' can':''}" data-pf-rot="${i}"${held&&!has?` data-pw="pf-rot-put" data-index="${i}" role="button" tabindex="0" aria-label="Add ${hesc(partLabel(held))} to session ${i+1}"`:''}><button type="button" class="pf-rot-n" data-pw="pf-rot-sel" data-index="${i}" aria-pressed="${sel.includes(i)}" aria-label="Session ${i+1}: ${sel.includes(i)?'selected':'select'}">${i+1}</button><div class="pf-ses-in">${x.name?`<span class="pf-rot-name">${hesc(x.name)}</span>`:''}${x.parts.map((t,k)=>`<span class="pf-rot-tag${t==='Run'?' cardio':''}${t===held?' hit':''}" data-pf-chip="${hesc(t)}" data-ses="${i}" data-k="${k}">${hesc(partLabel(t))}<button type="button" class="pf-rot-x" data-pw="pf-rot-x" data-index="${i}" data-k="${k}" aria-label="Take ${hesc(partLabel(t))} out of session ${i+1}">${X}</button></span>`).join('')}${held&&!has?`<span class="pf-rot-ghost">+ ${hesc(partLabel(held))}</span>`:''}${!x.parts.length&&!held?`<em>Drop a body part here</em><button type="button" class="pf-rot-remove" data-pw="pf-rot-remove" data-index="${i}">Remove</button>`:''}${i===next&&ses.length>1&&!held?'<span class="pf-rot-next" title="The session the planner gives you first">Next up</span>':''}</div><button type="button" class="pf-rot-grip" data-pf-rot-grip="${i}" aria-label="Reorder session ${i+1}: drag, or use the arrow keys">${GR}</button></div>`;}).join('');
+  if(ask===i)return `<div class="pf-ses pf-ses-ask" data-pf-rot="${i}" role="group" aria-label="Remove session ${i+1}?"><span class="pf-rot-n">${i+1}</span><div class="pf-ses-in"><span class="pf-ask-q">Remove session ${i+1}${x.parts.length?` (${hesc(x.parts.map(partLabel).join(' + '))})`:''}?</span></div><div class="pf-ask-acts"><button type="button" class="pf-ask-no" data-pw="pf-rot-noask">Cancel</button><button type="button" class="pf-ask-go" data-pw="pf-rot-remove" data-index="${i}">Remove</button></div></div>`;
+  return `<div class="pf-ses${i===next&&ses.length>1?' next':''}${sel.includes(i)?' sel':''}${held&&!has?' can':''}" data-pf-rot="${i}"${held&&!has?` data-pw="pf-rot-put" data-index="${i}" role="button" tabindex="0" aria-label="Add ${hesc(partLabel(held))} to session ${i+1}"`:''}><button type="button" class="pf-rot-n" data-pw="pf-rot-sel" data-index="${i}" aria-pressed="${sel.includes(i)}" aria-label="Session ${i+1}: ${sel.includes(i)?'selected':'select'}">${i+1}</button><div class="pf-ses-in">${x.name?`<span class="pf-rot-name">${hesc(x.name)}</span>`:''}${x.parts.map((t,k)=>`<span class="pf-rot-tag${t==='Run'?' cardio':''}${t===held?' hit':''}" data-pf-chip="${hesc(t)}" data-ses="${i}" data-k="${k}">${hesc(partLabel(t))}<button type="button" class="pf-rot-x" data-pw="pf-rot-x" data-index="${i}" data-k="${k}" aria-label="Take ${hesc(partLabel(t))} out of session ${i+1}">${X}</button></span>`).join('')}${held&&!has?`<span class="pf-rot-ghost">+ ${hesc(partLabel(held))}</span>`:''}${!x.parts.length&&!held?`<em>Drop a body part here</em>`:''}${i===next&&ses.length>1&&!held?'<span class="pf-rot-next" title="The session the planner gives you first">Next up</span>':''}</div><span class="pf-ses-acts">${canDel?`<button type="button" class="pf-ses-del" data-pw="${x.parts.length?'pf-rot-ask':'pf-rot-remove'}" data-index="${i}" aria-label="Remove session ${i+1}">${X}</button>`:''}<button type="button" class="pf-rot-grip" data-pf-rot-grip="${i}" aria-label="Reorder session ${i+1}: drag, or use the arrow keys">${GR}</button></span></div>`;}).join('');
+ /* v4.6.407: THE EXTRA DAY, IN THE ORDER. Beside the numbered sessions, as Your week's Extra day is: optional,
+    offered once the week's days are done, never in place of one. Same chips, same drops; its x takes it away. */
+ const xo=p.extraOn,xp=p.extraParts||[],xHas=held&&xp.includes(held);
+ const xrow=xo?`<div class="pf-ses pf-xses${held&&!xHas?' can':''}" data-pf-rot="x"${held&&!xHas?` data-pw="pf-rot-put" data-index="x" role="button" tabindex="0" aria-label="Add ${hesc(partLabel(held))} to the extra day"`:''}><span class="pf-xtag">Extra</span><div class="pf-ses-in">${xp.map((t,k)=>`<span class="pf-rot-tag${t==='Run'?' cardio':''}${t===held?' hit':''}" data-pf-chip="${hesc(t)}" data-ses="x" data-k="${k}">${hesc(partLabel(t))}<button type="button" class="pf-rot-x" data-pw="pf-rot-x" data-index="x" data-k="${k}" aria-label="Take ${hesc(partLabel(t))} out of the extra day">${X}</button></span>`).join('')}${held&&!xHas?`<span class="pf-rot-ghost">+ ${hesc(partLabel(held))}</span>`:''}${!xp.length&&!held?'<em>Drop a body part here</em>':''}</div><span class="pf-ses-acts"><button type="button" class="pf-ses-del" data-pw="pf-rot-remove" data-index="x" aria-label="Remove the extra day">${X}</button></span><p class="pf-xnote">Optional. Offered once your ${p.freq} days are done, never in place of one.</p></div>`:'';
  const X2=''+icon('close',ICON_SZ.sm)+'',allHave=t=>sel.length>0&&sel.every(i=>ses[i].parts.includes(t)),anyAll=pal.some(allHave);
  const strip=`<div class="pf-pal"><div class="pf-pal-h">${sel.length?`<span class="pf-selbar"><b>${sel.length} selected</b><button type="button" class="pf-unsel" data-pw="pf-rot-unsel">${X2}Unselect all</button></span><em>${anyAll?'Tap a lit one to take it out':'Tap a body part to add it'}</em>`:`<span>Body parts</span><em>${held?'Tap the sessions '+hesc(partLabel(held))+' belongs in':'Drag onto a session, or tap one'}</em>`}</div><div class="pf-pal-chips" role="group" aria-label="Body parts to place">${pal.map(t=>`<button type="button" class="pf-pal-chip${t===held?' held':''}${allHave(t)?' all':''}" data-pf-chip="${hesc(t)}" data-pal="1" aria-pressed="${t===held||allHave(t)}">${hesc(partLabel(t))}</button>`).join('')}</div></div>`;
  const from=`<div class="pf-from"><span>Start from</span>${PF_SPLITS.filter(z=>z[3]||z[0]==='body').map(([k,t])=>`<button type="button" class="pf-from-b${r.preset===k?' on':''}" data-pw="pf-split" data-value="${k}">${t}</button>`).join('')}</div>`;
- return `<div class="pf-split">${from}<div class="pf-split-body">${ses.length?`${strip}<div class="pf-ordh"><span class="pf-split-h">The order you train in</span></div><div class="pf-rots${held?' holding':''}">${rows}</div>`:`<p class="pf-onote">No sessions yet. Start from one of the above, or add one.</p>`}<button type="button" class="pf-rot-add" data-pw="pf-rot-add">+ Add a session</button></div></div>`;}
+ return `<div class="pf-split">${from}<div class="pf-split-body">${ses.length?`${strip}<div class="pf-ordh"><span class="pf-split-h">The order you train in</span></div><div class="pf-rots${held?' holding':''}">${rows}</div>${xrow}`:`<p class="pf-onote">No sessions yet. Start from one of the above, or add one.</p>`}<div class="pf-rot-adds"><button type="button" class="pf-rot-add" data-pw="pf-rot-add">+ Add a session</button>${xo?'':'<button type="button" class="pf-rot-add" data-pw="pf-xadd">+ Add an extra day</button>'}</div></div></div>`;}
 /* v4.6.255: an edit redraws the sheet (keeping its scroll) and the card under it */
 function pfSplitRefresh(){const card=pfOrderCardRefresh();if(document.getElementById('pfOrder')){pfOrderMount();return true;}return card;}
 /* the strip of chips stays in reach while you scroll through the sessions: it sticks just under the header */
 function pfPalTop(){const h=document.querySelector('header'),w=document.querySelector('.pf-workspace');if(h&&w)w.style.setProperty('--pf-pal-top',Math.round(h.getBoundingClientRect().bottom+8)+'px');}
 /* put a part into a session (at a place, or where it belongs: Cardio first, the rest last), or take one out */
-function pfRotPut(r,i,t,at){const x=r.sessions[i];if(!x||x.parts.includes(t))return false;const k=at==null?(t==='Run'?0:x.parts.length):Math.max(0,Math.min(x.parts.length,at));x.parts.splice(k,0,t);x.name='';pfRotTouch(r);return true;}
-function pfRotTake(r,i,k){const x=r.sessions[i];if(!x||x.parts[k]==null)return false;x.parts.splice(k,1);x.name='';pfRotTouch(r);return true;}
+/* v4.6.407: the Extra day is a session in the editor too, addressed as 'x' (its parts are the staged extraParts) */
+const pfIx=v=>v==='x'?'x':+v;
+function pfSesAt(r,i){if(i==='x'){const p=pfState().prefs;return p&&p.extraOn?{name:'',parts:p.extraParts}:null;}return r.sessions[i];}
+function pfSesTouch(r,i){if(i==='x')pfState().xDirty=true;else pfRotTouch(r);}
+function pfRotPut(r,i,t,at){const x=pfSesAt(r,i);if(!x||x.parts.includes(t))return false;const k=at==null?(t==='Run'?0:x.parts.length):Math.max(0,Math.min(x.parts.length,at));x.parts.splice(k,0,t);x.name='';pfSesTouch(r,i);return true;}
+function pfRotTake(r,i,k){const x=pfSesAt(r,i);if(!x||x.parts[k]==null)return false;x.parts.splice(k,1);x.name='';pfSesTouch(r,i);return true;}
 /* v4.6.255: YOUR ORDER IS READ FROM YOUR LOG, IN ROUNDS OF YOUR ROUTINE.
    The order you train in was a page of settings: six tiles and a chip editor,
    for a fact the record already holds. It is now read from the log by default
@@ -1183,7 +1193,7 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  if(a==='pf-stop'){if(!s.busy)return;pwRequest++;lift.writeAbort?.abort();writerWaitStop();s.busy=false;pwPersist();pwRender();toast('Stopped');return;}
  if(a==='pf-stage'){j.prefOrigin=null;const n=+el.dataset.stage;if(n===2&&pfSavedSelection()){s.dates.forEach(d=>pwDay(d));if(!s.dates.includes(s.active))s.active=pfDates()[0];pfAnchor();}else if(n>j.furthest||n>=2&&!pfMatch())return;if(n===0&&j.page!=='prefs')j.prefs=null;   /* v4.6.205: coming back to Preferences starts from what is saved, not from a copy left behind */
   pfNavigate(['prefs','dates','days','done'][n]);return;}
- if(a.startsWith('pf-')&&['pf-goal','pf-weekstart','pf-trainday','pf-freq','pf-extra','pf-xpart','pf-size','pf-warmup','pf-unavoid','pf-unhold','pf-prefs-save','pf-split','pf-rot-put','pf-rot-x','pf-rot-remove','pf-rot-add','pf-rot-sel','pf-rot-unsel','pf-mypart','pf-xpick-open','pf-order-open','pf-order-close','pf-order-mode'].includes(a)&&!(j.prefs&&j.prefs.avoidAdd&&j.prefs.trainDays&&j.prefs.rotation&&j.prefs.parts))j.prefs=pfStagePrefs();
+ if(a.startsWith('pf-')&&['pf-goal','pf-weekstart','pf-trainday','pf-freq','pf-extra','pf-xpart','pf-size','pf-warmup','pf-unavoid','pf-unhold','pf-prefs-save','pf-split','pf-rot-put','pf-rot-x','pf-rot-remove','pf-rot-add','pf-rot-sel','pf-rot-unsel','pf-rot-ask','pf-rot-noask','pf-xadd','pf-mypart','pf-xpick-open','pf-order-open','pf-order-close','pf-order-mode'].includes(a)&&!(j.prefs&&j.prefs.avoidAdd&&j.prefs.trainDays&&j.prefs.rotation&&j.prefs.parts))j.prefs=pfStagePrefs();
  /* v4.6.202: THE SWITCHES MOVE. Every tap on this page re-rendered it, so a
     toggle jumped from one state to the other: there was no element left to
     animate. These five now change the staged copy and patch the page in place
@@ -1212,17 +1222,23 @@ function pfHandle(a,el){const s=pw(),j=pfState(),d=el.dataset.date,i=+el.dataset
  if(['pf-order-open','pf-order-close','pf-order-mode'].includes(a)){const p=j.prefs,r=p.rotation,v=el.dataset.value;
   /* Set my own starts from the order read from the log (or your own sessions kept from before), never from nothing */
   const toOwn=()=>{p.orderMode='own';if(!r.sessions.length){const keep=r.own&&r.own.length?pwCopy(r.own):pwCopy(pfRotLearn(p.parts).sessions);r.sessions=keep;r.preset='own';}};
-  if(a==='pf-order-close'){pfOrderClose();pfOrderCardRefresh();pwPersist();return;}
+  if(a==='pf-order-close'){j.rotAsk=null;pfOrderClose();pwPersist();if(j.xDirty){j.xDirty=false;pwRender();}else pfOrderCardRefresh();return;}
   if(a==='pf-order-open'){if(v==='own')toOwn();j.orderOpen=true;j.rotSel=[];j.rotHeld=null;pfOrderMount();pfOrderCardRefresh();pwPersist();return;}
   if(v==='own')toOwn();else p.orderMode='log';j.rotSel=[];j.rotHeld=null;pfOrderMount();pfOrderCardRefresh();pwPersist();return;}
- if(['pf-split','pf-rot-put','pf-rot-x','pf-rot-remove','pf-rot-add','pf-rot-sel','pf-rot-unsel'].includes(a)){const r=j.prefs.rotation,v=el.dataset.value;j.rotSel=j.rotSel||[];
+ if(['pf-split','pf-rot-put','pf-rot-x','pf-rot-remove','pf-rot-add','pf-rot-sel','pf-rot-unsel','pf-rot-ask','pf-rot-noask','pf-xadd'].includes(a)){const r=j.prefs.rotation,v=el.dataset.value,ix=el.dataset.index==='x'?'x':i;j.rotSel=j.rotSel||[];const was=j.rotAsk;j.rotAsk=null;
+  /* v4.6.407: a session with body parts asks before it goes, in the row itself; an empty one goes at once */
+  if(a==='pf-rot-ask'){j.rotAsk=was===i?null:i;j.rotHeld=null;}
+  else if(a==='pf-rot-noask'){}
+  else if(a==='pf-xadd'){const p=j.prefs;p.extraOn=true;if(!p.extraParts.length)p.extraParts=['Biceps','Triceps'].filter(t=>p.parts.includes(t));j.xDirty=true;}
+  else if(a==='pf-rot-remove'&&ix==='x'){j.prefs.extraOn=false;j.xDirty=true;}
+  else
   if(a==='pf-split'){const ps=pfRotPreset(v,j.prefs.parts);if(ps){r.preset=v;r.sessions=ps;}j.rotHeld=null;j.rotSel=[];}   /* v4.6.255: Start from -- a preset replaces the sessions; tapping it again does not clear them */
   /* v4.6.209: SELECT THE SESSIONS, THEN TAP THE PARTS. Chip-first placed one part in one session at a time; Cardio in six sessions was six taps after the pick-up. A session's number selects it (any number of them), and a body part tapped in the strip then goes into every selected session -- or, when they all have it, comes out of them all. */
   else if(a==='pf-rot-sel'){j.rotHeld=null;j.rotSel=j.rotSel.includes(i)?j.rotSel.filter(x=>x!==i):[...j.rotSel,i].sort((x,y)=>x-y);}
   else if(a==='pf-rot-unsel')j.rotSel=[];
-  else if(a==='pf-rot-put'){if(j.rotHeld)pfRotPut(r,i,j.rotHeld);}
-  else if(a==='pf-rot-x'){if(j.rotHeld)pfRotPut(r,i,j.rotHeld);else pfRotTake(r,i,+el.dataset.k);}   /* while a chip is held, a tap anywhere in a session places it: it never lands on an x and takes something out */
-  else if(a==='pf-rot-remove'){r.sessions.splice(i,1);pfRotTouch(r);j.rotSel=[];}
+  else if(a==='pf-rot-put'){if(j.rotHeld)pfRotPut(r,ix,j.rotHeld);}
+  else if(a==='pf-rot-x'){if(j.rotHeld)pfRotPut(r,ix,j.rotHeld);else pfRotTake(r,ix,+el.dataset.k);}   /* while a chip is held, a tap anywhere in a session places it: it never lands on an x and takes something out */
+  else if(a==='pf-rot-remove'){if(r.sessions.length>1){r.sessions.splice(i,1);pfRotTouch(r);}j.rotSel=[];}
   else{r.sessions.push({name:'',parts:[]});pfRotTouch(r);}
   pwPersist();if(!pfSplitRefresh())pwRender();return;}
  if(false){}
@@ -1376,13 +1392,13 @@ document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;
  const sesAt=(x,y)=>document.elementFromPoint(x,y)?.closest('.pf-ses');
  const indexAt=(ses,x,y,skip)=>{let k=0;for(const c of ses.querySelectorAll('.pf-rot-tag')){if(c===skip)continue;const r=c.getBoundingClientRect();if(y>r.bottom||(y>=r.top&&x>r.left+r.width/2))k++;}return k;};
  const clear=()=>document.querySelectorAll('.pf-ses.pf-drop').forEach(x=>x.classList.remove('pf-drop'));
- const okOn=t=>{if(!t||!d)return false;const r=pfState().prefs?.rotation,ti=+t.dataset.pfRot;return !!r?.sessions[ti]&&((!d.pal&&ti===d.ses)||!r.sessions[ti].parts.includes(d.part));};
+ const okOn=t=>{if(!t||!d||t.classList.contains('pf-ses-ask'))return false;const r=pfState().prefs?.rotation,ti=pfIx(t.dataset.pfRot),x=r&&pfSesAt(r,ti);return !!x&&((!d.pal&&ti===d.ses)||!x.parts.includes(d.part));};
  const paint=()=>{if(!d||!d.fly)return;d.fly.style.left=Math.round(d.x-d.fly.offsetWidth/2)+'px';d.fly.style.top=Math.round(d.y-d.fly.offsetHeight-16)+'px';clear();const t=sesAt(d.x,d.y);if(okOn(t))t.classList.add('pf-drop');};
  const tick=()=>{if(!d||!d.moved)return;const sc=document.querySelector('#pfOrder .pf-order-scroll');if(sc){const b=sc.getBoundingClientRect();if(d.y<b.top+6)sc.scrollBy(0,-8);else if(d.y>b.bottom-40)sc.scrollBy(0,8);}else{const hb=document.querySelector('header')?.getBoundingClientRect().bottom||0;if(d.y<hb+6)scrollBy(0,-8);else if(d.y>innerHeight-150)scrollBy(0,8);}paint();raf=requestAnimationFrame(tick);};   /* v4.6.255: inside the order sheet, the sheet scrolls   /* the page follows the chip: up when it is carried over the header, down when it nears the dock */
  const stop=()=>{if(!d)return;clearTimeout(d.hold);cancelAnimationFrame(raf);d.fly?.remove();d.src.classList.remove('pf-lift');clear();document.documentElement.classList.remove('pf-chip-drag');try{d.src.releasePointerCapture(d.id);}catch(_){}d=null;};
  const done=()=>{pwPersist();if(!pfSplitRefresh())pwRender();};
  document.addEventListener('pointerdown',e=>{const c=e.target.closest?.('[data-pf-chip]');if(!c||e.button!==0||d||e.target.closest('.pf-rot-x')||!pfOn()||!pfState().prefs?.rotation)return;
-  d={id:e.pointerId,src:c,part:c.dataset.pfChip,pal:!!c.dataset.pal,ses:+c.dataset.ses,k:+c.dataset.k,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,moved:false,fly:null,armed:true,hold:0};
+  d={id:e.pointerId,src:c,part:c.dataset.pfChip,pal:!!c.dataset.pal,ses:pfIx(c.dataset.ses),k:+c.dataset.k,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,moved:false,fly:null,armed:true,hold:0};
   /* A chip INSIDE a session sits where a thumb lands to scroll the page, and a
      drag that ends outside every session takes the chip away. So under a finger
      it is picked up by a short hold, not by a swipe: move first and the page
@@ -1397,10 +1413,10 @@ document.addEventListener('toggle',e=>{if(!pfOn()||!e.target.isConnected)return;
   paint();e.preventDefault();},{passive:false});
  document.addEventListener('pointerup',e=>{if(!d||e.pointerId!==d.id)return;const j=pfState(),r=j.prefs?.rotation,cur=d;
   if(!cur.moved){stop();if(cur.pal&&r){pfPalTap(cur.part);done();}return;}
-  const t=sesAt(e.clientX,e.clientY),good=okOn(t),over=!!document.elementFromPoint(e.clientX,e.clientY)?.closest('.pf-pal');let at=0,ti=-1;if(good){ti=+t.dataset.pfRot;at=indexAt(t,e.clientX,e.clientY,!cur.pal&&ti===cur.ses?cur.src:null);}
+  const t=sesAt(e.clientX,e.clientY),good=okOn(t),over=!!document.elementFromPoint(e.clientX,e.clientY)?.closest('.pf-pal');let at=0,ti=-1;if(good){ti=pfIx(t.dataset.pfRot);at=indexAt(t,e.clientX,e.clientY,!cur.pal&&ti===cur.ses?cur.src:null);}
   stop();if(!r)return;
   if(cur.pal){if(good)pfRotPut(r,ti,cur.part,at);}
-  else if(good){const a=r.sessions[cur.ses].parts;a.splice(cur.k,1);r.sessions[ti].parts.splice(Math.min(r.sessions[ti].parts.length,at),0,cur.part);r.sessions[cur.ses].name='';r.sessions[ti].name='';pfRotTouch(r);}
+  else if(good){const from=pfSesAt(r,cur.ses),to=pfSesAt(r,ti);from.parts.splice(cur.k,1);to.parts.splice(Math.min(to.parts.length,at),0,cur.part);from.name='';to.name='';pfSesTouch(r,cur.ses);if(ti!==cur.ses)pfSesTouch(r,ti);}
   else if(!t&&over)pfRotTake(r,cur.ses,cur.k);   /* carried back to the strip: taken out. Let go anywhere else and nothing changes */
   j.rotHeld=null;done();});
  document.addEventListener('pointercancel',e=>{if(d&&e.pointerId===d.id)stop();});
