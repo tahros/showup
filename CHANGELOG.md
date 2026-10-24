@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.405 (2026-10-24) — The attendance export names the part it shows
+
+- **A filtered calendar says what it shows.** With a part picked (say Triceps), the exported image lit only that part's days but never named it. A caption now sits directly above the grid — "Triceps · 38 days", the number in the blue the days are lit in — placed with the grid as one block (`shareFrame` meta.focus). All workouts is unchanged; Video and GIF already carried the line.
+- **Saturday stays in the light export.** In light, the grid's empty days are too near the paper for the trim to find, so the last column was cut off. The attendance card keeps its own width (`band.keepX`).
+
 ## v4.6.404 (2026-10-23) — One body on Progress; later plans in Today's own rows
 
 - **Every part, showing up draws the same body as Muscle this week.** Its tiles had their own mannequin — a second drawing style on one page. Each tile now draws the flat figure (`mwBodySVG`), lighting only its part in the part's colour (back view for Back and Triceps); the Run sheet and each part's sheet draw it too, the chest grading by its upper, mid and lower sets.
