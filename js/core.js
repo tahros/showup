@@ -138,7 +138,9 @@ function sbxBar(){
     else{ const n=document.getElementById('nav'),r=n&&n.getBoundingClientRect(),on=r&&r.height>0&&r.top<innerHeight&&getComputedStyle(n).visibility!=='hidden';
       const onb=document.querySelector('#onb:not([hidden])');
       x=(innerWidth-w)/2; y=onb?sat('top')+6:on?r.top-8-h:innerHeight-12-h-sat('bottom'); }
-    x=Math.max(6,Math.min(innerWidth-w-6,x)); y=Math.max(6,Math.min(innerHeight-h-6,y));
+    /* v4.6.406: never under the status bar or the home indicator -- iOS keeps touches there, so a T
+       left in the corner could not be tapped or dragged back */
+    x=Math.max(6,Math.min(innerWidth-w-6,x)); y=Math.max(sat('top')+6,Math.min(innerHeight-h-6-sat('bottom'),y));
     el.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
     panel.classList.toggle('up',y>innerHeight/2); panel.classList.toggle('down',y<=innerHeight/2);
     const pr=panel.getBoundingClientRect(); if(!panel.hidden&&pr.width){ const over=x+pr.width-(innerWidth-6); panel.style.left=(over>0?-over:0)+'px'; } };
