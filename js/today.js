@@ -1103,7 +1103,7 @@ function liveTodayHTML(t){
   const tipOn=cur&&DB.settings.ltTipOff!==true,tip=tipOn?`<div class="lt-tip"><i class="lt-tip-up" aria-hidden="true">${icon('arrowU',ICON_SZ.md)}</i><span>Tap the red bar to go back to <b>${hesc(cur)}</b>.</span><button type="button" data-lttip>Don’t show again</button></div>`:'';
   let h=`<section class="pw-home lt">${tip}<div class="card lt-plan"><details class="lt-fold" data-pw-fold="live:${todayISO}" ${open?'open':''}><summary class="pw-fold-summary" aria-expanded="${open}"><span class="lt-head"><small>Today · ${hesc(pwDate(todayISO))}</small><b>${hesc(parts)}</b></span>${icon('chevron',ICON_SZ.sm)}</summary><div class="lt-fold-body">`;
   h+=`<div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('open-date','Edit','edit','',`data-date="${todayISO}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${todayISO}"`)}${pwAction('plan-copy','Copy','copy','',`data-date="${todayISO}"`)}</div>${planCardHTML(now,true)}`;
-  if(future.length)h+=`<details class="pw-later pw-later-visible" data-pw-fold="later" ${pwFoldOpen('later',false)?'open':''}><summary class="pw-later-heading pw-fold-summary" aria-expanded="${pwFoldOpen('later',false)}"><span>${future.length} more ${future.length===1?'plan':'plans'}</span><small>${hesc(pwWeekdays(future))}</small></summary><div class="pw-later-list">${future.map(pwLaterDayHTML).join('')}</div></details>`;
+  if(future.length)h+=ltLaterHTML(future);   // v4.6.404: the same rows as the finished day's, not the planner's raw fold
   h+=`</div></details>`;
   if(total){const pc=Math.round(done/total*100);h+=`<div class="lt-progress" role="img" aria-label="${done} of ${total} sets done"><i style="width:${pc}%"></i></div><div class="lt-count mono">${done} of ${total} ${total===1?'set':'sets'}</div>`;}
   if(!next)h+=`<p class="lt-done">Every exercise in your plan is logged.</p>`;
@@ -1117,6 +1117,14 @@ function liveTodayHTML(t){
   return h+`</div></section>`;
 }
 document.addEventListener('click',e=>{if(!e.target.closest('[data-lttip]'))return;DB.settings.ltTipOff=true;DB.settingsAt=Date.now();save(true);render();});
+/* v4.6.404: THE DAYS AHEAD, ONE SHAPE. The finished day showed later plans as the Tomorrow row again
+   (v4.6.365); the live day still showed the planner's raw fold -- a bare disclosure triangle, the date
+   and parts stacked over a right-aligned count. Both days now draw this. */
+function ltSetsOf(p){return (p?.items||[]).map(planItemShape).reduce((n,it)=>n+(it.lines||[]).reduce((s,l)=>s+(l.reps||[]).length,0),0);}
+function ltLaterHTML(rest){
+  return `<details class="pw-later pw-later-visible" data-pw-fold="later" ${pwFoldOpen('later',false)?'open':''}><summary class="pw-later-heading pw-fold-summary" aria-expanded="${pwFoldOpen('later',false)}"><span>${rest.length} more ${rest.length===1?'plan':'plans'}</span><small>${hesc(pwWeekdays(rest))}</small>${icon('chevron',ICON_SZ.sm)}</summary><div class="pw-later-list ld-later-list">${rest.map(d=>{const p=pwSaved(d),k=ltSetsOf(p),o=pwFoldOpen('later:'+d),pp=pwParts(pwRead(planText(p))).map(partLabel).join(' + ')||'Your workout';
+      return `<details class="lt-fold ld-later-day" data-pw-fold="later:${d}" ${o?'open':''}><summary class="pw-fold-summary" aria-expanded="${o}"><span class="lt-head"><small>${d===tomorrowISO()?'Tomorrow · ':''}${hesc(pwDate(d))}${k?` · ${k} ${k===1?'set':'sets'}`:''}</small><b>${hesc(pp)}</b></span>${icon('chevron',ICON_SZ.sm)}</summary><div class="lt-fold-body"><div class="pw-home-tools" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}${pwAction('plan-copy','Copy','copy','',`data-date="${d}"`)}</div>${planCardHTML(p,false)}</div></details>`;}).join('')}</div></details>`;
+}
 /* v4.6.361: A FINISHED DAY, PLAINLY (approved mock "Today after the workout",
    Sungjee 2026-10-20). Under the day card: the next plan as one card whose arrow
    opens it with its tools (Plan, Edit, Paste, Copy) inside, the other planned
@@ -1133,11 +1141,7 @@ function closedTodayHTML(t){
     h+=`<h2 class="lt-h">${d===tomorrowISO()?'Tomorrow':'Next plan'}</h2><div class="card lt-plan ld-next"><details class="lt-fold" data-pw-fold="next:${d}" ${open?'open':''}><summary class="pw-fold-summary" aria-expanded="${open}"><span class="lt-head"><small>${hesc(pwDate(d))}${n?` · ${n} ${n===1?'set':'sets'}`:''}</small><b>${hesc(parts)}</b></span>${icon('chevron',ICON_SZ.sm)}</summary><div class="lt-fold-body">`;
     h+=`<div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}${pwAction('plan-copy','Copy','copy','',`data-date="${d}"`)}</div>${planCardHTML(plan,false)}</div></details>`;
     const rest=future.slice(1);
-    if(rest.length)h+=`<details class="pw-later pw-later-visible" data-pw-fold="later" ${pwFoldOpen('later',false)?'open':''}><summary class="pw-later-heading pw-fold-summary" aria-expanded="${pwFoldOpen('later',false)}"><span>${rest.length} more ${rest.length===1?'plan':'plans'}</span><small>${hesc(pwWeekdays(rest))}</small>${icon('chevron',ICON_SZ.sm)}</summary><div class="pw-later-list ld-later-list">${rest.map(d=>{const p=pwSaved(d),k=setsOf(p),o=pwFoldOpen('later:'+d),pp=pwParts(pwRead(planText(p))).map(partLabel).join(' + ')||'Your workout';
-      /* v4.6.365: each later day is the Tomorrow row again, smaller -- date and sets over the parts,
-         a chevron on the right -- not the planner's raw fold (a bare disclosure triangle, the date
-         and parts stacked over a right-aligned set count). One row shape for every day ahead. */
-      return `<details class="lt-fold ld-later-day" data-pw-fold="later:${d}" ${o?'open':''}><summary class="pw-fold-summary" aria-expanded="${o}"><span class="lt-head"><small>${hesc(pwDate(d))}${k?` · ${k} ${k===1?'set':'sets'}`:''}</small><b>${hesc(pp)}</b></span>${icon('chevron',ICON_SZ.sm)}</summary><div class="lt-fold-body"><div class="pw-home-tools" role="group" aria-label="Actions for ${hesc(pwDate(d))} plan">${pwAction('open-date','Edit','edit','',`data-date="${d}"`)}${pwAction('paste-open','Paste','paste','',`data-date="${d}"`)}${pwAction('plan-copy','Copy','copy','',`data-date="${d}"`)}</div>${planCardHTML(p,false)}</div></details>`;}).join('')}</div></details>`;
+    if(rest.length)h+=ltLaterHTML(rest);
     h+='</div>';
   }else{
     h+=`<h2 class="lt-h">Next plan</h2><div class="card lt-plan"><p class="lt-done">Nothing planned yet.</p><div class="pw-home-tools" role="group" aria-label="Plan actions">${pwAction('open','Plan','sparkle')}${pwAction('paste-open','Paste','paste','',`data-date="${tomorrowISO()}"`)}</div></div>`;
