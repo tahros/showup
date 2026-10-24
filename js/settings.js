@@ -386,6 +386,14 @@ function clubArrangeSettings(){
   for(const [key,title,sub,headings] of groups){const nodes=[];for(const h of Array.from(host.children).filter(n=>n.tagName==='H2'&&headings.includes(n.textContent.trim()))){nodes.push(h);let n=h.nextElementSibling;while(n&&n.tagName!=='H2'&&!n.classList.contains('assetcredits')){const next=n.nextElementSibling;nodes.push(n);n=next;}}
     if(!nodes.length)continue;const d=document.createElement('details');d.className='club-settings-group';d.dataset.clubGroup=key;d.open=clubOpenGroups.has(key);const s=document.createElement('summary');s.innerHTML=`<span><b>${title}</b><small>${sub}</small></span><span class="club-chev" aria-hidden="true">${icon('chevron',ICON_SZ.md)}</span>`;d.append(s);const content=document.createElement('div');content.className='club-group-content';nodes.forEach(n=>content.append(n));d.append(content);d.addEventListener('toggle',()=>{if(d.open)clubOpenGroups.add(key);else clubOpenGroups.delete(key)});wrap.append(d);
   }
+  /* v4.6.406: TEST MODE CAN ALWAYS BE LEFT FROM SETTINGS. The only way out was the test bar, and
+     folded to its T over the status bar it could not be tapped (Sungjee 2026-10-24). In test mode
+     the first group here is Test mode: Exit, back to the real training, or Start over. */
+  if(typeof SANDBOX!=='undefined'&&SANDBOX){const d=document.createElement('details');d.className='club-settings-group';d.dataset.clubGroup='test';d.open=clubOpenGroups.has('test');
+    d.innerHTML=`<summary><span><b>Test mode</b><small>Exit or start over</small></span><span class="club-chev" aria-hidden="true">${icon('chevron',ICON_SZ.md)}</span></summary><div class="club-group-content"><div class="card"><p class="data-count">You are trying the app as a new user. Your real training is untouched.</p><div class="data-row"><div class="data-txt"><b>Exit test mode</b><span>Back to your real training. This test record is cleared.</span></div><div class="data-acts"><button type="button" class="btn" data-sbx-act="exit">Exit</button></div></div><div class="data-row"><div class="data-txt"><b>Start over</b><span>A new user again, from the first screen.</span></div><div class="data-acts"><button type="button" class="btn ghost" data-sbx-act="restart">Start over</button></div></div></div></div>`;
+    d.addEventListener('toggle',()=>{if(d.open)clubOpenGroups.add('test');else clubOpenGroups.delete('test')});
+    d.querySelector('[data-sbx-act="exit"]').onclick=()=>sbxExit();d.querySelector('[data-sbx-act="restart"]').onclick=()=>sbxRestart();
+    wrap.prepend(d);}
   if(clubKeepPicker||clubPickerOpen){clubKeepPicker=false;clubPickerOpen=true;const pk=host.querySelector('.club-picker');if(pk){pk.hidden=false;host.querySelector('.club-avatar-button')?.setAttribute('aria-expanded','true');}}
   clubObserveMotion();
   clubBindCoin();

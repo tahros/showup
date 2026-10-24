@@ -1,5 +1,10 @@
 # ShowUppp — changelog
 
+## v4.6.406 (2026-10-24) — Test mode can always be left from Settings
+
+- **Settings → Test mode.** In test mode, the first group in Settings is Test mode: **Exit** (back to your real training; the test record is cleared) and **Start over** (a new user again). The test bar was the only way out, and folded to its T in the corner it could not be tapped (js/settings.js `clubArrangeSettings`).
+- **The test bar stays where it can be touched.** It is kept clear of the status bar and the home indicator, where iOS keeps the touches; a T already left in the corner moves down on the next open (js/core.js `sbxBar`).
+
 ## v4.6.405 (2026-10-24) — The attendance export names the part it shows
 
 - **A filtered calendar says what it shows.** With a part picked (say Triceps), the exported image lit only that part's days but never named it. A caption now sits directly above the grid — "Triceps · 38 days", the number in the blue the days are lit in — placed with the grid as one block (`shareFrame` meta.focus). All workouts is unchanged; Video and GIF already carried the line.
