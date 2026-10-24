@@ -951,6 +951,9 @@ function shareFrameDraw(src,band,meta){
   /* trim the data's own whitespace */
   const w=src.width,h=b-t,px=sx.getImageData(0,t,w,h).data,diff=i=>Math.abs(px[i]-bgPx[0])+Math.abs(px[i+1]-bgPx[1])+Math.abs(px[i+2]-bgPx[2])>24;
   let x0=w,y0=h,x1=-1,y1=-1;for(let yy=0;yy<h;yy+=1)for(let xx=bl;xx<br;xx+=2){if(diff((yy*w+xx)*4)){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(yy<y0)y0=yy;if(yy>y1)y1=yy;}}
+  /* v4.6.405: a card that knows its own width keeps it -- in light the attendance grid's empty days are
+     too near the paper to be found, so its last column (Saturday) was being trimmed off */
+  if(band?.keepX&&x1>=0){x0=bl;x1=br-2;}
   /* v4.6.317: a list too long for 4:5 switches the canvas to 9:16 (1920) so its type never shrinks;
      everything else stays 4:5 and fits by scaling down */
   const HH=meta.grow&&y1>=0&&y1-y0+1>SHARE_H-SHARE_M-232*100/350-80-SHARE_BAND?1920:SHARE_H;   /* two sizes only: 4:5 or 9:16 */
@@ -973,12 +976,18 @@ function shareFrameDraw(src,band,meta){
   /* v4.6.350: the crew at 2x (96, was 48), its body -- not its padded box -- 4px off the name (Sungjee, 2026-10-17) */
   const CS=96,nw=name?x.measureText(name).width+16:0,edge=SHARE_W-SHARE_M-nw,cf=crewFoot(clubAvatar()[0]);
   if(!shareDrawCompanion(x,edge-CS*(cf[1]+cf[2]/2)-4,rowMid-CS/2,CS)){const pip=sharePipImg();if(shareReady(pip)){const ph=CS*pip.naturalHeight/pip.naturalWidth*1.5,pw=ph*pip.naturalWidth/pip.naturalHeight;const pf=crewFoot('pip');x.drawImage(pip,edge-pw*(pf[1]+pf[2]/2)-4,rowMid-ph/2,pw,ph);}}
-  const bandBot=rule-40,bw=SHARE_W-SHARE_M*2,bh=bandBot-bandTop;
+  /* v4.6.405: A FILTERED CARD SAYS WHAT IT SHOWS. meta.focus {name,n,color} -- "Triceps · 42 days",
+     the number in the colour its squares are lit in -- rides directly above the data as its caption,
+     the two placed as one block (Sungjee 2026-10-23: the exported calendar showed one part, unnamed) */
+  const FH=meta.focus?72:0,bandBot=rule-40,bw=SHARE_W-SHARE_M*2,bh=bandBot-bandTop-FH;
   /* the data, never enlarged, placed in the band per meta.valign */
   if(x1>=0){const cw=x1-x0+2,ch=y1-y0+1,k=Math.min(1,bw/cw,bh/ch),dw=cw*k,dh=ch*k;
     /* lists hang from the top, objects stand on the floor, charts sit centred */
     const dy=meta.valign==='top'?0:meta.valign==='bottom'?bh-dh:(bh-dh)/2;
-    x.drawImage(src,x0,t+y0,cw,ch,(SHARE_W-dw)/2,bandTop+dy,dw,dh);}
+    x.drawImage(src,x0,t+y0,cw,ch,(SHARE_W-dw)/2,bandTop+FH+dy,dw,dh);
+    if(meta.focus){const f=meta.focus,a=f.name+' · ',b=String(f.n),c=String(f.n)==='1'?' day':' days',Y=bandTop+FH+dy-34;
+      x.font='500 34px '+SHARE_SANS;x.textAlign='left';const wa=x.measureText(a).width,wb=x.measureText(b).width,wc=x.measureText(c).width;let X=C-(wa+wb+wc)/2;
+      x.fillStyle=ink;x.fillText(a,X,Y);X+=wa;x.fillStyle=f.color||ink;x.fillText(b,X,Y);X+=wb;x.fillStyle=ink;x.fillText(c,X,Y);}}
   return out;
 }
 function crewSwitch(k){
